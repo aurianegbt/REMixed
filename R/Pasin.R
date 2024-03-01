@@ -1,31 +1,42 @@
-#' Antibodies concentration
+#' Generate trajectory of the Humoral Immune Response to a Prime-Boost Ebola Vaccine
 #'
-#' @param t time
-#' @param A0 antibody at baseline
-#' @param phi_S phi_S
-#' @param phi_L phi_L
-#' @param delta_Ab delta_Ab
-#' @param delta_S delta_S
-#' @param delta_L delta_L
+#'The model correspond to the dynamics of the humoral response, from 7 days after the boost immunization. Model is defined as
+#' \deqn{ \frac{d}{dt} Ab(t) = \varphi_S e^{-\delta_S t} + \varphi_L e^{-\delta_L t} - \delta_{Ab} Ab(t) }
 #'
-#' @return éa
-#' @export
+#' @param t vector of time ;
+#' @param y initial condition, named vector of form c(A=A0) ;
+#' @param parms named vector of model parameter ; should contain ""phi_S","phi_L","delta_Ab","delta_S","delta_L".
 #'
-#' @examples a
-Pasin <- function(t,A0,phi_S,phi_L,delta_Ab,delta_S=0.23,delta_L=0.000316){
+#' @return Matrix of time and observation of antibody titer Ab.
+#'
+#' @examples
+#' y = c(A=0)
+#'
+#' parms = c(phi_S = 3057,
+#'           phi_L = 16.6,
+#'           delta_Ab = 0.025,
+#'           delta_S = 0.231,
+#'           delta_L = 0.000316)
+#'
+#' t = seq(0,100,5)
+#'
+#' res <- Pasin(t,y,parms)
+#'
+#' plot(res)
+#'
+#' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
 
-  y =c(A=A0)
-  parms=c(phi_S=phi_S,
-          phi_L=phi_L,
-          delta_Ab=delta_Ab,
-          delta_S=delta_S,
-          delta_L=delta_L)
-
+Pasin <- function(t,y,parms){
+  #phi_S,phi_L,delta_Ab,delta_S=0.23,delta_L=0.000316
+  if(!identical(names(y),"A")){
+    stop()
+  }
+  if(!setequal(names(parms),c("phi_S","phi_L","delta_Ab","delta_S","delta_L"))){
+    stop()
+  }
   out <- deSolve::ode(y,t,modelPasin,parms)
   return(out)
 }
-
-
 
 
 # Model -------------------------------------------------------------------
