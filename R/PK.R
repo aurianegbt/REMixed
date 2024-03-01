@@ -1,25 +1,40 @@
-#' Individual PK trajectory
+#' Generate trajectory of PK model
 #'
-#' @description
-#' The administration is via a bolus.
-#' The PK model has one compartment (volume $V$) and a linear elimination (clearance $Cl$).
+#' The administration is via a bolus. The PK model has one compartment (volume V) and a linear elimination (clearance Cl). The parameter ka is defined as \eqn{ ka=\frac{Cl}{V}}.
 #'
-#' @param t vector of observation times.
-#' @param Cl Cleareance of subject.
-#' @param V Compartment volume of subject.
-#' @param C0 Initial concentration $C(t=0)$.
-#' @param ka ka value
+#' @param t vector of time ;
+#' @param y initial condition, named vector of form c(C=C0) ;
+#' @param parms named vector of model parameter ; should contain either "Cl" and "V" or "ka".
 #'
-#' @return The concentration $C(t)$ of subject defined by individual parameters $Cl$, $V$ and $C_0$.
-#' @export
+#' @return Matrix of time and observation of Concentration C.
 #'
-#' @examples a NE VA PAS NIVEAU PLOT TIME !!!! TIME A RETOURNER ! VOIR OBJET DESOLVE
+#' @examples
+#' res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
+#'
+#' plot(res)
 
-PK <- function(t,C0,Cl=NULL,V=NULL,ka=Cl/V){
-  if(identical(ka,numeric(0))){
-    stop("ka, or, Cl and V, need to be provided.")
-  }else if(!is.null(Cl) && !is.null(V) && ka!=Cl/V){
-    warning(paste0("Contradictory values given, Cl and V parameters are ignored and ka=",ka))
+PK <- function(t,y,parms){
+  if(!setequal(names(y),"C")){
+    stop()
   }
-  return(C0 * exp(-ka*t))
+  if(!setequal(names(parms),c("Cl","V")) & !setequal(names(parms),c("ka")) & setequal(names(parms),c("Cl","V","ka"))){
+    stop()
+  }
+
+  if(setequal(names(parms),c("Cl","V"))){
+    ka = parms[["Cl"]]/parms[["V"]]
+  }else if(setequal(names(parms),c("ka"))){
+    ka = parms[["ka"]]
+  }else{
+    Cl = parms[["Cl"]]
+    V = parms[["V"]]
+    ka = parms[["ka"]]
+    if(ka!=Cl/V){
+      warning(paste0("Contradictory values given, Cl and V parameters are ignored and ka=",ka))
+    }
+  }
+
+  C0 = y[["C"]]
+
+  return(as.matrix(data.frame(time=t,C=C0*exp(-ka*t))))
 }
