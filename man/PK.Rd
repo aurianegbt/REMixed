@@ -2,28 +2,25 @@
 % Please edit documentation in R/PK.R
 \name{PK}
 \alias{PK}
-\title{Individual PK trajectory}
+\title{Generate trajectory of PK model}
 \usage{
-PK(t, C0, Cl = NULL, V = NULL, ka = Cl/V)
+PK(t, y, parms)
 }
 \arguments{
-\item{t}{vector of observation times.}
+\item{t}{vector of time ;}
 
-\item{C0}{Initial concentration $C(t=0)$.}
+\item{y}{initial condition, named vector of form c(C=C0) ;}
 
-\item{Cl}{Cleareance of subject.}
-
-\item{V}{Compartment volume of subject.}
-
-\item{ka}{ka value}
+\item{parms}{named vector of model parameter ; should contain either "Cl" and "V" or "ka".}
 }
 \value{
-The concentration $C(t)$ of subject defined by individual parameters $Cl$, $V$ and $C_0$.
+Matrix of time and observation of Concentration C.
 }
 \description{
-The administration is via a bolus.
-The PK model has one compartment (volume $V$) and a linear elimination (clearance $Cl$).
+The administration is via a bolus. The PK model has one compartment (volume V) and a linear elimination (clearance Cl). The parameter ka is defined as \eqn{ ka=\frac{Cl}{V}}.
 }
 \examples{
-a
+res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
+
+plot(res)
 }

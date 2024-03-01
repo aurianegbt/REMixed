@@ -2,31 +2,40 @@
 % Please edit documentation in R/Pasin.R
 \name{Pasin}
 \alias{Pasin}
-\title{Antibodies concentration}
+\title{Generate trajectory of the Humoral Immune Response to a Prime-Boost Ebola Vaccine}
 \usage{
-Pasin(t, A0, phi_S, phi_L, delta_Ab, delta_S = 0.23, delta_L = 0.000316)
+Pasin(t, y, parms)
 }
 \arguments{
-\item{t}{time}
+\item{t}{vector of time ;}
 
-\item{A0}{antibody at baseline}
+\item{y}{initial condition, named vector of form c(A=A0) ;}
 
-\item{phi_S}{phi_S}
-
-\item{phi_L}{phi_L}
-
-\item{delta_Ab}{delta_Ab}
-
-\item{delta_S}{delta_S}
-
-\item{delta_L}{delta_L}
+\item{parms}{named vector of model parameter ; should contain ""phi_S","phi_L","delta_Ab","delta_S","delta_L".}
 }
 \value{
-éa
+Matrix of time and observation of antibody titer Ab.
 }
 \description{
-Antibodies concentration
+The model correspond to the dynamics of the humoral response, from 7 days after the boost immunization. Model is defined as
+\deqn{ \frac{d}{dt} Ab(t) = \varphi_S e^{-\delta_S t} + \varphi_L e^{-\delta_L t} - \delta_{Ab} Ab(t) }
 }
 \examples{
-a
+y = c(A=0)
+
+parms = c(phi_S = 3057,
+          phi_L = 16.6,
+          delta_Ab = 0.025,
+          delta_S = 0.231,
+          delta_L = 0.000316)
+
+t = seq(0,100,5)
+
+res <- Pasin(t,y,parms)
+
+plot(res)
+
+}
+\references{
+Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
 }
