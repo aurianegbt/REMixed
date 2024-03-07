@@ -23,6 +23,7 @@
 #' @param transfo.inv named list of inverse transformation for `Psi_pop` and `psi_pop` parameters ; if NULL id transformation is used.
 #'
 #' @return a list with `Psi_i` and `psi_i` parameters.
+#' @export
 #'
 #' @examples
 #'
