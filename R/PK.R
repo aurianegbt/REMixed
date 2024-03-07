@@ -7,6 +7,7 @@
 #' @param parms named vector of model parameter ; should contain either "Cl" and "V" or "ka".
 #'
 #' @return Matrix of time and observation of Concentration C.
+#' @export
 #'
 #' @examples
 #' res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
@@ -15,10 +16,10 @@
 
 PK <- function(t,y,parms){
   if(!setequal(names(y),"C")){
-    stop()
+    stop(paste0("Missing initial condition for ",setdiff(c("C"),names(y))," and ",setdiff(names(y),c("C"))," isn't in the model."))
   }
   if(!setequal(names(parms),c("Cl","V")) & !setequal(names(parms),c("ka")) & setequal(names(parms),c("Cl","V","ka"))){
-    stop()
+    stop(paste0("Missing parmeters, parms should include either Cl and V, or ka."))
   }
 
   if(setequal(names(parms),c("Cl","V"))){

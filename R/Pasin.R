@@ -8,6 +8,7 @@
 #' @param parms named vector of model parameter ; should contain ""phi_S","phi_L","delta_Ab","delta_S","delta_L".
 #'
 #' @return Matrix of time and observation of antibody titer Ab.
+#' @export
 #'
 #' @examples
 #' y = c(A=0)
@@ -29,10 +30,10 @@
 Pasin <- function(t,y,parms){
   #phi_S,phi_L,delta_Ab,delta_S=0.23,delta_L=0.000316
   if(!identical(names(y),"A")){
-    stop()
+    stop(paste0("Missing initial condition for ",setdiff(c("A"),names(y))," and ",setdiff(names(y),c("A"))," isn't in the model."))
   }
   if(!setequal(names(parms),c("phi_S","phi_L","delta_Ab","delta_S","delta_L"))){
-    stop()
+    stop(paste0("Missing parmeters ",setdiff(c("phi_S","phi_L","delta_Ab","delta_S","delta_L"),names(parms))," and ",setdiff(names(parms),c("phi_S","phi_L","delta_Ab","delta_S","delta_L"))," isn't in the model."))
   }
   out <- deSolve::ode(y,t,modelPasin,parms)
   return(out)
