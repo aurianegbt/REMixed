@@ -18,6 +18,7 @@
 #' @param prune a
 #'
 #' @return a
+#' @import foreach
 #' @export
 #'
 #' @examples a
@@ -25,97 +26,99 @@ gh.int.ind <- function( Omega, # NAMED matrix of covariance, size m
                         theta, # model parameter contain Psi_pop (size L), psi_pop (size m), Beta (size L), beta size(m), alpha0 (size K)
                         alpha1, # regularization parameter (size K )
                         dynFun, # Function dynamic
-                        identifier.SR, # SAME ORDER AS IN OBSMODEL[[1]] and Sobs and Serr
                         y,      # initial condition, confom to what is asked in dynFun
                         covariates, # covariance matrix, individual in line (N x n )
                         ParModel.transfo, # list of transfo function, named list (consistent with Psi_pop) size <= L
                         ParModel.transfo.inv, # list of transfo function, named list (consistent with psi_pop), size <= K
                         Sobs, # list (size P) with matrix of time and all observation in column (N+1 column)
                         Robs, # list (size K) with matrix of time and all observation in column (N+1 column) ; with NA when individual not observed (?)
-                        Serr, # vector (size K) of sigma
-                        Rerr, # vector (size P) of sigma
-                        ObsModel.transfo, # list of 2 list of P,K transfo (need to include id)
+                        Serr, # vector (size P) of sigma
+                        Rerr, # vector (size K) of sigma
+                        ObsModel.transfo, # list of 2 list of P,K transfo (need to include id) NAMED
+                        # ObsModel.transfo$S correspond to the transfo used for direct observation model. FOr each Yp=hp(Sp) the order (as in Sobs) must be respected and the name indicated which dynamic for dynFun is observed through this variables Yp
+                        # ObsModel.transfo$R correspond to the transfo used for the latent process, as it is now, we only have on latent dynamic so necessarily sk is applied to R but for each Yk observed, trans could be different so need to precise as many as in Robs ; need to precise R dyn name to identify it in the output of dynFun
+                        # DO NOT FORGET TO INCLUDE THE IDENTITY TRANSFORMATION
                         n=3,
                         prune=NULL){
   # doParallel::registerDoParallel(cluster <- parallel::makeCluster(parallel::detectCores()-5))
   # check to do
 
   if(ncol(Omega)!=1){
-    mh.parm <- mgauss.hermite(n,Omega,prune=prune)
+    mh.parm <- mgauss.hermite(n,Omega=Omega,prune=prune)
   }else{
     mh.parm <- gauss.hermite(n)
   }
   nd = nrow(mh.parm$points)
   N = nrow(covariates)
+  R.sz = length(Rerr)
+  S.sz = length(Serr)
   root.Omega = solve(Omega)
   all.tobs = sort(union(unlist(lapply(Robs,FUN=function(x){x$time})),unlist(lapply(Sobs,FUN=function(x){x$time}))))
 
   # Need to compute, for each eta_i x individual i, the dynamics of the model
-  dyn <- foreach(i = 1:N,.combine=append,.packages="LassoLLPen") %dopar% {
-    list(lapply(split(mh.parm$points,1:nd),FUN=function(eta_i){
+  dyn <- setNames(foreach(i = 1:N,.combine=append,.packages="LassoLLPen") %dopar% {
+    list(setNames(lapply(split(mh.parm$points,1:nd),FUN=function(eta_i){
       PSI_i  = indParm(theta[c("Psi_pop","psi_pop","Beta","beta")],covariates[i,,drop=F],setNames(eta_i,colnames(Omega)),ParModel.transfo,ParModel.transfo.inv)
       dyn_eta_i <- dynFun(all.tobs,y,unlist(unname(PSI_i)))
 
       return(dyn_eta_i)
-    }))
-  }
-  names(dyn) <- paste0("ind_",1:N)
+    }),paste0("eta_",1:nd)))
+  }, paste0("ind_",1:N))
 
-  ## Calcul de f(Zi;theta_l,alpha_l,eta_i) et A(Yi;theta_l,eta_i)
-  # eta_i en colonne, dans l'order, ind en ligne
-  f.compute_i <- foreach(i = 1:N,.combine=rbind,.packages="LassoLLPen") %dopar% {
-    sapply(1:nd,FUN=function(ei){
-      Zi = lapply(Robs,FUN=function(x){x[,c(1,i+1)]})
-      dyn_ei = dyn[[i]][[ei]][,c("time",identifier.SR$R)]
+  # Compute marginal latent density for each individual and value of RE
+  R.margDensity <- foreach(i = 1:N,.combine = rbind,.packages = "LassoLLPen") %dopar%{
+    # For each individual and eta_i fixed, we want to compute the marginal density of (R_k)_{k\leq K}
+    eval_eta_i = setNames(sapply(1:nd,FUN=function(ei){
+      dyn.ei = dyn[[paste0("ind_",i)]][[paste0("eta_",ei)]]
 
-      aux = prod(sapply(1:length(Zi),FUN=function(k){
-        tkij = Zi[[k]][!is.na(Zi[[k]][[2]]),"time"]
-        Zki = Zi[[k]][!is.na(Zi[[k]][[2]]),2]
-        R.tkij = dyn_ei[dyn_ei[,1] %in% tkij,2]
+      res = prod(sapply(1:R.sz,FUN=function(k){
+        sig = Rerr[[k]]
+        Zki = Robs[[k]][,c("time",paste0("ind_",i))]
+        tki = Zki[!is.na(Zki[,2]),1]
+        Zki = Zki[Zki$time %in% tki,2]
 
-        return(prod(
-          1/(Rerr[[k]]*sqrt(2*pi))*
-            exp(-1/2*((Zki-theta$alpha0[k]-alpha1[k]*ObsModel.transfo[[2]][[k]](R.tkij))/Rerr[[k]])**2)))
+        a0 = theta$alpha0[[k]]
+        a1 = alpha1[[k]]
+        trs = ObsModel.transfo[[2]][k]
+        Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+        plot(Rki)
+        plot(Zki)
+
+        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
       }))
-      return(as.numeric(aux)) # aux is f(Zi;theta_l,alpha_l,eta_i) for a i and a eta_i
-    })
+    }),paste0("eta_",1:nd))
   }
 
-  A.compute_i <- foreach(i = 1:N,.combine=rbind,.packages="LassoLLPen") %dopar% {
-    sapply(1:nd,FUN=function(ei){
-     Yi = lapply(Sobs,FUN=function(x){x[,c(1,i+1)]})
-     dyn_ei = dyn[[i]][[ei]][,c("time",identifier.SR$S)]
+  # Compute marginal density for each individual and value of RE
+  S.margDensity <- foreach(i = 1:N,.combine = rbind,.packages = "LassoLLPen") %dopar%{
+    # For each individual and eta_i fixed, we want to compute the marginal density of (S_p)_{p\leq P}
+    eval_eta_i = setNames(sapply(1:nd,FUN=function(ei){
+      dyn.ei = dyn[[paste0("ind_",i)]][[paste0("eta_",ei)]]
 
-      aux = prod(sapply(1:length(Yi),FUN=function(p){
-        tpij = Yi[[p]][!is.na(Yi[[p]][[2]]),"time"]
-        Ypi = Yi[[p]][!is.na(Yi[[p]][[2]]),2]
-        S.tpij = dyn_ei[dyn_ei[,1] %in% tpij,p+1] # identifier.SR same order as in Yp
+      res = prod(sapply(1:S.sz,FUN=function(p){
+        sig = Serr[[p]]
+        Ypi = Sobs[[p]][,c("time",paste0("ind_",i))]
+        tpi = Ypi[!is.na(Ypi[,2]),1]
+        Ypi = Ypi[Ypi$time %in% tpi,2]
 
-        return(prod(
-          1/(Serr[[p]]*sqrt(2*pi))*exp(-1/2*((Ypi-ObsModel.transfo[[1]][[p]](S.tpij))/Serr[[p]])**2)))})) * 1/((2*pi)**(ncol(Omega)/2)*det(Omega)**(1/2))*exp(-1/2*matrix(mh.parm$points[ei,],nrow=1)%*%root.Omega%*%matrix(mh.parm$points[ei,],ncol=1))
-      return(as.numeric(aux)) # aux is A(Yi;theta_l,eta_i) for a i and a eta_i
-    })
+        trs = ObsModel.transfo[[1]][p]
+        Spi = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tpi,names(trs)])
+        plot(Ypi)
+        plot(Spi)
+
+        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Ypi-Spi)/sig)**2))
+      }))
+    }),paste0("eta_",1:nd))
   }
-  ## Calcul de LL(theta_l,alpha_l)
+
+  # Compute individual Likelihood
   LLi = sapply(1:N,FUN=function(i){
-    int_i <- sum(mh.parm$weights * f.compute_i[i,]*A.compute_i[i,])
-    # int_i <- sum(mh.parm$weights * mpfr(f.compute_i[i,],precBits = 100)*mpfr(A.compute_i[i,],precBits = 100))
+    sum(mh.parm$weights*R.margDensity[i,]*S.margDensity[i,])
   })
-  LL = log(prod(LLi)) # Il y a des -inf... comment les gérer ?
-
-  ## Calcul du gradient  dLL(theta_l,alpha_l)
-  dLL = sapply(1:length(alpha1),FUN=function(k){
-
-
-
-
-
-    return(dLL_k)
-  })
-
-  ## Calcul de d²LL(theta_l,alpha_l)
 
 }
+
+
 # Hermite polynomial ------------------------------------------------------
 # \int f(x)exp(-x²)dx=sum wi * f(xi)
 hermite <- function(n){
