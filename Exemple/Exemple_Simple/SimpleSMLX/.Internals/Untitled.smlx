@@ -1,0 +1,39 @@
+
+<MODEL>
+file = '../../SimpleSMLX.txt'
+
+<SIMULX>
+
+[SETTINGS]
+GLOBAL:
+exportpath='../'
+
+[DEFINITION]
+POPULATION:
+parameters={p1_pop, omega_p1, p2, alpha1, alpha2, sigma_S, sigma_G1, sigma_G2}
+'PopParameters' = {{{values={3, 0.8, 1, 0.5, -0.3, 0.5, 0.1, 0.1}}}}
+
+OUTPUT:
+'regularYS' = {output=yS, {{start=0, interval=50, final=100}}}
+'regularYG1' = {output=yG1, {{start=0, interval=50, final=100}}}
+'regularYG2' = {output=yG2, {{start=0, interval=50, final=100}}}
+'regularS' = {output=S, {{start=0, interval=1, final=100}}}
+'regularG1' = {output=G1, {{start=0, interval=1, final=100}}}
+'regularG2' = {output=G2, {{start=0, interval=1, final=100}}}
+
+INDIVIDUAL:
+parameters={p1}
+'IndivParameters' = {{{values={1}}}}
+
+[SIMULATION]
+GROUPS:
+'simulationGroup1'={size=50, parameter='PopParameters', remaining={alpha1=1, alpha2=1, sigma_G1=1, sigma_G2=1, sigma_S=1}, outputs={'regularYS', 'regularYG1', 'regularYG2'}}
+
+[EXPLORATION]
+GROUPS:
+'explorationGroup1'={remaining={alpha1=1, alpha2=1, sigma_G1=1, sigma_G2=1, sigma_S=1}, parameter='IndivParameters', outputs={'regularG2', 'regularG1', 'regularS'}}
+
+[TASKS]
+simulation()
+endpoint(run=false)
+

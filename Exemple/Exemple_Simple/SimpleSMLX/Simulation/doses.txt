@@ -1,0 +1,1 @@
+id,time,amt,tinf,admtype,washout,group

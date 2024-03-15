@@ -1,0 +1,65 @@
+<DATAFILE>
+
+[FILEINFO]
+file='../../data_generated.csv'
+delimiter = comma
+header={ID, TIME, obs, obsid}
+
+[CONTENT]
+ID = {use=identifier}
+TIME = {use=time}
+obs = {use=observation, yname={'yG1', 'yG2', 'yS'}, type={continuous, continuous, continuous}}
+obsid = {use=observationtype}
+
+[SETTINGS]
+dataType = {'yG1'=plasma, 'yG2'=plasma, 'yS'=plasma}
+
+<MODEL>
+
+[INDIVIDUAL]
+input = {p1_pop, omega_p1, alpha1_pop, alpha2_pop, p2_pop}
+
+DEFINITION:
+p1 = {distribution=normal, typical=p1_pop, sd=omega_p1}
+alpha1 = {distribution=normal, typical=alpha1_pop, no-variability}
+alpha2 = {distribution=normal, typical=alpha2_pop, no-variability}
+p2 = {distribution=normal, typical=p2_pop, no-variability}
+
+[LONGITUDINAL]
+input = {sigma_S, sigma_G1, sigma_G2}
+
+file = '../../model_generated.txt'
+
+DEFINITION:
+yS = {distribution=normal, prediction=S, errorModel=constant(sigma_S)}
+yG1 = {distribution=normal, prediction=G1, errorModel=constant(sigma_G1)}
+yG2 = {distribution=normal, prediction=G2, errorModel=constant(sigma_G2)}
+
+<FIT>
+data = {'yG1', 'yG2', 'yS'}
+model = {yG1, yG2, yS}
+
+<PARAMETER>
+alpha1_pop = {value=0.5, method=FIXED}
+alpha2_pop = {value=-0.3, method=FIXED}
+omega_p1 = {value=0.8, method=MLE}
+p1_pop = {value=3, method=FIXED}
+p2_pop = {value=1, method=FIXED}
+sigma_G1 = {value=0.1, method=MLE}
+sigma_G2 = {value=0.1, method=MLE}
+sigma_S = {value=0.5, method=MLE}
+
+<MONOLIX>
+
+[TASKS]
+populationParameters()
+individualParameters(method = {conditionalMean, conditionalMode })
+fim(run = false,method = StochasticApproximation)
+logLikelihood(run = false,method = ImportanceSampling)
+plotResult(method = {indfits, obspred, vpc, parameterdistribution, covariatemodeldiagnosis, randomeffects, covariancemodeldiagnosis, residualsscatter, residualsdistribution, saemresults })
+
+[SETTINGS]
+GLOBAL:
+exportpath = '../'
+dataandmodelnexttoproject = yes
+
