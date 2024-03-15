@@ -14,9 +14,7 @@
 #' @examples
 #' y = c(S=1,A=0)
 #'
-#' parms = c(t_0 = 0,
-#'           t_inj = 21,
-#'           fM2 = 4.5,
+#' parms = c(fM2 = 4.5,
 #'           theta = 18.7,
 #'           delta_S = 0.01,
 #'           delta_Ab = 0.23,
@@ -35,8 +33,8 @@ Clairon <- function(t,y,parms){
   if(!setequal(names(y),c("S","A"))){
     stop(paste0("Missing initial condition for ",setdiff(c("S","A"),names(y))," and ",setdiff(names(y),c("S","A"))," isn't in the model."))
   }
-  if(!setequal(names(parms),c("t_0","t_inj","fM2","theta","delta_S","delta_Ab","delta_V"))){
-    stop(paste0("Missing parmeters ",setdiff(c("t_0","t_inj","fM2","theta","delta_S","delta_Ab","delta_V"),names(parms))," and ",setdiff(names(parms),c("t_0","t_inj","fM2","theta","delta_S","delta_Ab","delta_V"))," isn't in the model."))
+  if(!setequal(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))){
+    stop(paste0("Missing parmeters ",setdiff(c("fM2","theta","delta_S","delta_Ab","delta_V"),names(parms))," and ",setdiff(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))," isn't in the model."))
   }
   out <- deSolve::ode(y,t,modelClairon,parms)
   return(out)
@@ -47,6 +45,9 @@ Clairon <- function(t,y,parms){
 
 modelClairon <- function(t,y,parms){
   with(as.list(c(y, parms)), {
+
+    t_0 = 0
+    t_inj = 21
 
     if(t < t_inj){
       C = 1
