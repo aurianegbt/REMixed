@@ -2,7 +2,7 @@
 % Please edit documentation in R/gh_int_ind.R
 \name{gh.int.ind}
 \alias{gh.int.ind}
-\title{Gauss-Hermite approximation of log-likelihood derivates}
+\title{Gauss-Hermite approximation of individual log-likelihood derivates}
 \usage{
 gh.int.ind(
   mu_i,
@@ -19,12 +19,7 @@ gh.int.ind(
   Serr,
   Rerr,
   ObsModel.transfo,
-  n = if (length(theta$psi_pop) != 1) {
-     log(100, base = length(theta$psi_pop))
- }
-    else {
-     100
- },
+  n = floor(100^(1/length(theta$psi_pop))),
   prune = NULL
 )
 }
@@ -33,7 +28,7 @@ gh.int.ind(
 
 \item{Omega_i}{Named diagonal matrix of individual standard deviation estimation (size m x m) ;}
 
-\item{theta}{model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (size L), beta size(m), alpha0 (size K);}
+\item{theta}{model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);}
 
 \item{alpha1}{Regularization parameter (size K ) ; must be in the same order as in Robs_i.}
 
@@ -51,15 +46,17 @@ gh.int.ind(
 
 \item{Robs_i}{list of latent observation (size K), each element contain time and observation (in column 3) ;}
 
-\item{Serr}{vector of size P containing estimated error model constant (must be in the same order os in Sobs)}
+\item{Serr}{vector of size P containing estimated error model constant (must be in the same order os in Sobs_i)}
 
-\item{Rerr}{vector of size K containing estimated error model constant (must be in the same order os in Robs)}
+\item{Rerr}{vector of size K containing estimated error model constant (must be in the same order os in Robs_i)}
 
 \item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
-- ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
-- ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.}
 
-\item{n}{(default 5) number of points for gaussian quadrature ;}
+  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in `Sobs_i`) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
+
+  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in `Robs_i` ; the name need be set to precise the dynamic from dynFun to identify the output.}
+
+\item{n}{(default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;}
 
 \item{prune}{(default NULL) percentage in [0;1] for prunning.}
 }
@@ -67,63 +64,17 @@ gh.int.ind(
 a list with the approximation by Gauss-Hermite quadrature of the likelihood `Li`, the log-likelihoo `LLi`, the gradient of the log-likelihood `dLLi` and the Hessien of the log-likelihood `ddLLi` in point \eqn{\theta,\alpha}.
 }
 \description{
-Compute Gauss-Hermite approximation of individual log-likelihood and its derivates in NLMEM with latent observation process
+Compute Gauss-Hermite approximation of individual log-likelihood and its derivates in NLMEM with latent observation process.
 }
 \details{
-Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the individual process over the time, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m}} for the considered individual, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i}  contains in `covariates_i`, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} where \eqn{\mu_i} (`mu_i`) is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} (`Omega_i`) is the diagonal matrix of estimated strandard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}} (contain in `theta` through `psi_pop`)  and \eqn{\beta=(\beta_l)_{l\leq m}} (contain in `theta` through `beta`) is the vector of covariates effects on parameters.
-The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
-We assume that individual trajectories \eqn{(S_{pi})_{p\leq P}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}}, contain in `Sobs_i` with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P} (contain in `Serr`).
+Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the individual process,  for the individual considered here, over the time, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m}} for the considered individual, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i}  contains in `covariates_i`, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} where \eqn{\mu_i} (`mu_i`) is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} (`Omega_i`) is the diagonal matrix of estimated strandard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}} (contain in `theta` through `psi_pop`)  and \eqn{\beta=(\beta_l)_{l\leq m}} (contain in `theta` through `beta`) is the vector of covariates effects on parameters.
+The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{\phi_i}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+We assume that individual trajectories \eqn{(S_{pi})_{p\leq P}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}}, contain in `Sobs_i` with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P} (contain in `Serr`).
 The individual trajectory \eqn{R_{i}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} (contains in arguments `Robs_i`) where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)} (contains in `Rerr`).
 }
 \examples{
-set.seed(17101999)
-suppressMessages({
-library(lixoftConnectors)
-library(dplyr)
-initializeLixoftConnectors()
-loadProject("Exemple/Exemple_Clairon/ClaironMLX.mlxtran")
-})
-N = 100
-# 2 parameters with r.e. : fM2 and theta
-random.effect = getEstimatedRandomEffects(method="conditionalMean")
-Omega = lapply(1:N,FUN=function(i){
-  eta_fM2_sd = random.effect$conditionalSD[i,2]
-  eta_theta_sd =  random.effect$conditionalSD[i,5]
-  Omega_i = diag(c(eta_fM2_sd**2,eta_theta_sd**2))
-  rownames(Omega_i) <- colnames(Omega_i) <- c("fM2","theta")
-  return(Omega_i)
- })
- mu = lapply(1:N,FUN=function(i){
-   eta_fM2_mean = random.effect$conditionalMean[i,2]
-   eta_theta_mean=random.effect$conditionalMean[i,5]
-   mu_i = setNames(c(eta_fM2_mean,eta_theta_mean),c("fM2","theta"))
-   return(mu_i)
- })
- phi_pop = c(delta_V=2.7,delta_S=0.01,delta_Ab=0.03)
- psi_pop = c(fM2 = 4.5,theta=18.7) # m=2
- gamma = NULL
- beta = NULL
- alpha0 = rep(0,2) # K=2
- theta=setNames(list(phi_pop,psi_pop,gamma,beta,alpha0),c("phi_pop","psi_pop","gamma","beta","alpha0"))
- alpha1 = c(0.2,0.2) # K=2
- dynFun = Clairon
- y = c(S=5,A=0.5)
- covariates =mvtnorm::rmvnorm(N,mean = rep(0,10)) # N=100
- ParModel.transfo = list(fM2=log,theta=log) # m=2
- ParModel.transfo.inv = list(fM2 = exp,theta=exp) # m=2
- sim = getObservationInformation()
- Sobs = sim["yAB"]
- Robs = sim[c("yG1","yG2")]
- Serr = 0.23 # P=1 sd here
- Rerr = c(0.1,0.4) #K=2 sd here
- ObsModel.transfo = list(S=list(A=log10),R=list(S=function(x){x},S=function(x){x})) # P+K=3
- # For individual i (i=1 in example) ---------------------------------------
- i=1
- Omega_i = Omega[[i]]
- mu_i = mu[[i]]
- covariates_i = covariates[i,,drop=F]
- Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==i,]})
- Robs_i = lapply(Robs,FUN=function(R){R[R$id==i,]})
-
-gh.int.ind(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.transfo,ParModel.transfo.inv,Sobs_i,Robs_i,Serr,Rerr,ObsModel.transfo,n=5,prune=NULL)
+#TODO
+}
+\seealso{
+[gh.int()]
 }

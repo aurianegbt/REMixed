@@ -1,0 +1,67 @@
+#' Gauss-Hermite approximation of log-likelihood derivates
+#'
+#' @description
+#' Compute Gauss-Hermite approximation of the log-likelihood and its derivates in NLMEM with latent observation process
+#'
+#' @details
+#' Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}  contains in the rows of the matrix `covariates`, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} (in the list `mu`) is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} (in the list `Omega`) is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}} (contain in `theta` through `psi_pop`)  and \eqn{\beta=(\beta_l)_{l\leq m}} (contain in `theta` through `beta`) is the vector of covariates effects on parameters.
+#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+#' We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}}, contain in the list `Sobs` with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P} (contain in `Serr`).
+#' The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} (contains in the list `Robs`) where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)} (contains in `Rerr`).
+#'
+#' @param theta model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);
+#' @param alpha1 Regularization parameter (size K ) ; must be in the same order as in Robs_i.
+#' @param dynFun Dynamic function ;
+#' @param y Initial condition of the model, conform to what is asked in dynFun ;
+#' @param ParModel.transfo named list of transformation function for individual parameter model, (the name must be consistent with phi_pop) (size <=L, missing is set to identity) ;
+#' @param ParModel.transfo.inv named list of inverse transformation function for individual parameter model, (the name must be consistent with phi_pop) (size <=L, missing is set to identity) ;
+#' @param Serr vector of size P containing estimated error model constant (must be in the same order os in Sobs)
+#' @param Rerr vector of size K containing estimated error model constant (must be in the same order os in Robs)
+#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
+#'
+#'   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
+#'
+#'   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.
+#' @param n (default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;
+#' @param prune (default NULL) percentage in [0;1] for prunning.
+#' @param mu list of named vector of individual random effetcs estimation (size N, and each vector has size m);
+#' @param Omega list of named diagonal matrix of individual standard deviation estimation (size N ; and elements size m x m) ; the individual must be sorted in the same order as in `mu` and `covariates`;
+#' @param covariates matrix of individual covariates (size N x n) ;
+#' @param Sobs list (size N) of list of direct observation (size P), each element contain time and observation (in column 3) ;
+#' @param Robs list (size N) of latent observation (size K), each element contain time and observation (in column 3) ;
+#' @param ncores number of cores for parallelization (default NULL).
+#'
+#' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `i`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
+#' @export
+#' @seealso [gh.int.ind()]
+#' @import foreach
+
+#'
+#' @examples
+#' #TODO
+
+gh.int <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,ParModel.transfo.inv,Sobs,Robs,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL,ncores=NULL){
+  i = 1
+
+
+  if(is.null(ncores))
+    doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
+
+  # add check
+
+  N = nrow(covariates)
+
+  res = foreach(i = 1:N,.packages=c("LassoLLPen")) %dopar% {
+    gh.int.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune)
+  }
+
+  L = prod(sapply(res,FUN=function(ri){ri$Li}))
+
+  LL = sum(sapply(res,FUN=function(ri){ri$LLi}))
+
+  dLL = rowSums(sapply(res,FUN=function(ri){ri$dLLi}))
+
+  ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
+
+  return(list(L=L,LL=LL,dLL=dLL,ddLL=ddLL))
+}
