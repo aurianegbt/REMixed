@@ -3,5 +3,8 @@
 export(Clairon)
 export(PK)
 export(Pasin)
+export(gh.int)
 export(gh.int.ind)
 export(indParm)
+import(foreach)
+import(stats)

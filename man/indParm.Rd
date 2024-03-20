@@ -13,7 +13,7 @@ indParm(theta, covariates, eta_i, transfo, transfo.inv)
 
 - `psi_pop` named vector of population parameters with r.e ;
 
-- `gamma` named list of vector of covariates effects for  `phi_pop` parameters ;
+- `gamma` named list of vector of covariates effects for  `phi_pop` parameters, if NULL no covariates effect on parameters. ;
 
 - `beta` named list of vector of covariates effects for each `psi_pop`, if NULL no covariates effect on parameters.}
 
@@ -52,4 +52,7 @@ transfo = list(delta_Ab=log,phi_S=log,phi_L=log)
 transfo.inv = list(delta_Ab = exp,phi_S=exp,phi_L=exp)
 
 indParm(theta,covariates,eta_i,transfo,transfo.inv)
+}
+\seealso{
+[Clairon()], [Pasin()]
 }

@@ -8,6 +8,7 @@
 #'
 #' @return Matrix of time and observation of Concentration C.
 #' @export
+#' @seealso [indParm()]
 #'
 #' @examples
 #' res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))

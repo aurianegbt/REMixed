@@ -9,6 +9,7 @@
 #'
 #' @return Matrix of time and observation of antibody titer Ab.
 #' @export
+#' @seealso [indParm()]
 #'
 #' @examples
 #' y = c(A=0)

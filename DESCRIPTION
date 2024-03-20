@@ -1,6 +1,6 @@
 Package: LassoLLPen
 Type: Package
-Title: Regularization of latent proccesses in Non-Linear mixed effect model.
+Title: Regularization of latent proccesses in Non-Linear mixed effect model
 Version: 0.1.0
 Author: Auriane Gabaut 
 Maintainer: Auriane Gabaut <auriane.gabaut@inria.fr>
@@ -8,6 +8,6 @@ Description: Suppose that we have a differential system of equations containing 
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports : foreach
+Imports: foreach, deSolve, data.table, doParallel, stats
 Depends : foreach
 RoxygenNote: 7.3.1

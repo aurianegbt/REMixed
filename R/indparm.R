@@ -16,7 +16,7 @@
 #'
 #' - `psi_pop` named vector of population parameters with r.e ;
 #'
-#' - `gamma` named list of vector of covariates effects for  `phi_pop` parameters ;
+#' - `gamma` named list of vector of covariates effects for  `phi_pop` parameters, if NULL no covariates effect on parameters. ;
 #'
 #' - `beta` named list of vector of covariates effects for each `psi_pop`, if NULL no covariates effect on parameters.
 #' @param covariates line matrix/data.frame of individual covariates ;
@@ -26,6 +26,7 @@
 #'
 #' @return a list with `phi_i` and `psi_i` parameters.
 #' @export
+#' @seealso [Clairon()], [Pasin()]
 #'
 #' @examples
 #'
