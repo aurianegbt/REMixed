@@ -44,14 +44,18 @@ gh.int <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,Pa
   i = 1
 
 
-  if(is.null(ncores))
+  if(!is.null(ncores))
     doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
 
   # add check
 
   N = nrow(covariates)
 
+
   res = foreach(i = 1:N,.packages=c("LassoLLPen")) %dopar% {
+    if(0 %in% diag(Omega[[i]])){
+      diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
+    }
     gh.int.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune)
   }
 
