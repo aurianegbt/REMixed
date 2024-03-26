@@ -38,7 +38,7 @@
 #' @examples
 #' #TODO
 
-gh.int.ind <- function(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.transfo,ParModel.transfo.inv,Sobs_i,Robs_i,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL){
+gh.LL.ind <- function(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.transfo,ParModel.transfo.inv,Sobs_i,Robs_i,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL){
   # check to do
 
   if(ncol(Omega_i)!=1){

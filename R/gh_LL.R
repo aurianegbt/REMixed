@@ -31,7 +31,7 @@
 #' @param Robs list (size N) of latent observation (size K), each element contain time and observation (in column 3) ;
 #' @param ncores number of cores for parallelization (default NULL).
 #'
-#' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `i`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
+#' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
 #' @export
 #' @seealso [gh.int.ind()]
 #' @import foreach
@@ -40,7 +40,7 @@
 #' @examples
 #' #TODO
 
-gh.int <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,ParModel.transfo.inv,Sobs,Robs,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL,ncores=NULL){
+gh.LL <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,ParModel.transfo.inv,Sobs,Robs,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL,ncores=NULL){
   i = 1
 
 
@@ -56,7 +56,7 @@ gh.int <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,Pa
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
-    gh.int.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune)
+    gh.LL.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune)
   }
 
   L = prod(sapply(res,FUN=function(ri){ri$Li}))
