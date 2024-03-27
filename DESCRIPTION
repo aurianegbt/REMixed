@@ -1,6 +1,6 @@
 Package: LassoLLPen
 Type: Package
-Title: Regularization of latent proccesses in Non-Linear mixed effect model
+Title: Regularization & estimation in non-linear mixed effect model with latent processes in observations models
 Version: 0.1.0
 Author: Auriane Gabaut 
 Maintainer: Auriane Gabaut <auriane.gabaut@inria.fr>
