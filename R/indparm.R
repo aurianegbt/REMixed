@@ -65,7 +65,7 @@ indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
     if(is.null(theta$gamma[[p]])){
       phi_i[[p]] <- trans.inv(trans(theta$phi_pop[[p]]))
     }else{
-      phi_i[[p]] <- trans.inv(trans(theta$phi_pop)+as.numeric(covariates%*%matrix(theta$gamma[[p]],ncol=1)))
+      phi_i[[p]] <- trans.inv(trans(theta$phi_pop[[p]])+as.numeric(covariates%*%matrix(theta$gamma[[p]],ncol=1)))
     }
   }
 
