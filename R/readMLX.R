@@ -49,8 +49,8 @@ readMLX <- function(project=NULL,
   var.param <- IndividualParameterModel$variability$id
   param <- names(var.param)
 
-  phi.names = param[var.param & !(param %in% unlist(alpha))]
-  psi.names = param[!var.param & !(param %in% unlist(alpha))]
+  phi.names = param[!var.param & !(param %in% unlist(alpha))]
+  psi.names = param[var.param & !(param %in% unlist(alpha))]
 
   phi_pop = sapply(phi.names,FUN=function(p){
     value.params[value.params$name==paste0(p,"_pop"),"initialValue"]
