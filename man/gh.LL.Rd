@@ -5,26 +5,31 @@
 \title{Gauss-Hermite approximation of log-likelihood derivates}
 \usage{
 gh.LL(
-  mu,
-  Omega,
-  theta,
-  alpha1,
   dynFun,
   y,
-  covariates,
-  ParModel.transfo,
-  ParModel.transfo.inv,
-  Sobs,
-  Robs,
-  Serr,
-  Rerr,
-  ObsModel.transfo,
+  mu = NULL,
+  Omega = NULL,
+  theta = NULL,
+  alpha1 = NULL,
+  covariates = NULL,
+  ParModel.transfo = NULL,
+  ParModel.transfo.inv = NULL,
+  Sobs = NULL,
+  Robs = NULL,
+  Serr = NULL,
+  Rerr = NULL,
+  ObsModel.transfo = NULL,
+  data = NULL,
   n = floor(100^(1/length(theta$psi_pop))),
   prune = NULL,
   ncores = NULL
 )
 }
 \arguments{
+\item{dynFun}{Dynamic function ;}
+
+\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
+
 \item{mu}{list of named vector of individual random effetcs estimation (size N, and each vector has size m);}
 
 \item{Omega}{list of named diagonal matrix of individual standard deviation estimation (size N ; and elements size m x m) ; the individual must be sorted in the same order as in `mu` and `covariates`;}
@@ -32,10 +37,6 @@ gh.LL(
 \item{theta}{model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);}
 
 \item{alpha1}{Regularization parameter (size K ) ; must be in the same order as in Robs_i.}
-
-\item{dynFun}{Dynamic function ;}
-
-\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
 
 \item{covariates}{matrix of individual covariates (size N x n) ;}
 
@@ -56,6 +57,8 @@ gh.LL(
   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
 
   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.}
+
+\item{data}{data is a list containing all "mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo" that can be obtain using [readMLX()], if any of this argument is still precise, it will be take into account.}
 
 \item{n}{(default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;}
 
