@@ -1,19 +1,19 @@
 #' Generate trajectory of antibody response to SARS-Cov vaccine.
 #'
 #' The model correspond to the antibody response to two injection of vaccine at time \eqn{t_0=0} and \eqn{t_inj=21}.Model is defined as
-#' \deqn{\displaystyle\left\{\begin{matrix} \frac{d}{dt} S(t) &=& f_{\overline M_k} e^{-\delta_V(t-t_k)}-\delta_S S(t) \\ \frac{d}{dt} A(t) &=& \theta S(t) - \delta_{Ab} A(t)\end{matrix}\right.  }
+#' \deqn{\displaystyle\left\{\begin{matrix} \frac{d}{dt} S(t) &=& f_{\overline M_k} e^{-\delta_V(t-t_k)}-\delta_S S(t) \\ \frac{d}{dt} AB(t) &=& \theta S(t) - \delta_{Ab} AB(t)\end{matrix}\right.  }
 #' on each interval \eqn{I_1=[0;21[ } and \eqn{I_2=[21;+\infty[}. For each interval \eqn{I_k}, we have \eqn{t_k} corresponding to the last injection date of vaccine, such that \eqn{t_1=0} and \eqn{t_2=21}. By definition, \eqn{f_{\overline M_1}=1} (Clairon and al., 2023).
 #'
 #' @param t vector of time ;
-#' @param y initial condition, named vector of form c(S=S0,A=A0) ;
+#' @param y initial condition, named vector of form c(S=S0,AB=A0) ;
 #' @param parms named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V".
 #'
-#' @return Matrix of time and observation of antoby secreting cells S and antibody titer A.
+#' @return Matrix of time and observation of antoby secreting cells S and antibody titer AB.
 #' @export
 #' @seealso [indParm()]
 #'
 #' @examples
-#' y = c(S=1,A=0)
+#' y = c(S=1,AB=0)
 #'
 #' parms = c(fM2 = 4.5,
 #'           theta = 18.7,
@@ -31,8 +31,8 @@
 
 Clairon <- function(t,y,parms){
   #t_inj,fM1,fM2,theta1,theta2,delta_S,delta_V=2.7,delta_Ab=0.03
-  if(!setequal(names(y),c("S","A"))){
-    stop(paste0("Missing initial condition for ",setdiff(c("S","A"),names(y))," and ",setdiff(names(y),c("S","A"))," isn't in the model."))
+  if(!setequal(names(y),c("S","AB"))){
+    stop(paste0("Missing initial condition for ",setdiff(c("S","AB"),names(y))," and ",setdiff(names(y),c("S","AB"))," isn't in the model."))
   }
   if(!setequal(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))){
     stop(paste0("Missing parmeters ",setdiff(c("fM2","theta","delta_S","delta_Ab","delta_V"),names(parms))," and ",setdiff(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))," isn't in the model."))
@@ -59,8 +59,8 @@ modelClairon <- function(t,y,parms){
     }
 
     dS = C*exp(-delta_V*(t-ttilde))-delta_S*S
-    dA = theta * S - delta_Ab * A
+    dAB = theta * S - delta_Ab * AB
 
-    list(c(dS,dA))
+    list(c(dS,dAB))
   })
 }
