@@ -9,10 +9,10 @@
 #' We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}}, contain in the list `Sobs` with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P} (contain in `Serr`).
 #' The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} (contains in the list `Robs`) where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)} (contains in `Rerr`).
 #'
-#' @param theta model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);
-#' @param alpha1 Regularization parameter (size K ) ; must be in the same order as in Robs_i.
 #' @param dynFun Dynamic function ;
 #' @param y Initial condition of the model, conform to what is asked in dynFun ;
+#' @param theta model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);
+#' @param alpha1 Regularization parameter (size K ) ; must be in the same order as in Robs_i.
 #' @param ParModel.transfo named list of transformation function for individual parameter model, (the name must be consistent with phi_pop) (size <=L, missing is set to identity) ;
 #' @param ParModel.transfo.inv named list of inverse transformation function for individual parameter model, (the name must be consistent with phi_pop) (size <=L, missing is set to identity) ;
 #' @param Serr vector of size P containing estimated error model constant (must be in the same order os in Sobs)
@@ -30,19 +30,50 @@
 #' @param Sobs list (size N) of list of direct observation (size P), each element contain time and observation (in column 3) ;
 #' @param Robs list (size N) of latent observation (size K), each element contain time and observation (in column 3) ;
 #' @param ncores number of cores for parallelization (default NULL).
+#' @param data data is a list containing all "mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo" that can be obtain using [readMLX()], if any of this argument is still precise, it will be take into account.
 #'
 #' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
 #' @export
 #' @seealso [gh.int.ind()]
 #' @import foreach
-
 #'
 #' @examples
 #' #TODO
 
-gh.LL <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,ParModel.transfo.inv,Sobs,Robs,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL,ncores=NULL){
-  i = 1
+gh.LL <- function(
+    dynFun,
+    y,
+    mu=NULL,
+    Omega=NULL,
+    theta=NULL,
+    alpha1=NULL,
+    covariates=NULL,
+    ParModel.transfo=NULL,
+    ParModel.transfo.inv=NULL,
+    Sobs=NULL,
+    Robs=NULL,
+    Serr=NULL,
+    Rerr=NULL,
+    ObsModel.transfo=NULL,
+    data=NULL,
+    n=floor(100**(1/length(theta$psi_pop))),
+    prune=NULL,ncores=NULL){
 
+  if(is.null(data)){
+    test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
+    if(any(test))
+      stop("Please provide all necessary arguments.")
+  }else{
+    if((is.null(mu) || is.null(Omega)) & !all(c("mu","Omega") %in% names(data))){
+      stop("Please provide mu and Omega if these are missing from data.")
+    }
+    for(d in 1:length(data)){
+      test <- .hiddenCall(paste0("is.null(",names(data)[d],")"))
+      if(test){
+        .hiddenCall(paste0(names(data[d]),"<- data[[d]]"))
+      }
+    }
+  }
 
   if(!is.null(ncores))
     doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
@@ -52,6 +83,7 @@ gh.LL <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,Par
   N = nrow(covariates)
 
 
+  i = 1
   res = foreach(i = 1:N,.packages=c("LassoLLPen")) %dopar% {
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
@@ -68,4 +100,8 @@ gh.LL <- function(mu,Omega,theta,alpha1,dynFun,y,covariates,ParModel.transfo,Par
   ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
 
   return(list(L=L,LL=LL,dLL=dLL,ddLL=ddLL))
+}
+
+.hiddenCall <-function (command) {
+  eval.parent(parse(text = command))
 }
