@@ -32,6 +32,12 @@ readMLX <- function(project=NULL,
   if(!is.null(project))
     lixoftConnectors::loadProject(project)
 
+  if(lixoftConnectors::getLaunchedTasks()$populationParameterEstimation){
+    est = lixoftConnectors::getEstimatedPopulationParameters()
+    value.params = data.frame(name=names(est),initialValue=unname(est))
+  }else{
+    value.params = lixoftConnectors::getPopulationParameterInformation()[,-3]
+    }
 
   # theta
   IndividualParameterModel <- lixoftConnectors::getIndividualParameterModel()
@@ -42,7 +48,6 @@ readMLX <- function(project=NULL,
   }
   var.param <- IndividualParameterModel$variability$id
   param <- names(var.param)
-  value.params = lixoftConnectors::getPopulationParameterInformation()
 
   phi.names = param[var.param & !(param %in% unlist(alpha))]
   psi.names = param[!var.param & !(param %in% unlist(alpha))]
@@ -123,18 +128,53 @@ readMLX <- function(project=NULL,
   # covariates
   covariates = lixoftConnectors::getCovariateInformation()$covariate[,-1]
 
-  return(list(
-        theta = theta,
-        alpha1 = alpha1,
-        covariates = covariates,
-        ParModel.transfo = ParModel.transfo,
-        ParModel.transfo.inv = ParModel.transfo.inv,
-        Sobs = Sobs,
-        Robs = Robs,
-        Serr= Serr,
-        Rerr=Rerr,
-        ObsModel.transfo = ObsModel.transfo
-  ))
+  if(!lixoftConnectors::getLaunchedTasks()$conditionalDistributionSampling){
+    return(list(
+      theta = theta,
+      alpha1 = alpha1,
+      covariates = covariates,
+      ParModel.transfo = ParModel.transfo,
+      ParModel.transfo.inv = ParModel.transfo.inv,
+      Sobs = Sobs,
+      Robs = Robs,
+      Serr= Serr,
+      Rerr=Rerr,
+      ObsModel.transfo = ObsModel.transfo
+    ))
+  }else{
+    random.effect = getEstimatedRandomEffects(method="conditionalMean")
+    N = length(random.effect$conditionalMean$id)
+
+    Omega = lapply(1:N,FUN=function(i){
+      eta = sapply(phi.names,FUN=function(p){
+        random.effect$conditionalSD[i,paste0("eta_",p)]
+      })
+      Omega_i = diag(eta**2)
+      rownames(Omega_i) <- colnames(Omega_i) <- phi.names
+      return(Omega_i)
+    })
+
+    mu = lapply(1:N,FUN=function(i){
+      mu_i = sapply(phi.names,FUN=function(p){
+        random.effect$conditionalMean[i,paste0("eta_",p)]
+      })
+      return(mu_i)
+    })
+    return(list(
+      mu=mu,
+      Omega=Omega,
+      theta = theta,
+      alpha1 = alpha1,
+      covariates = covariates,
+      ParModel.transfo = ParModel.transfo,
+      ParModel.transfo.inv = ParModel.transfo.inv,
+      Sobs = Sobs,
+      Robs = Robs,
+      Serr= Serr,
+      Rerr=Rerr,
+      ObsModel.transfo = ObsModel.transfo
+    ))
+  }
 }
 
 ok.beta <- function(formula,CovariateModel){
