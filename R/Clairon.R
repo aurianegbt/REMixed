@@ -59,8 +59,8 @@ modelClairon <- function(t,y,parms){
     }
 
     dS = C*exp(-delta_V*(t-ttilde))-delta_S*S
-    dAB = theta * S - delta_Ab * AB
+    dAb = theta * S - delta_Ab * Ab
 
-    list(c(dS,dAB))
+    list(c(dS,dAb))
   })
 }
