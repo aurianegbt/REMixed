@@ -146,16 +146,16 @@ readMLX <- function(project=NULL,
     N = length(random.effect$conditionalMean$id)
 
     Omega = lapply(1:N,FUN=function(i){
-      eta = sapply(phi.names,FUN=function(p){
+      eta = sapply(psi.names,FUN=function(p){
         random.effect$conditionalSD[i,paste0("eta_",p)]
       })
       Omega_i = diag(eta**2)
-      rownames(Omega_i) <- colnames(Omega_i) <- phi.names
+      rownames(Omega_i) <- colnames(Omega_i) <- psi.names
       return(Omega_i)
     })
 
     mu = lapply(1:N,FUN=function(i){
-      mu_i = sapply(phi.names,FUN=function(p){
+      mu_i = sapply(psi.names,FUN=function(p){
         random.effect$conditionalMean[i,paste0("eta_",p)]
       })
       return(mu_i)
