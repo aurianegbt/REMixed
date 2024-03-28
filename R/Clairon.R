@@ -31,8 +31,8 @@
 
 Clairon <- function(t,y,parms){
   #t_inj,fM1,fM2,theta1,theta2,delta_S,delta_V=2.7,delta_Ab=0.03
-  if(!setequal(names(y),c("S","AB"))){
-    stop(paste0("Missing initial condition for ",setdiff(c("S","AB"),names(y))," and ",setdiff(names(y),c("S","AB"))," isn't in the model."))
+  if(!setequal(names(y),c("S","Ab"))){
+    stop(paste0("Missing initial condition for ",setdiff(c("S","Ab"),names(y))," and ",setdiff(names(y),c("S","Ab"))," isn't in the model."))
   }
   if(!setequal(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))){
     stop(paste0("Missing parmeters ",setdiff(c("fM2","theta","delta_S","delta_Ab","delta_V"),names(parms))," and ",setdiff(names(parms),c("fM2","theta","delta_S","delta_Ab","delta_V"))," isn't in the model."))
