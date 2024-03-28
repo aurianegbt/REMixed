@@ -81,7 +81,7 @@ readMLX <- function(project=NULL,
 
   alpha0 <- rep(0,length(ObsModel.transfo$R))
   if(!is.null(alpha$alpha0)){
-    alpha0[!is.null(alpha$alpha0)] <- value.params[value.params$name==alpha$alpha0,"initialValue"]
+    alpha0[!is.null(alpha$alpha0)] <- value.params[value.params$name %in% paste0(alpha$alpha0,"_pop"),"initialValue"]
   }
   alpha1 <- sapply(alpha$alpha1,FUN=function(a){
     value.params[value.params$name==paste0(a,"_pop"),"initialValue"]},USE.NAMES = F)
