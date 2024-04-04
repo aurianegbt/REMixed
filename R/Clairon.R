@@ -8,7 +8,7 @@
 #' @param y initial condition, named vector of form c(S=S0,AB=A0) ;
 #' @param parms named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V".
 #'
-#' @return Matrix of time and observation of antoby secreting cells S and antibody titer AB.
+#' @return Matrix of time and observation of antibody secreting cells S and antibody titer AB.
 #' @export
 #' @seealso [indParm()]
 #'

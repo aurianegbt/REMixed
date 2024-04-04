@@ -22,7 +22,8 @@
 #' @param Robs_i list of latent observation (size K), each element contain time and observation (in column 3) ;
 #' @param Serr vector of size P containing estimated error model constant (must be in the same order os in Sobs_i)
 #' @param Rerr vector of size K containing estimated error model constant (must be in the same order os in Robs_i)
-#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
+#' @param ObsModel.transfo
+#' list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
 #'
 #'   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in `Sobs_i`) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
 #'
