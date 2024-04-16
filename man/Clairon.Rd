@@ -14,7 +14,7 @@ Clairon(t, y, parms)
 \item{parms}{named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V".}
 }
 \value{
-Matrix of time and observation of antoby secreting cells S and antibody titer AB.
+Matrix of time and observation of antibody secreting cells S and antibody titer AB.
 }
 \description{
 The model correspond to the antibody response to two injection of vaccine at time \eqn{t_0=0} and \eqn{t_inj=21}.Model is defined as
