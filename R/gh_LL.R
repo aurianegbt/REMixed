@@ -84,7 +84,7 @@ gh.LL <- function(
 
 
   i = 1
-  res = foreach(i = 1:N,.packages=c("LassoLLPen")) %dopar% {
+  res = foreach(i = 1:N,.packages=c("REMix")) %dopar% {
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
