@@ -25,33 +25,31 @@
 saemUpdate <- function(project = NULL,final.project=NULL,
                        alpha, a.final,
                        iter=NULL,
-                       pop.set=NULL){
+                       pop.set=NULL,
+                       conditionalDistributionSampling = FALSE){
 
-  if(is.null(project)){
-    project <- Rsmlx:::mlx.getProjectSettings()$project
-  }else{
-    Rsmlx:::mlx.loadProject(project)
-  }
+  suppressMessages({
+    if (!is.null(project)){
+      project <- Rsmlx:::prcheck(project)$project
+    }else{
+      project <- Rsmlx:::mlx.getProjectSettings()$project
+    }
+
+    lixoftConnectors::loadProject(project)
+    })
 
   if (is.null(final.project)){
-    if(!is.null(iter))
-      final.project <- paste0(sub(pattern = "(.*)\\..*$",
-                                  replacement = "\\1", project), "_iter",iter,".mlxtran")
-    else
-      final.project <- paste0(sub(pattern = "(.*)\\..*$",
-                                replacement = "\\1", project), "_upd.mlxtran")}
+    final.project <- paste0(sub(pattern = "(.*)\\..*$",
+                                replacement = "\\1", project), "_upd.mlxtran")
+    }
   if (!grepl("\\.", final.project))
     final.project <- paste0(final.project, ".mlxtran")
   if (!grepl("\\.mlxtran", final.project))
     stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
          call. = FALSE)
-  project.temp <- gsub(".mlxtran", "_temp.mlxtran", project)
-  project.built <- final.project
-
-  Rsmlx:::mlx.saveProject(project.temp)
 
   pset <- list(nbsmoothingiterations=50,nbexploratoryiterations=50,
-               simulatedannealing=F, smoothingautostop=F, exploratoryautostop=F)
+               simulatedannealing=F, smoothingautostop=F,exploratoryautostop=F)
   pop.set <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
   pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
 
@@ -63,16 +61,15 @@ saemUpdate <- function(project = NULL,final.project=NULL,
 
   Rsmlx:::mlx.setPopulationParameterEstimationSettings(pop.set)
 
-  Rsmlx:::mlx.saveProject(project.temp)
-
+  Rsmlx:::mlx.saveProject(final.project)
   Rsmlx:::mlx.runPopulationParameterEstimation()
-
+  if(conditionalDistributionSampling){
+    Rsmlx:::mlx.runConditionalDistributionSampling()
+  }
   Rsmlx:::mlx.saveProject(final.project)
 
-  re = list(SAEMiterations = Rsmlx:::mlx.getSAEMiterations(),
-            estimates = Rsmlx:::mlx.getEstimatedPopulationParameters())
-  if(!is.null(iter))
-    re <- append(re,list(iter=iter))
-
-  return(re)
+  re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
+            param = Rsmlx:::mlx.getEstimatedPopulationParameters())
+    return(re)
 }
+
