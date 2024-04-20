@@ -27,10 +27,15 @@ readMLX <- function(project=NULL,
   # check length alpha1 equal to length alpha0 if not null equal to length obs$R
   # check obs output name equal to the one in ObsModel.transfo
 
-  if(is.null(suppressMessages(lixoftConnectors::getLixoftConnectorsState())) || lixoftConnectors::getLixoftConnectorsState()$software!="monolix")
-    lixoftConnectors::initializeLixoftConnectors(software = "monolix",force=TRUE)
-  if(!is.null(project))
+  suppressMessages({
+    if (!is.null(project)){
+      project <- Rsmlx:::prcheck(project)$project
+    }else{
+      project <- Rsmlx:::mlx.getProjectSettings()$project
+    }
+
     lixoftConnectors::loadProject(project)
+  })
 
   if(lixoftConnectors::getLaunchedTasks()$populationParameterEstimation){
     est = lixoftConnectors::getEstimatedPopulationParameters()
@@ -39,12 +44,19 @@ readMLX <- function(project=NULL,
     value.params = lixoftConnectors::getPopulationParameterInformation()[,-3]
     }
 
+  # covariates
+  covariates = lixoftConnectors::getCovariateInformation()$covariate[,-1]
+
+  cov.exists = !is.null(covariates)
+
   # theta
   IndividualParameterModel <- lixoftConnectors::getIndividualParameterModel()
-  formula = IndividualParameterModel$formula
-  CovariateModel <- IndividualParameterModel$covariateModel
-  if(!ok.beta(formula,CovariateModel)){
-    stop("Please take care of having standard covariates coefficients names in your monolix project, of form 'beta_param_cov'.")
+  if(cov.exists){
+    formula = IndividualParameterModel$formula
+    CovariateModel <- IndividualParameterModel$covariateModel
+    if(!ok.beta(formula,CovariateModel)){
+      stop("Please take care of having standard covariates coefficients names in your monolix project, of form 'beta_param_cov'.")
+    }
   }
   var.param <- IndividualParameterModel$variability$id
   param <- names(var.param)
@@ -59,25 +71,39 @@ readMLX <- function(project=NULL,
     value.params[value.params$name==paste0(p,"_pop"),"initialValue"]
   })
 
-  gamma = setNames(lapply(phi.names,FUN=function(p){
-    g <-  sapply(names(CovariateModel[[p]]),FUN=function(c){
-      if(CovariateModel[[p]][[c]]){
-        value.params[value.params$name==paste0("beta_",p,"_",c),
-                     "initialValue"]
-      }else{
-        0
-      }},USE.NAMES = F)
-  }),phi.names)
+  if(cov.exists){
+    gamma = setNames(lapply(phi.names,FUN=function(p){
+      g <-  sapply(names(CovariateModel[[p]]),FUN=function(c){
+        if(CovariateModel[[p]][[c]]){
+          value.params[value.params$name==paste0("beta_",p,"_",c),
+                       "initialValue"]
+        }else{
+          0
+        }},USE.NAMES = F)
+      if(identical(g,rep(0,ncol(covariates)))){
+        g <- NULL
+      }
+    }),phi.names)
 
-  beta = setNames(lapply(psi.names,FUN=function(p){
-    g <-  sapply(names(CovariateModel[[p]]),FUN=function(c){
-      if(CovariateModel[[p]][[c]]){
-        value.params[value.params$name==paste0("beta_",p,"_",c),
-                     "initialValue"]
-      }else{
-        0
-      }},USE.NAMES = F)
-  }),psi.names)
+    beta = setNames(lapply(psi.names,FUN=function(p){
+      b <-  sapply(names(CovariateModel[[p]]),FUN=function(c){
+        if(CovariateModel[[p]][[c]]){
+          value.params[value.params$name==paste0("beta_",p,"_",c),
+                       "initialValue"]
+        }else{
+          0
+        }},USE.NAMES = F)
+      if(identical(b,rep(0,ncol(covariates)))){
+        b <- NULL
+      }
+    }),psi.names)
+  }else{
+    gamma = NULL
+    beta = NULL
+  }
+
+
+
 
   alpha0 <- rep(0,length(ObsModel.transfo$R))
   if(!is.null(alpha$alpha0)){
@@ -124,9 +150,6 @@ readMLX <- function(project=NULL,
 
   Sobs <-lapply(names(ObsModel.transfo$S),FUN=function(x){Observation[[x]]})
   Robs <- lapply(setdiff(names(Observation),names(ObsModel.transfo$S)),FUN=function(x){Observation[[x]]})
-
-  # covariates
-  covariates = lixoftConnectors::getCovariateInformation()$covariate[,-1]
 
   if(!lixoftConnectors::getLaunchedTasks()$conditionalDistributionSampling){
     return(list(
@@ -184,11 +207,13 @@ ok.beta <- function(formula,CovariateModel){
     cov <- CovariateModel[[p]]
     param <- names(CovariateModel)[p]
 
-    for(c in names(cov)[cov]){
-      before_c <- sub(paste0("\\*",c,".*"), "", f)
-      beta <- sub(".*\\s", "", before_c)
-      if(beta != paste0("beta_",param,"_",c)){
-        return(FALSE)
+    if(!identical(cov,list())){
+      for(c in names(cov)[cov]){
+        before_c <- sub(paste0("\\*",c,".*"), "", f)
+        beta <- sub(".*\\s", "", before_c)
+        if(beta != paste0("beta_",param,"_",c)){
+          return(FALSE)
+        }
       }
     }
   }

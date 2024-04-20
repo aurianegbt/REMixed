@@ -56,7 +56,7 @@ gh.LL <- function(
     Rerr=NULL,
     ObsModel.transfo=NULL,
     data=NULL,
-    n=floor(100**(1/length(theta$psi_pop))),
+    n = NULL,
     prune=NULL,ncores=NULL){
 
   if(is.null(data)){
@@ -70,9 +70,12 @@ gh.LL <- function(
     for(d in 1:length(data)){
       test <- .hiddenCall(paste0("is.null(",names(data)[d],")"))
       if(test){
-        .hiddenCall(paste0(names(data[d]),"<- data[[d]]"))
+        eval(parse(text=paste0(names(data[d]),"<- data[[d]]")))
       }
     }
+  }
+  if(is.null(n)){
+    n <- floor(100**(1/length(theta$psi_pop)))
   }
 
   if(!is.null(ncores))
@@ -80,7 +83,7 @@ gh.LL <- function(
 
   # add check
 
-  N = nrow(covariates)
+  N=length(mu)
 
 
   i = 1

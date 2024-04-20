@@ -52,8 +52,10 @@ indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
   phi.names = names(theta$phi_pop)
   psi.names = names(theta$psi_pop)
 
-  if(!is.matrix(covariates)){
-    covariates <- as.matrix(covariates)
+  if(!is.null(covariates)){
+    if(!is.matrix(covariates)){
+      covariates <- as.matrix(covariates)
+    }
   }
 
   ## Compute phi parameters -> parameters with no r.e
