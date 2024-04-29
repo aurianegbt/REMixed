@@ -172,7 +172,11 @@ readMLX <- function(project=NULL,
       eta = sapply(psi.names,FUN=function(p){
         random.effect$conditionalSD[i,paste0("eta_",p)]
       })
-      Omega_i = diag(eta**2)
+      if(length(eta)==1){
+        Omega_i = matrix(eta**2,nrow=1,ncol=1)
+      }else{
+        Omega_i = diag(eta**2)
+      }
       rownames(Omega_i) <- colnames(Omega_i) <- psi.names
       return(Omega_i)
     })
