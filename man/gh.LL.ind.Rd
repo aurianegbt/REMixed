@@ -20,7 +20,8 @@ gh.LL.ind(
   Rerr,
   ObsModel.transfo,
   n = floor(100^(1/length(theta$psi_pop))),
-  prune = NULL
+  prune = NULL,
+  onlyLL = FALSE
 )
 }
 \arguments{
@@ -59,6 +60,8 @@ gh.LL.ind(
 \item{n}{(default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;}
 
 \item{prune}{(default NULL) percentage in [0;1] for prunning.}
+
+\item{onlyLL}{(default FALSE) if only the log-likelihood need to be return.}
 }
 \value{
 a list with the approximation by Gauss-Hermite quadrature of the likelihood `Li`, the log-likelihoo `LLi`, the gradient of the log-likelihood `dLLi` and the Hessien of the log-likelihood `ddLLi` in point \eqn{\theta,\alpha}.

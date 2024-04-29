@@ -20,9 +20,10 @@ gh.LL(
   Rerr = NULL,
   ObsModel.transfo = NULL,
   data = NULL,
-  n = floor(100^(1/length(theta$psi_pop))),
+  n = NULL,
   prune = NULL,
-  ncores = NULL
+  ncores = NULL,
+  onlyLL = FALSE
 )
 }
 \arguments{
@@ -65,6 +66,8 @@ gh.LL(
 \item{prune}{(default NULL) percentage in [0;1] for prunning.}
 
 \item{ncores}{number of cores for parallelization (default NULL).}
+
+\item{onlyLL}{(default FALSE) if only the log-likelihood need to be return.}
 }
 \value{
 a list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
