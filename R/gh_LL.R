@@ -31,6 +31,7 @@
 #' @param Robs list (size N) of latent observation (size K), each element contain time and observation (in column 3) ;
 #' @param ncores number of cores for parallelization (default NULL).
 #' @param data data is a list containing all "mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo" that can be obtain using [readMLX()], if any of this argument is still precise, it will be take into account.
+#' @param onlyLL (default FALSE) if only the log-likelihood need to be return.
 #'
 #' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihoo `LL`, the gradient of the log-likelihood `dLL` and the Hessien of the log-likelihood `ddLL` in point \eqn{\theta,\alpha}.
 #' @export
@@ -57,7 +58,8 @@ gh.LL <- function(
     ObsModel.transfo=NULL,
     data=NULL,
     n = NULL,
-    prune=NULL,ncores=NULL){
+    prune=NULL,ncores=NULL,
+    onlyLL=FALSE){
 
   if(is.null(data)){
     test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
@@ -91,18 +93,21 @@ gh.LL <- function(
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
-    gh.LL.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune)
+    gh.LL.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune,onlyLL=onlyLL)
   }
 
   L = prod(sapply(res,FUN=function(ri){ri$Li}))
 
   LL = sum(sapply(res,FUN=function(ri){ri$LLi}))
 
-  dLL = rowSums(sapply(res,FUN=function(ri){ri$dLLi}))
+  if(!onlyLL){
+    dLL = rowSums(sapply(res,FUN=function(ri){ri$dLLi}))
 
-  ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
-
-  return(list(L=L,LL=LL,dLL=dLL,ddLL=ddLL))
+    ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
+    return(list(L=L,LL=LL,dLL=dLL,ddLL=ddLL))
+  }else{
+    return(LL)
+  }
 }
 
 .hiddenCall <-function (command) {

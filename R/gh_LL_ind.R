@@ -30,6 +30,7 @@
 #'   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in `Robs_i` ; the name need be set to precise the dynamic from dynFun to identify the output.
 #' @param n (default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;
 #' @param prune (default NULL) percentage in [0;1] for prunning.
+#' @param onlyLL (default FALSE) if only the log-likelihood need to be return.
 #'
 #' @return a list with the approximation by Gauss-Hermite quadrature of the likelihood `Li`, the log-likelihoo `LLi`, the gradient of the log-likelihood `dLLi` and the Hessien of the log-likelihood `ddLLi` in point \eqn{\theta,\alpha}.
 #' @export
@@ -39,7 +40,7 @@
 #' @examples
 #' #TODO
 
-gh.LL.ind <- function(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.transfo,ParModel.transfo.inv,Sobs_i,Robs_i,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL){
+gh.LL.ind <- function(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.transfo,ParModel.transfo.inv,Sobs_i,Robs_i,Serr,Rerr,ObsModel.transfo,n=floor(100**(1/length(theta$psi_pop))),prune=NULL,onlyLL=FALSE){
   # check to do
 
   if(ncol(Omega_i)!=1){
@@ -105,82 +106,85 @@ gh.LL.ind <- function(mu_i,Omega_i,theta,alpha1,dynFun,y,covariates_i,ParModel.t
   Li = sum(mh.parm$Weights*R.margDensity*S.margDensity)
   LLi = log(Li)
 
-  # Compute  gradient of individual log-Likelihood
-  # dim.alpha = length(alpha1) # = K = length(Robs_i )
-  dfact = lapply(1:R.sz,FUN=function(k){
-    setNames(sapply(1:nd,FUN=function(ei){
-      dyn.ei = dyn[[paste0("eta_",ei)]]
-      sig = Rerr[[k]]
-      tki = Robs_i[[k]]$time
-      Zki = Robs_i[[k]][,3]
+  if(!onlyLL){
+    # Compute  gradient of individual log-Likelihood
+    # dim.alpha = length(alpha1) # = K = length(Robs_i )
+    dfact = lapply(1:R.sz,FUN=function(k){
+      setNames(sapply(1:nd,FUN=function(ei){
+        dyn.ei = dyn[[paste0("eta_",ei)]]
+        sig = Rerr[[k]]
+        tki = Robs_i[[k]]$time
+        Zki = Robs_i[[k]][,3]
 
-      a0 = theta$alpha0[[k]]
-      a1 = alpha1[[k]]
-      trs = ObsModel.transfo[[2]][k]
-      Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+        a0 = theta$alpha0[[k]]
+        a1 = alpha1[[k]]
+        trs = ObsModel.transfo[[2]][k]
+        Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-      return(1/(sig**2)*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki))))
-    }),paste0("eta_",1:nd))
-  })
+        return(1/(sig**2)*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki))))
+      }),paste0("eta_",1:nd))
+    })
 
-  dLLi = sapply(dfact,FUN=function(f){
-    return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
-  })
+    dLLi = sapply(dfact,FUN=function(f){
+      return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+    })
 
-  # Compute hessienne of individual log-Likelihood
-  ddLLi = matrix(0,ncol=R.sz,nrow=R.sz)
-  # diagonal term
-  ddfact = lapply(1:R.sz,FUN=function(k){
-    setNames(sapply(1:nd,FUN=function(ei){
-      dyn.ei = dyn[[paste0("eta_",ei)]]
-      sig = Rerr[[k]]
-      tki = Robs_i[[k]]$time
-      Zki = Robs_i[[k]][,3]
+    # Compute hessienne of individual log-Likelihood
+    ddLLi = matrix(0,ncol=R.sz,nrow=R.sz)
+    # diagonal term
+    ddfact = lapply(1:R.sz,FUN=function(k){
+      setNames(sapply(1:nd,FUN=function(ei){
+        dyn.ei = dyn[[paste0("eta_",ei)]]
+        sig = Rerr[[k]]
+        tki = Robs_i[[k]]$time
+        Zki = Robs_i[[k]][,3]
 
-      a0 = theta$alpha0[[k]]
-      a1 = alpha1[[k]]
-      trs = ObsModel.transfo[[2]][k]
-      Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+        a0 = theta$alpha0[[k]]
+        a1 = alpha1[[k]]
+        trs = ObsModel.transfo[[2]][k]
+        Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-      return(
-        (1/sig**4*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki)))**2 +
-          1/sig**2*(sum(Rki*(Zki-theta$alpha0[[k]]-2*alpha1[[k]]*Rki))))
+        return(
+          (1/sig**4*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki)))**2 +
+             1/sig**2*(sum(Rki*(Zki-theta$alpha0[[k]]-2*alpha1[[k]]*Rki))))
         )
-    }),paste0("eta_",1:nd))
-  })
+      }),paste0("eta_",1:nd))
+    })
 
-  diag(ddLLi) = sapply(ddfact,FUN=function(f){
-    return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
-  })-dLLi**2
+    diag(ddLLi) = sapply(ddfact,FUN=function(f){
+      return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+    })-dLLi**2
 
-  # non diagonal term
-  for(k1 in 1:R.sz){
-    for(k2 in 1:R.sz){
-      if(k1<k2){
-        ddfact = setNames(sapply(1:nd,FUN=function(ei){
-          dyn.ei = dyn[[paste0("eta_",ei)]]
-          prod(sapply(c(k1,k2),FUN=function(k){
+    # non diagonal term
+    for(k1 in 1:R.sz){
+      for(k2 in 1:R.sz){
+        if(k1<k2){
+          ddfact = setNames(sapply(1:nd,FUN=function(ei){
+            dyn.ei = dyn[[paste0("eta_",ei)]]
+            prod(sapply(c(k1,k2),FUN=function(k){
 
-            sig = Rerr[[k]]
-            tki = Robs_i[[k]]$time
-            Zki = Robs_i[[k]][,3]
+              sig = Rerr[[k]]
+              tki = Robs_i[[k]]$time
+              Zki = Robs_i[[k]][,3]
 
-            a0 = theta$alpha0[[k]]
-            a1 = alpha1[[k]]
-            trs = ObsModel.transfo[[2]][k]
-            Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+              a0 = theta$alpha0[[k]]
+              a1 = alpha1[[k]]
+              trs = ObsModel.transfo[[2]][k]
+              Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-            return(
-              1/sig**2*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki)))**2
-            )
-        }))
-        }),paste0("eta_",1:nd))
+              return(
+                1/sig**2*(sum(alpha1[[k]]*Rki*(Zki-theta$alpha0[[k]]-alpha1[[k]]*Rki)))**2
+              )
+            }))
+          }),paste0("eta_",1:nd))
 
-        ddLLi[k1,k2] <- ddLLi[k2,k1] <- 1/Li*sum(mh.parm$Weights*ddfact*R.margDensity*S.margDensity)-prod(dLLi[c(k1,k2)])
+          ddLLi[k1,k2] <- ddLLi[k2,k1] <- 1/Li*sum(mh.parm$Weights*ddfact*R.margDensity*S.margDensity)-prod(dLLi[c(k1,k2)])
+        }
       }
     }
+  }else{
+    dLLi <- ddLLi <- NULL
   }
-
   return(list(Li=Li,LLi=LLi,dLLi=dLLi,ddLLi=ddLLi))
 }
 
