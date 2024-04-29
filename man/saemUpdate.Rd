@@ -9,8 +9,9 @@ saemUpdate(
   final.project = NULL,
   alpha,
   a.final,
-  iter,
-  pop.set = NULL
+  iter = NULL,
+  pop.set = NULL,
+  conditionalDistributionSampling = FALSE
 )
 }
 \arguments{
