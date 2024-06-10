@@ -57,7 +57,12 @@ readMLX <- function(project=NULL,
     if(!ok.beta(formula,CovariateModel)){
       stop("Please take care of having standard covariates coefficients names in your monolix project, of form 'beta_param_cov'.")
     }
+    if(!ok.omega(IndividualParameterModel$variability$id,value.params)){
+      stop("Please take care of having standard covariates coefficients names in your monolix project, of form 'omega_param'.")
+    }
   }
+
+
   var.param <- IndividualParameterModel$variability$id
   param <- names(var.param)
 
@@ -102,8 +107,11 @@ readMLX <- function(project=NULL,
     beta = NULL
   }
 
-
-
+  omega = if(length(psi.names)!=0){
+    setNames(sapply(psi.names,FUN=function(p){
+      value.params[value.params$name==paste0("omega_",p),"initialValue"]
+    }),psi.names)
+  }else{NULL}
 
   alpha0 <- rep(0,length(ObsModel.transfo$R))
   if(!is.null(alpha$alpha0)){
@@ -112,7 +120,7 @@ readMLX <- function(project=NULL,
   alpha1 <- sapply(alpha$alpha1,FUN=function(a){
     value.params[value.params$name==paste0(a,"_pop"),"initialValue"]},USE.NAMES = F)
 
-  theta = setNames(list(phi_pop,psi_pop,gamma,beta,alpha0),c("phi_pop","psi_pop","gamma","beta","alpha0"))
+  theta = setNames(list(phi_pop,psi_pop,gamma,beta,alpha0,omega),c("phi_pop","psi_pop","gamma","beta","alpha0","omega"))
 
   # Serr, Rerr
   ErrorModel <- lixoftConnectors::getContinuousObservationModel()$parameters
@@ -165,7 +173,7 @@ readMLX <- function(project=NULL,
       ObsModel.transfo = ObsModel.transfo
     ))
   }else{
-    random.effect = getEstimatedRandomEffects(method="conditionalMean")
+    random.effect = lixoftConnectors::getEstimatedRandomEffects(method="conditionalMean")
     N = length(random.effect$conditionalMean$id)
 
     Omega = lapply(1:N,FUN=function(i){
@@ -219,6 +227,15 @@ ok.beta <- function(formula,CovariateModel){
           return(FALSE)
         }
       }
+    }
+  }
+  return(TRUE)
+}
+
+ok.omega <- function(variability,value.params){
+  for(p in names(variability)){
+    if(variability[[p]] && !(paste0("omega_",p) %in% value.params$name)){
+      return(FALSE)
     }
   }
   return(TRUE)
