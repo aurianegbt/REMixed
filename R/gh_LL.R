@@ -58,7 +58,9 @@ gh.LL <- function(
     ObsModel.transfo=NULL,
     data=NULL,
     n = NULL,
-    prune=NULL,ncores=NULL,
+    prune=NULL,
+    parallel = TRUE,
+    ncores=NULL,
     onlyLL=FALSE){
 
   if(is.null(data)){
@@ -80,8 +82,11 @@ gh.LL <- function(
     n <- floor(100**(1/length(theta$psi_pop)))
   }
 
-  if(!is.null(ncores))
-    doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
+  if(parallel){
+    if(!is.null(ncores)){
+      doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
+    }else{
+      doParallel::registerDoParallel(cluster <- parallel::makeCluster(parallel::detectCores()))}}
 
   # add check
 
@@ -89,11 +94,27 @@ gh.LL <- function(
 
 
   i = 1
-  res = foreach(i = 1:N,.packages=c("REMix")) %dopar% {
+  res = foreach(i = 1:N,.packages = "REMix") %dopar% {
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
-    gh.LL.ind(mu[[i]],Omega[[i]],theta,alpha1,dynFun,y,covariates[i,,drop=F],ParModel.transfo,ParModel.transfo.inv,lapply(Sobs,FUN=function(S){S[S$id==i,]}),lapply(Robs,FUN=function(R){R[R$id==i,]}),Serr,Rerr,ObsModel.transfo,n,prune,onlyLL=onlyLL)
+    gh.LL.ind(mu_i = mu[[i]],
+              Omega_i = Omega[[i]],
+              theta = theta,
+              alpha1 = alpha1,
+              dynFun = dynFun,
+              y = y,
+              covariates_i = covariates[i,,drop=F],
+              ParModel.transfo = ParModel.transfo,
+              ParModel.transfo.inv = ParModel.transfo.inv,
+              Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==i,]}),
+              Robs_i = lapply(Robs,FUN=function(R){R[R$id==i,]}),
+              Serr = Serr,
+              Rerr = Rerr,
+              ObsModel.transfo = ObsModel.transfo,
+              n = n,
+              prune = prune,
+              onlyLL = onlyLL)
   }
 
   L = prod(sapply(res,FUN=function(ri){ri$Li}))
@@ -101,9 +122,13 @@ gh.LL <- function(
   LL = sum(sapply(res,FUN=function(ri){ri$LLi}))
 
   if(!onlyLL){
-    dLL = rowSums(sapply(res,FUN=function(ri){ri$dLLi}))
-
-    ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
+    if(length(alpha1)!=1){
+      dLL = rowSums(sapply(res,FUN=function(ri){ri$dLLi}))
+      ddLL = matrix(rowSums(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
+    }else{
+      dLL = sum(sapply(res,FUN=function(ri){ri$dLLi}))
+      ddLL = matrix(sum(sapply(res,FUN=function(ri){ri$ddLLi})),ncol=length(dLL))
+    }
     return(list(L=L,LL=LL,dLL=dLL,ddLL=ddLL))
   }else{
     return(LL)
