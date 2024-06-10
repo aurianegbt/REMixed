@@ -1,25 +1,3 @@
-#' Title
-#'
-#' @param project
-#' @param final.project
-#' @param dynFUN
-#' @param y
-#' @param ObsModel.transfo
-#' @param alpha
-#' @param lambda
-#' @param eps1
-#' @param eps2
-#' @param pop.set1
-#' @param pop.set2
-#' @param prune
-#' @param n
-#' @param ncores
-#' @param print
-#'
-#' @return
-#' @export
-#'
-#' @examples
 Remix <- function(project = NULL,
                   final.project = NULL,
                   dynFUN,
@@ -29,13 +7,14 @@ Remix <- function(project = NULL,
                   lambda, eps1 = 10**(-2), eps2 = 1,
                   pop.set1 = NULL, pop.set2 = NULL,
                   prune = NULL, n = NULL, ncores = NULL,
-                  print = TRUE ){
+                  print = TRUE, digits=2,
+                  trueValue = NULL){
   # Initialisation projet MLX avec theta^0, alpha^0 déjà faite avant l'appel à cette fonction / on suppose à ce niveau le modèle initialiser, load dans les connecteurs / les modèles d'erreurs doivent tous êtres constants ici....
 
   # name of observation in monolix y- avec noms de la dyn de dynfun observé, les autres osef mais bien défini dans le bonne ordre !
   # bien mettre le paramètre alpha sur distribution normal
   # bien vérifier modèle d'erreur à constant
-    ptm <- proc.time()
+    ptm.first <- proc.time()
     dashed.line <- "--------------------------------------------------\n"
     plain.line <- "__________________________________________________\n"
     dashed.short <- "-----------------------\n"
@@ -48,6 +27,8 @@ Remix <- function(project = NULL,
 
     check.proj(project,alpha)
 
+    param.toprint = dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method!="FIXED")$name
+
     project.dir <- Rsmlx:::mlx.getProjectSettings()$directory
     if (!dir.exists(project.dir))
       dir.create(project.dir)
@@ -58,6 +39,8 @@ Remix <- function(project = NULL,
       dir.create(remix.dir)
     Sys.sleep(0.1)
     summary.file = file.path(remix.dir, "summary.txt")
+    unlink(summary.file,force=TRUE)
+    Sys.sleep(0.1)
 
     to.cat <- paste0("\n", dashed.line, " Starting Regulatization and Estimation Algorithm\n")
     to.cat <- c(to.cat,"    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n")
@@ -89,10 +72,12 @@ Remix <- function(project = NULL,
                                                      names(pop.set2))])
 
     check <- check.init(initial.project,pop.set1)
-    suppressMessages({
-      Rsmlx:::mlx.loadProject(project)
-      Rsmlx:::mlx.saveProject(initial.project)
+    if(identical(check,FALSE)){
+      suppressMessages({
+        Rsmlx:::mlx.loadProject(project)
+        Rsmlx:::mlx.saveProject(initial.project)
       })
+    }
 
 
     if(identical(check,FALSE) || !check$SAEM){
@@ -125,13 +110,25 @@ Remix <- function(project = NULL,
       stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
            call. = FALSE)
     Rsmlx:::mlx.saveProject(final.project)
+    to.cat <- "\n  -> Estimated parameters :\n"
+    to.print <- sapply(Rsmlx:::mlx.getEstimatedPopulationParameters(),FUN=function(p){round(p,digits=5)})[param.toprint]
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
+    if(!is.null(trueValue)){
+      to.cat <- "  -> Error :\n"
+      to.print <- sapply(Rsmlx:::mlx.getEstimatedPopulationParameters()-trueValue[names(Rsmlx:::mlx.getEstimatedPopulationParameters())],FUN=function(p){round(p,digits=5)})[param.toprint]
+      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
+    }
 
-    # AVANT GESTION DE PROJET
 
+    to.cat <- "\nEstimating the log-likelihood, and its derivates, of the first model ... \n"
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     currentData0 <- currentData <- readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo, alpha = alpha)
     LL0 <- LL <- gh.LL(dynFun = dynFun, y = y, data = currentData0, n = n, prune = prune, ncores = ncores)
-    LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL)
+    LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=TRUE)
     LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
+    to.cat <- paste0("  -> Estimated penalised log-likelihood : ",round(LL.pen,digits=digits),"\n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+
 
     suppressMessages({
       Rsmlx:::mlx.loadProject(final.project)
@@ -149,18 +146,15 @@ Remix <- function(project = NULL,
     iter =  1
     crit1 <- crit2 <- critb <- 1
 
-    cat("time")
-    print((proc.time()-ptm)["elapsed"])
-    ptm <- proc.time()
   while(!stop){
-    cat("\n--------------------------------------------------------\n")
-    cat("\n start iter",iter,"\n")
-    cat("currrent param : \n")
-    print(param0)
-    cat("current penalised LL :")
-    print(LL0.pen)
-
-
+    to.cat <- paste0("  time elapsed :",round((proc.time()-ptm.first)["elapsed"],digits=digits),"\n\n")
+    to.cat <- c(to.cat,dashed.line)
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    to.cat <- c("                 ITERATION ",iter,"\n\n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    ptm <- proc.time()
+    to.cat <- paste0("Computing taylor update for regularization parameters of ",iter,if(iter==1){"st"}else if(iter==2){"nd"}else if(iter==3){"rd"}else{"th"}," iteration ... \n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     a.ini = currentData$alpha1
     a.final <- taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL)
 
@@ -208,6 +202,8 @@ Remix <- function(project = NULL,
     }
     a.final <- a.new
 
+    to.cat <- paste0("Computing SAEM update for population parameters of ",iter,if(iter==1){"st"}else if(iter==2){"nd"}else if(iter==3){"rd"}else{"th"}," iteration ... \n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     re <- saemUpdate(project = final.project, final.project = final.project, alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,conditionalDistributionSampling = TRUE)
 
     estimates = re$SAEMiterations
@@ -215,11 +211,23 @@ Remix <- function(project = NULL,
       cmd = paste0("estimates <- dplyr::mutate(estimates,",alpha$alpha1[k],"_pop =",a.final[k],")")
       eval(parse(text=cmd))
     }
+    to.cat <- "  -> Estimated parameters :\n"
+    to.print <- sapply(re$param,FUN=function(p){round(p,digits=5)})
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)[param.toprint]
+    if(!is.null(trueValue)){
+      to.cat <- "\n      Error :\n"
+      to.print <- sapply(Rsmlx:::mlx.getEstimatedPopulationParameters()-trueValue[names(Rsmlx:::mlx.getEstimatedPopulationParameters())],FUN=function(p){round(p,digits=5)})[param.toprint]
+      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
+    }
 
+    to.cat <- paste0("\nEstimating penalised log-likelihood of ",iter,if(iter==1){"st"}else if(iter==2){"nd"}else if(iter==3){"rd"}else{"th"}," iteration ... \n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     currentData <- readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo, alpha = alpha)
     LL <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, ncores = ncores)
-    LL$ddLL <- -inflate.H.Ariane(-LL$ddLL)
+    LL$ddLL <- -inflate.H.Ariane(-LL$ddLL,print=TRUE)
     LL.pen <- LL$LL - sum(abs(a.final))
+    to.cat <- paste0("  -> Estimated penalised log-likelihood :",round(LL.pen,digits=digits),"\n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     param <- re$param
 
@@ -232,10 +240,9 @@ Remix <- function(project = NULL,
     LLpen.outputs <- append(LLpen.outputs,LL.pen)
     param.outputs <- rbind(param.outputs,param)
 
-    cat("crit param ")
-    print(crit1)
-    cat("crit LL")
-    print(crit2)
+    to.cat <- c("\n\n  current parameter criterion:",round(crit1,digits=digits),"\n")
+    to.cat <- c(to.cat,"current penalised ll criterion:",round(crit2,digits=digits),"\n")
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
 
@@ -247,30 +254,10 @@ Remix <- function(project = NULL,
     LL0.pen <- LL.pen
     param0 <- param
     iter = iter + 1
-    cat("time")
-    print((proc.time()-ptm)["elapsed"])
     ptm <- proc.time()
   }
 
-  print(param)
-  print(LL)
-
-  # Tâche monolix
-  # Lancer un premier SAEM "complet" ??????
-  # Lancer Conditional Sampling
-
-  # RENTRER dans l'algo , boucle while
-
-  # Calcul des vraisemblances et dérivées
-
-  # Update alpha
-
-  # Update SAEM
-
-  # conditional sampling monolix pour la suite
-  # fin boucle while
-
-
+  Rsmlx:::mlx.saveProject(final.project)
 }
 
 funcpa <- function(b,dynFun, y, data, n, prune, ncores,lambda,onlyLL=TRUE){
