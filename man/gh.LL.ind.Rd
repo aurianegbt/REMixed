@@ -5,37 +5,39 @@
 \title{Gauss-Hermite approximation of individual log-likelihood derivates}
 \usage{
 gh.LL.ind(
-  mu_i,
-  Omega_i,
-  theta,
-  alpha1,
   dynFun,
   y,
-  covariates_i,
-  ParModel.transfo,
-  ParModel.transfo.inv,
-  Sobs_i,
-  Robs_i,
-  Serr,
-  Rerr,
-  ObsModel.transfo,
-  n = floor(100^(1/length(theta$psi_pop))),
+  mu_i = NULL,
+  Omega_i = NULL,
+  theta = NULL,
+  alpha1 = NULL,
+  covariates_i = NULL,
+  ParModel.transfo = NULL,
+  ParModel.transfo.inv = NULL,
+  Sobs_i = NULL,
+  Robs_i = NULL,
+  Serr = NULL,
+  Rerr = NULL,
+  ObsModel.transfo = NULL,
+  data = NULL,
+  ind = NULL,
+  n = NULL,
   prune = NULL,
   onlyLL = FALSE
 )
 }
 \arguments{
+\item{dynFun}{Dynamic function ;}
+
+\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
+
 \item{mu_i}{Named vector of individual random effetcs estimation (size m);}
 
 \item{Omega_i}{Named diagonal matrix of individual standard deviation estimation (size m x m) ;}
 
-\item{theta}{model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K);}
+\item{theta}{model parameter ; contain phi_pop (size L), psi_pop (size m), gamma (list of size L, containing vector of size m), beta (list of size m, containing vector of size m), alpha0 (size K), and omega (size m) ;}
 
 \item{alpha1}{Regularization parameter (size K ) ; must be in the same order as in Robs_i.}
-
-\item{dynFun}{Dynamic function ;}
-
-\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
 
 \item{covariates_i}{Covariates line matrix of the individual ;}
 
