@@ -22,6 +22,7 @@ gh.LL(
   data = NULL,
   n = NULL,
   prune = NULL,
+  parallel = TRUE,
   ncores = NULL,
   onlyLL = FALSE
 )
