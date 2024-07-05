@@ -28,7 +28,7 @@ taylorUpdate <- function(alpha,lambda,ddLL,dLL){
   K = length(alpha)
   X = -ddLL
 
-  value.test = dLL - sapply(1:K,FUN=function(k){sum(X[-k,k]*alpha[-k])}) + sapply(1:K,FUN = function(k){sum(X[k,]*alpha)})
+  value.test = dLL + diag(X)*alpha
 
   alpha.new = sapply(1:K,FUN = function(k){
     if( value.test[k] < - lambda){
