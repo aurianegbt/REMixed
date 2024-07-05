@@ -88,6 +88,7 @@ readMLX <- function(project=NULL,
       if(identical(g,rep(0,ncol(covariates)))){
         g <- NULL
       }
+      return(g)
     }),phi.names)
 
     beta = setNames(lapply(psi.names,FUN=function(p){
@@ -101,6 +102,7 @@ readMLX <- function(project=NULL,
       if(identical(b,rep(0,ncol(covariates)))){
         b <- NULL
       }
+      return(b)
     }),psi.names)
   }else{
     gamma = NULL
