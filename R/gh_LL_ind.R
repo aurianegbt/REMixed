@@ -302,7 +302,7 @@ amgauss.hermite <- function(n,mu=rep(0,ncol(Omega)),Omega=diag(rep(1,length(mu))
   rot <- S %*% L
 
   ppts  <-t( sqrt(2) * rot %*% t(pts) + mu)
-  wwts  <- wts * sqrt(2)**dm * det(rot) * exp(apply(pts,1,FUN=function(x){t(x)%*%x}))
+  wwts  <- wts * sqrt(2)**dm * abs(det(rot)) * exp(apply(pts,1,FUN=function(x){t(x)%*%x}))
 
 
   return(list(Points=ppts, Weights=wwts))
