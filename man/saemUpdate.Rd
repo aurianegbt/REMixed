@@ -11,7 +11,8 @@ saemUpdate(
   a.final,
   iter = NULL,
   pop.set = NULL,
-  conditionalDistributionSampling = FALSE
+  conditionalDistributionSampling = FALSE,
+  StandardErrors = FALSE
 )
 }
 \arguments{

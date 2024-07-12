@@ -26,7 +26,8 @@ saemUpdate <- function(project = NULL,final.project=NULL,
                        alpha, a.final,
                        iter=NULL,
                        pop.set=NULL,
-                       conditionalDistributionSampling = FALSE){
+                       conditionalDistributionSampling = FALSE,
+                       StandardErrors = FALSE){
 
   suppressMessages({
     if (!is.null(project)){
@@ -65,6 +66,9 @@ saemUpdate <- function(project = NULL,final.project=NULL,
   Rsmlx:::mlx.runPopulationParameterEstimation()
   if(conditionalDistributionSampling){
     Rsmlx:::mlx.runConditionalDistributionSampling()
+  }
+  if(StandardErrors){
+    Rsmlx:::mlx.runStandardErrorEstimation()
   }
   Rsmlx:::mlx.saveProject(final.project)
 
