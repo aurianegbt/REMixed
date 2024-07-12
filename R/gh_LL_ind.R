@@ -307,3 +307,165 @@ amgauss.hermite <- function(n,mu=rep(0,ncol(Omega)),Omega=diag(rep(1,length(mu))
 
   return(list(Points=ppts, Weights=wwts))
 }
+
+
+################# lambda_max ##################################
+lambda.max.ind <- function(
+    dynFun,
+    y,
+    mu_i=NULL,
+    Omega_i=NULL,
+    theta=NULL,
+    alpha1=NULL,
+    covariates_i=NULL,
+    ParModel.transfo=NULL,
+    ParModel.transfo.inv=NULL,
+    Sobs_i=NULL,
+    Robs_i=NULL,
+    Serr=NULL,
+    Rerr=NULL,
+    ObsModel.transfo=NULL,
+    data=NULL,
+    ind = NULL,
+    n = NULL,
+    prune=NULL){
+
+  if(is.null(data)){
+    test <- sapply(c("mu_i","Omega_i","theta","alpha1","covariates_i","ParModel.transfo","ParModel.transfo.inv","Sobs_i","Robs_i","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
+    if(any(test))
+      stop("Please provide all necessary arguments.")
+  }else{
+    if((is.null(mu_i) || is.null(Omega_i)) & !all(c("mu","Omega") %in% names(data))){
+      stop("Please provide mu and Omega if these are missing from data.")
+    }
+    argsNONind = c("theta","alpha1","ParModel.transfo","ParModel.transfo.inv","Serr","Rerr","ObsModel.transfo")
+    for(d in 1:length(argsNONind)){
+      test <- eval(parse(text=paste0("is.null(",argsNONind[d],")")))
+      if(test){
+        eval(parse(text=paste0(argsNONind[d],"<- data[[argsNONind[d]]]")))
+      }
+    }
+    argsInd = c("mu","Omega","Robs","Sobs","covariates")
+    for(d in 1:length(argsInd)){
+      test <- eval(parse(text=paste0("is.null(",paste0(argsInd[d],"_i"),")")))
+      if(test){
+        eval(parse(text=paste0(argsInd[d],"<- data[[argsInd[d]]]")))
+
+      }
+    }
+    if((is.null(mu_i) || is.null(Omega_i) || is.null(Robs_i) || is.null(Sobs_i) || is.null(covariates_i)) & is.null(ind)){
+      stop("Please provide individual information (mu_i,Omega_i,Sobs_i,Robs_i,covariates_i), or the individual id ind.")
+    }
+    if(is.null(mu_i)){
+      mu_i = mu[[ind]]
+    }
+    if(is.null(Omega_i)){
+      Omega_i = Omega[[ind]]
+    }
+    if(is.null(Sobs_i)){
+      Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==ind,]})
+    }
+    if(is.null(Robs_i)){
+      Robs_i = lapply(Robs,FUN=function(R){R[R$id==ind,]})
+    }
+    if(is.null(covariates_i)){
+      covariates_i = covariates[ind,,drop=F]
+    }
+  }
+
+  if(is.null(n)){
+    n <- floor(100**(1/length(theta$psi_pop)))
+  }
+
+  dm = length(mu_i)
+
+  if(dm!=1){
+    mh.parm <- amgauss.hermite(n,mu=mu_i,Omega=Omega_i,prune=prune)
+    detsq.omega = prod(theta$omega)
+    root.omega = diag(1/theta$omega**2)
+  }else{
+    mh.parm <- agauss.hermite(n,mu = mu_i,sd=sqrt(as.numeric(Omega_i)))
+    detsq.omega = as.numeric(theta$omega)
+    root.omega = 1/as.numeric(theta$omega)**2
+  }
+
+  nd = length(mh.parm$Weights)
+  # N = nrow(covariates_i)
+  R.sz = length(Rerr)
+  S.sz = length(Serr)
+  all.tobs = sort(union(unlist(lapply(Robs_i,FUN=function(x){x$time})),unlist(lapply(Sobs_i,FUN=function(x){x$time}))))
+
+  # Need to compute, for each eta_i x individual i, the dynamics of the model
+  dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
+    PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
+    dyn_eta_i <- dynFun(all.tobs,y,unlist(unname(PSI_i)))
+
+    return(dyn_eta_i)
+  }),paste0("eta_",1:nd))
+
+  # Compute marginal latent density for each individual and value of RE
+  R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+    dyn.ei = dyn[[paste0("eta_",ei)]]
+
+
+    res = prod(sapply(1:R.sz,FUN=function(k){
+      sig = Rerr[[k]]
+      tki = Robs_i[[k]]$time
+      Zki = Robs_i[[k]][,3]
+
+      a0 = theta$alpha0[[k]]
+      a1 = alpha1[[k]]
+      trs = ObsModel.transfo[[2]][k]
+      Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+
+      prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
+    }))
+  }),paste0("eta_",1:nd))
+
+  # A(Y|theta0)
+  if(S.sz!=0){
+    S.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+      eta_i = split(mh.parm$Points,1:nd)[[ei]]
+      dyn.ei = dyn[[paste0("eta_",ei)]]
+
+      res = prod(sapply(1:S.sz,FUN=function(p){
+        sig = Serr[[p]]
+        tpi = Sobs_i[[p]]$time
+        Ypi = Sobs_i[[p]][,3]
+
+        trs = ObsModel.transfo[[1]][p]
+        Spi = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tpi,names(trs)])
+
+        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Ypi-Spi)/sig)**2))
+      }))*(1/((2*pi)**(dm/2)*detsq.omega)*exp(-1/2*eta_i%*%root.omega%*%eta_i))
+    }),paste0("eta_",1:nd))
+  }else{
+    S.margDensity = setNames(sapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
+      (1/((2*pi)**(dm/2)*detsq.omega)*exp(-1/2*eta_i%*%root.omega%*%eta_i))
+    }),paste0("eta_",1:nd))
+  }
+
+  # s'k(Ri(krij))A(Y|theta0)
+  S2.margDensity <- lapply(1:R.sz,FUN=function(k){
+    setNames(sapply(1:nd,FUN=function(ei){
+      dyn.ei = dyn[[paste0("eta_",ei)]]
+
+      sig = Rerr[[k]]
+      tki = Robs_i[[k]]$time
+      Zki = Robs_i[[k]][,3]
+
+      a0 = theta$alpha0[[k]]
+      a1 = alpha1[[k]]
+      trs = ObsModel.transfo[[2]][k]
+      Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+
+      return(1/sig**2*sum((Zki-a0)*Rki)*S.margDensity[[ei]])
+  }),paste0("eta_",1:nd))})
+
+
+  indi.contrib <- sapply(1:R.sz,FUN=function(k){
+    sum(mh.parm$Weights*S2.margDensity[[k]])
+  })/sum(mh.parm$Weights*S.margDensity)
+
+return(indi.contrib)
+}

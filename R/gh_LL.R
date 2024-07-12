@@ -138,3 +138,83 @@ gh.LL <- function(
 .hiddenCall <-function (command) {
   eval.parent(parse(text = command))
 }
+
+############# lambda.max
+lambda.max  <- function(
+    dynFun,
+    y,
+    mu=NULL,
+    Omega=NULL,
+    theta=NULL,
+    alpha1=NULL,
+    covariates=NULL,
+    ParModel.transfo=NULL,
+    ParModel.transfo.inv=NULL,
+    Sobs=NULL,
+    Robs=NULL,
+    Serr=NULL,
+    Rerr=NULL,
+    ObsModel.transfo=NULL,
+    data=NULL,
+    n = NULL,
+    prune=NULL,
+    parallel = TRUE,
+    ncores=NULL,
+    onlyLL=FALSE){
+
+  if(is.null(data)){
+    test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
+    if(any(test))
+      stop("Please provide all necessary arguments.")
+  }else{
+    if((is.null(mu) || is.null(Omega)) & !all(c("mu","Omega") %in% names(data))){
+      stop("Please provide mu and Omega if these are missing from data.")
+    }
+    for(d in 1:length(data)){
+      test <- .hiddenCall(paste0("is.null(",names(data)[d],")"))
+      if(test){
+        eval(parse(text=paste0(names(data[d]),"<- data[[d]]")))
+      }
+    }
+  }
+  if(is.null(n)){
+    n <- floor(100**(1/length(theta$psi_pop)))
+  }
+
+  if(parallel){
+    if(!is.null(ncores)){
+      doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
+    }else{
+      doParallel::registerDoParallel(cluster <- parallel::makeCluster(parallel::detectCores()))}}
+
+  # add check
+
+  N=length(mu)
+
+
+  i = 1
+  res = foreach(i = 1:N,.packages = "REMix") %dopar% {
+    if(0 %in% diag(Omega[[i]])){
+      diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
+    }
+    lambda.max.ind(mu_i = mu[[i]],
+              Omega_i = Omega[[i]],
+              theta = theta,
+              alpha1 = alpha1,
+              dynFun = dynFun,
+              y = y,
+              covariates_i = covariates[i,,drop=F],
+              ParModel.transfo = ParModel.transfo,
+              ParModel.transfo.inv = ParModel.transfo.inv,
+              Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==i,]}),
+              Robs_i = lapply(Robs,FUN=function(R){R[R$id==i,]}),
+              Serr = Serr,
+              Rerr = Rerr,
+              ObsModel.transfo = ObsModel.transfo,
+              n = n,
+              prune = prune,
+              onlyLL = onlyLL)
+  }
+
+  return(max(apply(res,1,sum)))
+}
