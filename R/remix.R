@@ -3,6 +3,11 @@
 #' @description
 #' Regularization and Estimation in MIXed effects model.
 #'
+#' @details
+#' Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i}  is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}}   and \eqn{\beta=(\beta_l)_{l\leq m}}  is the vector of covariates effects on parameters.
+#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+#' We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P}.
+#' The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)}.
 #'
 #' @param project the initial Monolix project;
 #' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
@@ -32,6 +37,8 @@
 #' @return list fo outputs of final project and through the iteration
 #' @export
 #'
+#' @seealso \code{\link{cv.Remix}}
+#'
 #' @examples
 #' # [ TO DO ]
 Remix <- function(project = NULL,
@@ -42,7 +49,7 @@ Remix <- function(project = NULL,
                   alpha,
                   lambda,
                   eps1 = 10**(-2),
-                  eps2 = 10**(-2),
+                  eps2 = 1,
                   selfInit = FALSE,
                   pop.set1 = NULL,
                   pop.set2 = NULL,
@@ -84,7 +91,7 @@ Remix <- function(project = NULL,
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
   param.toprint = setdiff(dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method!="FIXED")$name,regParam.toprint)
-  rm.param = dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method=="FIXED")$name
+  rm.param = setdiff(Rsmlx:::mlx.getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
 
   project.dir <- Rsmlx:::mlx.getProjectSettings()$directory
   if (!dir.exists(project.dir))
@@ -150,6 +157,7 @@ Remix <- function(project = NULL,
     Rsmlx:::mlx.setPopulationParameterEstimationSettings(pop.set1)
     to.cat <- "Estimation of the population parameters using the initial model ... \n"
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+
     Rsmlx:::mlx.runPopulationParameterEstimation()
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -212,6 +220,7 @@ Remix <- function(project = NULL,
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
   currentData0 <- currentData <-
     readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
+  # FIRST ESTIMATE STORED = NULL
   LL0 <- LL <-
     gh.LL(dynFun = dynFun,y = y, data = currentData0, n = n,
           prune = prune, ncores = ncores)
@@ -258,13 +267,16 @@ Remix <- function(project = NULL,
     a.final <- taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL)
 
     currentData$alpha1 <- a.final
-    LLpen.aux <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, ncores = ncores,onlyLL=TRUE) -lambda * sum(abs(a.final))
+    LLpen.aux <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, ncores = ncores,onlyLL=TRUE) - lambda * sum(abs(a.final))
+
 
     if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
+
+      print("RECALIBRATE ")
       th <- 1e-5
       step <- log(1.5)
-      a.ini[which(a.final==0)] <- 0
-      delta <-  a.final - a.ini
+      to.recalibrate = which(a.final!=0)
+      delta <-  a.final[to.recalibrate] - a.ini[to.recalibrate]
 
       maxt <- max(abs(delta))
 
@@ -274,33 +286,31 @@ Remix <- function(project = NULL,
         vw <- th/maxt
       }
 
-      res.out.error <- list("old.b" = a.ini,
+      res.out.error <- list("old.b" = a.ini[to.recalibrate],
                             "old.rl" = LL0.pen,  # pénalisé   en l'ancien
                             "old.ca" = critb,    # que les alpha1 ici
                             "old.cb" = crit2)    # pénalisé aussi
       # pas très important, là en cas de plantage, rien d'autres
 
-      sears <- marqLevAlg:::searpas(vw = vw,
-                                    step = step,
-                                    b = a.ini,
-                                    delta = delta,
-                                    funcpa = funcpa,
-                                    res.out.error = res.out.error,
-                                    dynFun=dynFun,
-                                    y = y,
-                                    data = currentData,
-                                    n = n,
-                                    prune = prune,
-                                    parallel = TRUE,
-                                    ncores = ncores,
-                                    onlyLL = TRUE,
-                                    lambda = lambda)
+      sears <- searpas(vw = vw,
+                       step = step,
+                       b = a.ini[to.recalibrate],
+                       delta = delta,
+                       funcpa = funcpa,
+                       res.out.error = res.out.error,
+                       dynFun=dynFun,
+                       y = y,
+                       data = currentData,
+                       n = n,
+                       prune = prune,
+                       stored = NULL,
+                       to.recalibrate=to.recalibrate,
+                       parallel = TRUE,
+                       ncores = ncores,
+                       lambda = lambda)
 
-      a.final <- a.ini + delta*sears$vw
-      currentData$alpha1 <- a.final
-      LLpen.aux <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, ncores = ncores,onlyLL=TRUE) -lambda * sum(abs(a.final))
+      a.final <- currentData$alpha1[to.recalibrate]
     }
-    cat("\n LLpen.aux =",LLpen.aux,"\n")
 
   to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
     row.names(to.print) <- regParam.toprint
@@ -354,7 +364,7 @@ Remix <- function(project = NULL,
     ############ ESTIMATE PENALIZED   ###########
     to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    currentData <- readMLX(project = final.project,
+    currentData0 <- currentData <- readMLX(project = final.project,
                            ObsModel.transfo = ObsModel.transfo,
                            alpha = alpha)
     LL <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, ncores = ncores)
@@ -394,25 +404,24 @@ Remix <- function(project = NULL,
   N=length(currentData$mu)
 
   Rsmlx:::mlx.saveProject(final.project)
-  return(list(res=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
-                       param=param,
-                       alpha=a.final,
-                       iter=iter,
-                       time=(proc.time()-ptm.first)["elapsed"],
-                       BIC = -2*LL0.pen+log(N)*sum(param0[paste0(alpha$alpha1,"_pop")]!=0)),
-              outputs=list(param=param.outputs,
-                           LL=LL.outputs,
-                           LL.pen = LLpen.outputs,
-                           estimates=estimates.outputs,
-                           criterion = crit.outputs)))
+
+  results <- list(finalRes=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
+                                param=param,
+                                alpha=a.final,
+                                iter=iter,
+                                time=(proc.time()-ptm.first)["elapsed"],
+                                BIC = -2*LL0.pen+log(N)*sum(param0[paste0(alpha$alpha1,"_pop")]!=0)),
+                  iterOutputs=list(param=param.outputs,
+                                   LL=LL.outputs,
+                                   LL.pen = LLpen.outputs,
+                                   estimates=estimates.outputs,
+                                   criterion = crit.outputs))
+  class(results) <- "remix"
+  return(results)
 }
 
-funcpa <- function(b,dynFun, y, data, n, prune, ncores,parallel,lambda,onlyLL=TRUE){
-  data$alpha1 <- b
-  LL = gh.LL(dynFun = dynFun, y = y, data = data, n = n, prune = prune, ncores = ncores,parallel=parallel,onlyLL=onlyLL)
-  return(LL-lambda*sum(abs(b)))
-}
 
+# Inflation matrix from smoothhazard by Bercu -----------------------------
 inflate.H.Ariane <- function(H,eps.eigen=10**(-5),print=FALSE){# inflation hessienne ; Merci Ariane ♥
 
   tr <- sum(diag(H))/ncol(H)
@@ -476,6 +485,8 @@ inflate.H.Ariane <- function(H,eps.eigen=10**(-5),print=FALSE){# inflation hessi
   }
   return(H)}
 
+
+# Chek --------------------------------------------------------------------
 check.init <- function(initial.project,pop.set1){
 
   IndividualParameterModel = Rsmlx:::mlx.getIndividualParameterModel()
@@ -525,3 +536,83 @@ check.proj <- function(project,alpha){
   }
   return(invisible(TRUE))
 }
+
+
+# Update ------------------------------------------------------------------
+saemUpdate <- function(project = NULL,final.project=NULL,
+                       alpha, a.final,
+                       iter=NULL,
+                       pop.set=NULL,
+                       conditionalDistributionSampling = FALSE,
+                       StandardErrors = FALSE){
+
+  suppressMessages({
+    if (!is.null(project)){
+      project <- Rsmlx:::prcheck(project)$project
+    }else{
+      project <- Rsmlx:::mlx.getProjectSettings()$project
+    }
+
+    lixoftConnectors::loadProject(project)
+  })
+
+  if (is.null(final.project)){
+    final.project <- paste0(sub(pattern = "(.*)\\..*$",
+                                replacement = "\\1", project), "_upd.mlxtran")
+  }
+  if (!grepl("\\.", final.project))
+    final.project <- paste0(final.project, ".mlxtran")
+  if (!grepl("\\.mlxtran", final.project))
+    stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
+         call. = FALSE)
+
+  pset <- list(nbsmoothingiterations=50,nbexploratoryiterations=50,
+               simulatedannealing=F, smoothingautostop=F,exploratoryautostop=F)
+  pop.set <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
+  pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
+
+  Rsmlx:::mlx.setInitialEstimatesToLastEstimates(fixedEffectsOnly = FALSE)
+
+  for(k in 1:length(alpha$alpha1)){
+    eval(parse(text=paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[k],"_pop=list(initialValue=",a.final[k],",method='FIXED'))")))
+  }
+
+  Rsmlx:::mlx.setPopulationParameterEstimationSettings(pop.set)
+
+  Rsmlx:::mlx.saveProject(final.project)
+  Rsmlx:::mlx.runPopulationParameterEstimation()
+  if(conditionalDistributionSampling){
+    Rsmlx:::mlx.runConditionalDistributionSampling()
+  }
+  if(StandardErrors){
+    Rsmlx:::mlx.runStandardErrorEstimation()
+  }
+  Rsmlx:::mlx.saveProject(final.project)
+
+  re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
+            param = Rsmlx:::mlx.getEstimatedPopulationParameters())
+  return(re)
+}
+
+taylorUpdate <- function(alpha,lambda,ddLL,dLL){
+
+  # check ; size of alpha and ddLL, dLL
+
+  K = length(alpha)
+  X = -ddLL
+
+  value.test = dLL + diag(X)*alpha
+
+  alpha.new = sapply(1:K,FUN = function(k){
+    if( value.test[k] < - lambda){
+      alpha = alpha[k] + (dLL[k]+lambda)/X[k,k]
+    }else if(value.test[k] >  lambda ){
+      alpha = alpha[k] + (dLL[k]-lambda)/X[k,k]
+    }else{
+      alpha = 0
+    }
+  })
+
+  return(alpha.new)
+}
+
