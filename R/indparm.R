@@ -26,10 +26,9 @@
 #'
 #' @return a list with `phi_i` and `psi_i` parameters.
 #' @export
-#' @seealso [Clairon()], [Pasin()]
+#' @seealso \code{\link{Clairon}}, \code{\link{Pasin}}.
 #'
 #' @examples
-#'
 #' phi_pop = c(delta_S = 0.231, delta_L = 0.000316)
 #' psi_pop = c(delta_Ab = 0.025,phi_S = 3057, phi_L = 16.6)
 #' gamma = NULL
@@ -44,7 +43,10 @@
 #' indParm(theta,covariates,eta_i,transfo,transfo.inv)
 
 indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
-  # should add check parameter : a checker : theta names / beta vs covariates format / eta_i vs psi_pop format vs transfo vs transfo.inv format + names
+
+  check.indparm(theta,covariates,eta_i,transfo,transfo.inv)
+
+
 
   phi_i = numeric()
   psi_i = numeric()
@@ -85,3 +87,43 @@ indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
   }
   return(list(phi_i=phi_i,psi_i=psi_i))
 }
+
+
+# check -------------------------------------------------------------------
+check.indparm <- function(theta,covariates,eta_i,transfo,transfo.inv){
+  if(any(length(names(theta$phi_pop))==0)){
+    stop("Please set unique names for each parameter in theta$phi_pop vector.")
+  }
+  if(any(length(names(theta$psi_pop))==0)){
+    stop("Please set unique names for each parameter in theta$psi_pop vector.")
+  }
+
+  if(!is.null(theta$beta)){
+    if(length(covariates)==0){
+      stop("If covariates effects are provided through theta$beta, covariates need to be provided.")
+    }
+    if(any(sapply(theta$beta,FUN=function(b){length(b)}) > length(covariates))){
+      stop("Please provide as many covariates effects coefficients in theta$beta as in covariates dataframe.")
+    }
+    if(any(!(names(theta$beta) %in% names(theta$psi_pop)))){
+      stop("All parameters named in theta$beta should be present in theta$psi_pop.")
+    }
+    if(length(theta$psi_pop)!=length(eta_i)){
+      stop("Please provide as many random effects values as parameters in theta$psi_pop")
+    }
+  }
+
+  if(!is.null(theta$gamma)){
+    if(length(covariates)==0){
+      stop("If covariates effects are provided through theta$gamma, covariates need to be provided.")
+    }
+    if(any(sapply(theta$gamma,FUN=function(b){length(b)}) > length(covariates))){
+      stop("Please provide at least as many covariates effects coefficients in theta$beta as in covariates dataframe.")
+    }
+    if(any(!(names(theta$gamma) %in% names(theta$phi_pop)))){
+      stop("All parameters named in theta$gamma should be present in theta$phi_pop.")
+    }
+  }
+  return(invisible(TRUE))
+}
+

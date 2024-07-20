@@ -39,7 +39,6 @@ with \eqn{h_l} the transformation, \eqn{\beta_l} the vector of covariates effect
 with \eqn{g_k} the transformation and  \eqn{\gamma_k} the vector of covariates effect associated \eqn{\phi_k} parameter.
 }
 \examples{
-
 phi_pop = c(delta_S = 0.231, delta_L = 0.000316)
 psi_pop = c(delta_Ab = 0.025,phi_S = 3057, phi_L = 16.6)
 gamma = NULL
@@ -54,5 +53,5 @@ transfo.inv = list(delta_Ab = exp,phi_S=exp,phi_L=exp)
 indParm(theta,covariates,eta_i,transfo,transfo.inv)
 }
 \seealso{
-[Clairon()], [Pasin()]
+\code{\link{Clairon}}, \code{\link{Pasin}}.
 }

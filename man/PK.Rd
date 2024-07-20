@@ -25,5 +25,5 @@ res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
 plot(res)
 }
 \seealso{
-[indParm()]
+\code{\link{indParm}}
 }

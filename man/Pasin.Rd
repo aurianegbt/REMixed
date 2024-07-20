@@ -9,30 +9,27 @@ Pasin(t, y, parms)
 \arguments{
 \item{t}{vector of time ;}
 
-\item{y}{initial condition, named vector of form c(A=A0) ;}
+\item{y}{initial condition, named vector of form c(A=A0,S=S0,L=L0) ;}
 
-\item{parms}{named vector of model parameter ; should contain ""phi_S","phi_L","delta_Ab","delta_S","delta_L".}
+\item{parms}{named vector of model parameter ; should contain ""theta_S","theta_L","delta_Ab","delta_S","delta_L".}
 }
 \value{
-Matrix of time and observation of antibody titer Ab.
+Matrix of time and observation of antibody titer Ab, and ASCs S and L.
 }
 \description{
 The model correspond to the dynamics of the humoral response, from 7 days after the boost immunization. Model is defined as
-\deqn{ \frac{d}{dt} Ab(t) = \varphi_S e^{-\delta_S t} + \varphi_L e^{-\delta_L t} - \delta_{Ab} Ab(t) }
+\deqn{ \left\{\begin{matrix}\frac{d}{dt} Ab(t) &=& \theta_S S(t) + \theta_L L(t) - \delta_{Ab} Ab(t)  \\ \frac{d}{dt}S(t) &=& -\delta_S S(t) \\ \frac{d}{dt} L(t) &=& -\delta_L L(t)\end{matrix}\right. }
 }
 \examples{
-y = c(A=0)
-
-parms = c(phi_S = 3057,
-          phi_L = 16.6,
-          delta_Ab = 0.025,
-          delta_S = 0.231,
-          delta_L = 0.000316)
+y = c(A=0,S=5,L=5)
+parms = c(theta_S = 611,
+       theta_L = 3.5,
+              delta_Ab = 0.025,
+              delta_S = 0.231,
+              delta_L = 0.000152)
 
 t = seq(0,100,5)
-
 res <- Pasin(t,y,parms)
-
 plot(res)
 
 }

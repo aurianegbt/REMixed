@@ -27,3 +27,6 @@ Retrieve all information necessary for the algorithm that can be search in the c
 # TODO
 
 }
+\seealso{
+\code{\link{Remix}}, \code{\link{cv.Remix}}.
+}

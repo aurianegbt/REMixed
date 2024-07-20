@@ -16,6 +16,8 @@
 #' @return list with parameters, transformations, observations from the monolix project, with the form needed for the implemented algorithm
 #' @export
 #'
+#' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}.
+#'
 #' @examples
 #' # TODO
 #'
