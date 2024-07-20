@@ -3,6 +3,11 @@
 #' @description
 #' Regularization and Estimation in MIXed effects model, over a regularization path.
 #'
+#' @details
+#' Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i}  is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}}   and \eqn{\beta=(\beta_l)_{l\leq m}}  is the vector of covariates effects on parameters.
+#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+#' We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P}.
+#' The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)}.
 #'
 #' @param project the initial Monolix project;
 #' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
@@ -30,7 +35,7 @@
 #' @param digits digits to print, (default 3) ;
 #' @param trueValue (FOR SIMULATION, if provided, the error is compute at each iteration. )
 #'
-#' @return list fo outputs of final project and through the iteration for every lambda on lambda.grid.
+#' @return list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
 #' @export
 #'
 #' @examples
@@ -162,39 +167,32 @@ cv.Remix <- function(project = NULL,
   }
   Rsmlx:::mlx.saveProject(initial.project)
 
-  # if (is.null(final.project)){
-  #   final.project <- paste0(sub(pattern = "(.*)\\..*$",
-  #                               replacement = "\\1", project), "_upd.mlxtran")}
-  # if (!grepl("\\.", final.project))
-  #   final.project <- paste0(final.project, ".mlxtran")
-  # if (!grepl("\\.mlxtran", final.project))
-  #   stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
-  #        call. = FALSE)
-  # Rsmlx:::mlx.saveProject(final.project)
   param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()[-which(names(Rsmlx:::mlx.getEstimatedPopulationParameters())%in%rm.param)]
 
   ########################## RENDER FIRST ESTIMATION  ###########################
   to.cat <- "\n      - - - <  INITIAL PARAMETERS  > - - -     \n\n"
 
-  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){round(p,digits=digits)})[param.toprint])
+  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
   row.names(to.print) <- param.toprint
   if(!identical(Rsmlx:::mlx.getEstimatedStandardErrors(),NULL)){
     sd.est = Rsmlx:::mlx.getEstimatedStandardErrors()$stochasticApproximation
     sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
-    to.print <- cbind(to.print, CI_95 = paste0("[",round(to.print[,1]-1.96*sd.est,digits=digits),";",round(to.print[,1]+1.96*sd.est,digits=digits),"]"))
+    to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(param0[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(param0[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
   }
   if(!is.null(trueValue)){
-    to.print <- cbind(to.print, TrueValue = round(as.numeric(trueValue[param.toprint]),digits=digits), RelativeBias = round(as.numeric((to.print[,1]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
+    to.print <- cbind(to.print,
+                      TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific = TRUE),
+                      RelativeBias = round((param0[param.toprint]-as.numeric(trueValue[param.toprint]))/as.numeric(trueValue[param.toprint]),digits=digits))
   }
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   to.cat <- "\n"
-  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){round(p,digits=digits)})[regParam.toprint])
+  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = T)})[regParam.toprint])
   row.names(to.print) <- regParam.toprint
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,
-                      TrueValue = round(as.numeric(trueValue[regParam.toprint]),digits=digits),
-                      RelativeBias = round(as.numeric((to.print[,1]-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits))
+                      TrueValue = format(signif(as.numeric(trueValue[regParam.toprint]),digits=digits),scientific = TRUE),
+                      RelativeBias = round((param0[regParam.toprint]-as.numeric(trueValue[regParam.toprint]))/as.numeric(trueValue[regParam.toprint]),digits=digits))
 
     to.print[is.nan(to.print$RelativeBias) | is.infinite(to.print$RelativeBias),"RelativeBias"] <- " "
 
@@ -203,50 +201,63 @@ cv.Remix <- function(project = NULL,
   }
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
+  ########### Technical PARAMETER ################
 
+  if(is.null(ncores)){
+    if(.Platform$OS.type == "unix"){
+      ncores = parallel::detectCores()
+    }else{
+      ncores = parallel::detectCores()/2
+      if(ncores <1){ncores <- 1}
+    }
+  }
+  cluster <- snow::makeCluster(ncores)
+  doSNOW::registerDoSNOW(cluster)
 
-  ########################## ESTIMATING FIRST LL  ###########################
+  ######################## Computing Regularization PATH   #########################
   to.cat <- "\nComputing regularization path ... \n"
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
   currentData0 <- currentData <-
     readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
   if(is.null(lambda.grid)){
-    lambda.max = lambda.max(dynFun = dynFun,y = y, data = currentData0, n = n,
-                            prune = prune, ncores = ncores)
+    lambda_max = lambda.max(dynFun = dynFun,y = y, data = currentData0, n = n,
+                            prune = prune, parallel=FALSE)
 
-    lambda.grid = lambda.max*0.1**(1:nlambda)/nlambda
+    lambda.grid = lambda_max*(0.05**((1:nlambda)/nlambda))
     lambda.grid <- lambda.grid[lambda.grid!=0]
   }
 
-  if(is.null(ncores)){
-    ncores = parallel::detectCores()
-  }
-  cores_per_task <- if(ncores>=10){4}else if(ncores>3){2}else{1}
-  concurrent_tasks <- ncores / cores_per_task
 
-  outer_cluster <- parallel::makeCluster(concurrent_tasks)
-  doParallel::registerDoParallel(outer_cluster)
+
 
   ############### START CV ##########################
   array = 1
-  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix")%dopar%{
+  ntasks <- length(lambda.grid)
+  pb <- utils::txtProgressBar(max = ntasks, style = 3)
+  progress <- function(n) utils::setTxtProgressBar(pb, n)
+  opts <- list(progress = progress)
 
-    inner.cluster <- parallel::makeCluster(cores_per_task)
-    doParallel::registerDoParallel(inner_cluster)
+  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.export = "dynFun",.options.snow=opts)%dopar%{
 
-    if(print){
-      cat(dashed.short)
-      cat("array =",array,"\nlambda =",round(lambda.grid[array],digits=digits))
-    }
+    Rsmlx:::prcheck(initial.project)
+
+
     lambda = lambda.grid[array]
     print = FALSE
 
     ptm.first <- ptm <- proc.time()
 
-    summary.file = file.path(remix.dir, paste0("summary_",array,".txt"))
-    unlink(summary.file,force=TRUE)
+    summary.file.new <- file.path(remix.dir, paste0("summary_",array,".txt"))
+    unlink(summary.file.new,force=TRUE)
     Sys.sleep(0.1)
+    file.copy(from=summary.file,
+              to = summary.file.new)
+    summary.file <- summary.file.new
+
+    to.cat <- paste0("array =",array,"\nlambda =",round(lambda.grid[array],digits=digits))
+    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+
 
     if (is.null(final.project)){
       final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))}
@@ -266,8 +277,9 @@ cv.Remix <- function(project = NULL,
     LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=FALSE)
     LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
 
-    to.cat <- paste0("        LL :",round(LL$LL,digits=digits))
-    to.cat <- paste0(to.cat,"\n    LL.pen :",round(LL.pen,digits=digits),"\n")
+
+    to.cat <- paste0("             LL : ",round(LL$LL,digits=digits))
+    to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     suppressMessages({Rsmlx:::mlx.loadProject(final.project)})
@@ -291,7 +303,7 @@ cv.Remix <- function(project = NULL,
     ##########################       ITERATION       ###########################
     while(!stop){
       ############ START ITERATION   ###########
-      to.cat <- paste0("   time elapsed :",round((proc.time()-ptm)["elapsed"],digits=digits),"\n")
+      to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
       to.cat <- c(to.cat,dashed.line)
       Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
       to.cat <- c("                 ITERATION ",iter,"\n\n")
@@ -347,12 +359,12 @@ cv.Remix <- function(project = NULL,
         currentData$alpha1 <- a.final
       }
 
-      to.print <- data.frame(EstimatedValue = round(a.final,digits=digits))
+      to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
       row.names(to.print) <- regParam.toprint
       if(!is.null(trueValue)){
         to.print <- cbind(to.print,
-                          TrueValue = round(as.numeric(trueValue[regParam.toprint]),digits=digits),
-                          RelativeBias = round(as.numeric((to.print[,1]-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits),
+                          TrueValue = signif(as.numeric(trueValue[regParam.toprint]),digits=digits),
+                          RelativeBias = round(as.numeric((a.final-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits),
                           " " = ifelse(a.final==0, ifelse(trueValue[regParam.toprint]==0,"  ✓","  ✗"),
                                        ifelse(trueValue[regParam.toprint]!=0,"  ✓","  ✗"))
         )
@@ -363,7 +375,6 @@ cv.Remix <- function(project = NULL,
         to.print[a.final==0,"EstimatedValue"] <- "  "
       }
       Rsmlx:::print_result(print, summary.file, to.cat = NULL, to.print = to.print)
-
 
       ############ SAEM UPDATE   ###########
       to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
@@ -379,15 +390,17 @@ cv.Remix <- function(project = NULL,
         eval(parse(text=cmd))
       }
 
-      to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){round(p,digits=digits)})[param.toprint])
+      to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
       row.names(to.print) <- param.toprint
       if(!identical(Rsmlx:::mlx.getEstimatedStandardErrors(),NULL)){
         sd.est = Rsmlx:::mlx.getEstimatedStandardErrors()$stochasticApproximation
         sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
-        to.print <- cbind(to.print, CI_95 = paste0("[",round(to.print[,1]-1.96*sd.est,digits=digits),";",round(to.print[,1]+1.96*sd.est,digits=digits),"]"))
+        to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
       }
       if(!is.null(trueValue)){
-        to.print <- cbind(to.print, TrueValue = round(as.numeric(trueValue[param.toprint]),digits=digits), RelativeBias = round(as.numeric((to.print[,1]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
+        to.print <- cbind(to.print,
+                          TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific=TRUE),
+                          RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
       }
       Rsmlx:::print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
@@ -431,7 +444,7 @@ cv.Remix <- function(project = NULL,
       LL0 <- LL
       LL0.pen <- LL.pen
       param0 <- param
-      a.ini0 <- a.final
+      a.ini0 <- a.ini <-  a.final
       iter = iter + 1
       ptm <- proc.time()
     }
@@ -439,21 +452,25 @@ cv.Remix <- function(project = NULL,
 
     Rsmlx:::mlx.saveProject(final.project)
 
-    parallel::stopCluster(inner_cluster)
-
     return(list(lambda=lambda,
-                res=list(res=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
+                res=list(LL=c(Likelihood=LL$LL,PenLikelihood=LL.pen),
                                   param=param,
                                   alpha=a.final,
                                   iter=iter,
                                   time=(proc.time()-ptm.first)["elapsed"],
                                   BIC = -2*LL0.pen+log(N)*sum(param0[paste0(alpha$alpha1,"_pop")]!=0)),
-                         outputs=list(param=param.outputs,
-                                      LL=LL.outputs,
-                                      LL.pen = LLpen.outputs,
-                                      estimates=estimates.outputs,
-                                      criterion = crit.outputs))))
+                outputs=list(param=param.outputs,
+                             LL=LL.outputs,
+                             LL.pen = LLpen.outputs,
+                             estimates=estimates.outputs,
+                             criterion = crit.outputs)))
   }
 
-  return(cv.res)
+
+  close(pb)
+  snow::stopCluster(cluster)
+  bestBuild=which.min(sapply(res,FUN=function(r){r$res$res$BIC}))
+
+  return(list(bestBuild=cv.res[[bestBuild]],
+              cv.res=cv.res))
 }
