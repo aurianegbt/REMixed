@@ -31,13 +31,15 @@ cv.Remix(
 
 \item{final.project}{the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.}
 
-\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
+\item{dynFUN}{Dynamic function ;}
+
+\item{y}{Initial condition of the model, conform to what is asked in dynFUN ;}
 
 \item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
 
-  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
+  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p};
 
-  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.}
+  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.}
 
 \item{alpha}{list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1}
 
@@ -48,6 +50,8 @@ cv.Remix(
 \item{eps1}{convergence limit for parameters distance at each iteraion ;}
 
 \item{eps2}{convergence limit for penalized log-likelihood distance at each iteration ;}
+
+\item{selfInit}{If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.}
 
 \item{pop.set1}{Population parameters setting for initialisation ;}
 
@@ -64,8 +68,6 @@ cv.Remix(
 \item{digits}{digits to print, (default 3) ;}
 
 \item{trueValue}{(FOR SIMULATION, if provided, the error is compute at each iteration. )}
-
-\item{dynFun}{Dynamic function ;}
 }
 \value{
 list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
@@ -74,11 +76,11 @@ list fo outputs of final project and through the iteration for every lambda on l
 Regularization and Estimation in MIXed effects model, over a regularization path.
 }
 \details{
-Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i}  is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}}   and \eqn{\beta=(\beta_l)_{l\leq m}}  is the vector of covariates effects on parameters.
-The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
-We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P}.
-The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)}.
+Suppose that we have a differential system of equations containing variables \eqn{(S_{p})_{p \le P}} and \eqn{R}, that depends on some parameters, these dynamics are described by `dynFUN`. We write the process over time for \eqn{i \le N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l \le m,i \le N}} for the considered individual \eqn{i \le N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l \le m})=S_{pi}(\cdot)}, \eqn{p \le P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l \le m})=R_i(\cdot)}. Parameters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop}) + X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i \le N}, random effects \deqn{\eta_i=(\eta_{li})_{l \le m} \overset{iid}{\sim} \mathcal{N}(\mu_i,\Omega_i)} for \eqn{i \le N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l \le m}} and \eqn{\beta=(\beta_l)_{l \le m}} is the vector of covariates effects on parameters.
+The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\le N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+We assume that individual trajectories \eqn{(S_{pi})_{p\le P,i\le N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\le P}, at differents times \eqn{(t_{pij})_{i\le N,p\le P,j\le n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal{N}(0,\varsigma_p^2)} for \eqn{p\le P}.
+The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
 }
 \examples{
-[ TO DO ]
+## [ TO DO ]
 }

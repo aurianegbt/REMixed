@@ -11,7 +11,9 @@ Clairon(t, y, parms, tinj = 21)
 
 \item{y}{initial condition, named vector of form c(S=S0,AB=A0) ;}
 
-\item{parms}{named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V".}
+\item{parms}{named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V" ;}
+
+\item{tinj}{time of injection (default to 21).}
 }
 \value{
 Matrix of time and observation of antibody secreting cells S and antibody titer AB.
@@ -22,7 +24,7 @@ The model correspond to the antibody response to two injection of vaccine at tim
 on each interval \eqn{I_1=[0;t_{inj}[ } and \eqn{I_2=[t_{inj};+\infty[}. For each interval \eqn{I_k}, we have \eqn{t_k} corresponding to the last injection date of vaccine, such that \eqn{t_1=0} and \eqn{t_2=t_{inj}}. By definition, \eqn{f_{\overline M_1}=1} (Clairon and al., 2023).
 }
 \examples{
-y = c(S=1,AB=0)
+y = c(S=1,Ab=0)
 
 parms = c(fM2 = 4.5,
           theta = 18.7,

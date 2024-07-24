@@ -6,14 +6,15 @@
 #'
 #' @param t vector of time ;
 #' @param y initial condition, named vector of form c(S=S0,AB=A0) ;
-#' @param parms named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V".
+#' @param parms named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V" ;
+#' @param tinj time of injection (default to 21).
 #'
 #' @return Matrix of time and observation of antibody secreting cells S and antibody titer AB.
 #' @export
 #' @seealso \code{\link{indParm}}
 #'
 #' @examples
-#' y = c(S=1,AB=0)
+#' y = c(S=1,Ab=0)
 #'
 #' parms = c(fM2 = 4.5,
 #'           theta = 18.7,

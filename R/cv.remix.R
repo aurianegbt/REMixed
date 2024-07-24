@@ -4,24 +4,11 @@
 #' Regularization and Estimation in MIXed effects model, over a regularization path.
 #'
 #' @details
-#' Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i}  is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}}   and \eqn{\beta=(\beta_l)_{l\leq m}}  is the vector of covariates effects on parameters.
-#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
-#' We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P}.
-#' The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)}.
+#' Suppose that we have a differential system of equations containing variables \eqn{(S_{p})_{p \le P}} and \eqn{R}, that depends on some parameters, these dynamics are described by `dynFUN`. We write the process over time for \eqn{i \le N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l \le m,i \le N}} for the considered individual \eqn{i \le N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l \le m})=S_{pi}(\cdot)}, \eqn{p \le P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l \le m})=R_i(\cdot)}. Parameters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop}) + X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i \le N}, random effects \deqn{\eta_i=(\eta_{li})_{l \le m} \overset{iid}{\sim} \mathcal{N}(\mu_i,\Omega_i)} for \eqn{i \le N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l \le m}} and \eqn{\beta=(\beta_l)_{l \le m}} is the vector of covariates effects on parameters.
+#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\le N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
+#' We assume that individual trajectories \eqn{(S_{pi})_{p\le P,i\le N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\le P}, at differents times \eqn{(t_{pij})_{i\le N,p\le P,j\le n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal{N}(0,\varsigma_p^2)} for \eqn{p\le P}.
+#' The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
 #'
-#' @param project the initial Monolix project;
-#' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
-#' @param dynFun Dynamic function ;
-#' @param y Initial condition of the model, conform to what is asked in dynFun ;
-#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
-#'
-#'   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
-#'
-#'   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.
-#' @param alpha list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1
-#'
-# if alpha_0 vector empty -> all alpha_0 set to 0 ;
-# if some alpha_0 not define but not all, set NULL to the one missing
 #' @param lambda.grid grid of penalisation parameters for lasso regularization;
 #' @param nlambda if lambda.grid is null, number of lambda parameter to use for the lambda.grid;
 #' @param eps1 convergence limit for parameters distance at each iteraion ;
@@ -34,12 +21,25 @@
 #' @param print if TRUE, log are printed in console. Logs are allways saved in a summary file in the remix folder created for the job;
 #' @param digits digits to print, (default 3) ;
 #' @param trueValue (FOR SIMULATION, if provided, the error is compute at each iteration. )
+#' @param project the initial Monolix project;
+#' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
+#' @param dynFUN Dynamic function ;
+#' @param y Initial condition of the model, conform to what is asked in dynFUN ;
+#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
+#'
+#'   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p};
+#'
+#'   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.
+#' @param alpha list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1
+#'
+# if alpha_0 vector empty -> all alpha_0 set to 0 ;
+#' @param selfInit If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.
 #'
 #' @return list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
 #' @export
 #'
 #' @examples
-#' [ TO DO ]
+#' ## [ TO DO ]
 cv.Remix <- function(project = NULL,
                   final.project = NULL,
                   dynFUN,
@@ -48,7 +48,7 @@ cv.Remix <- function(project = NULL,
                   alpha,
                   lambda.grid=NULL,
                   nlambda = 50,
-                  eps1 = 10**(-1),
+                  eps1 = 10**(-2),
                   eps2 = 10**(-1),
                   selfInit = FALSE,
                   pop.set1 = NULL,
@@ -65,6 +65,7 @@ cv.Remix <- function(project = NULL,
 
   ################ START INITIALIZATION OF PROJECT REMIXed ################
 
+  ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
@@ -89,7 +90,7 @@ cv.Remix <- function(project = NULL,
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
   param.toprint = setdiff(dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method!="FIXED")$name,regParam.toprint)
-  rm.param = dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method=="FIXED")$name
+  rm.param = setdiff(Rsmlx:::mlx.getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
 
   project.dir <- Rsmlx:::mlx.getProjectSettings()$directory
   if (!dir.exists(project.dir))
@@ -106,7 +107,7 @@ cv.Remix <- function(project = NULL,
 
   ########################## FIRST ESTIMATION  ###########################
   to.cat <- paste0("\n", dashed.line, " Starting Regulatization and Estimation Algorithm\n")
-  to.cat <- c(to.cat,"    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n")
+  to.cat <- c(to.cat,"    \u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\n")
   Rsmlx:::print_result(print,summary.file,to.cat,to.print=NULL)
 
   initial.project <- paste0(remix.dir,"/",sub(".*/([^/]+)/([^/]+)\\.mlxtran", "\\2",project), "_init.mlxtran")
@@ -117,7 +118,7 @@ cv.Remix <- function(project = NULL,
     stop(paste0(initial.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),call. = FALSE)
 
   if(!selfInit){
-    pset1 <- list(nbexploratoryiterations = 100, nbsmoothingiterations = 50,
+    pset1 <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
                   simulatedannealing = F, smoothingautostop = T, exploratoryautostop = T)
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
@@ -127,7 +128,7 @@ cv.Remix <- function(project = NULL,
                                                      names(pop.set1))])
   }
 
-  pset2 <- list(nbexploratoryiterations = 50, nbsmoothingiterations = 50, simulatedannealing = F,
+  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = F,
                 smoothingautostop = F, exploratoryautostop = F)
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
@@ -155,6 +156,7 @@ cv.Remix <- function(project = NULL,
     Rsmlx:::mlx.setPopulationParameterEstimationSettings(pop.set1)
     to.cat <- "Estimation of the population parameters using the initial model ... \n"
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+
     Rsmlx:::mlx.runPopulationParameterEstimation()
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -168,6 +170,7 @@ cv.Remix <- function(project = NULL,
   Rsmlx:::mlx.saveProject(initial.project)
 
   param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()[-which(names(Rsmlx:::mlx.getEstimatedPopulationParameters())%in%rm.param)]
+
 
   ########################## RENDER FIRST ESTIMATION  ###########################
   to.cat <- "\n      - - - <  INITIAL PARAMETERS  > - - -     \n\n"
@@ -221,7 +224,7 @@ cv.Remix <- function(project = NULL,
     readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
   if(is.null(lambda.grid)){
-    lambda_max = lambda.max(dynFun = dynFun,y = y, data = currentData0, n = n,
+    lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
                             prune = prune, parallel=FALSE)
 
     lambda.grid = lambda_max*(0.05**((1:nlambda)/nlambda))
@@ -238,10 +241,9 @@ cv.Remix <- function(project = NULL,
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
-  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.export = "dynFun",.options.snow=opts)%dopar%{
+  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.export = "dynFUN",.options.snow=opts)%dopar%{
 
     Rsmlx:::prcheck(initial.project)
-
 
     lambda = lambda.grid[array]
     print = FALSE
@@ -272,8 +274,8 @@ cv.Remix <- function(project = NULL,
     to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     LL0 <- LL <-
-      gh.LL(dynFun = dynFun,y = y, data = currentData0, n = n,
-            prune = prune, parallel=FALSE)
+      gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
+            prune = prune, parallel = FALSE)
     LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=FALSE)
     LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
 
@@ -317,13 +319,15 @@ cv.Remix <- function(project = NULL,
       a.final <- taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL)
 
       currentData$alpha1 <- a.final
-      LLpen.aux <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE) -lambda * sum(abs(a.final))
+      LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE) - lambda * sum(abs(a.final))
 
       if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
+
+        print("RECALIBRATE ")
         th <- 1e-5
         step <- log(1.5)
-        a.ini[which(a.final==0)] <- 0
-        delta <- a.final - a.ini
+        to.recalibrate = which(a.final!=0)
+        delta <-  a.final[to.recalibrate] - a.ini[to.recalibrate]
 
         maxt <- max(abs(delta))
 
@@ -333,30 +337,30 @@ cv.Remix <- function(project = NULL,
           vw <- th/maxt
         }
 
-        res.out.error <- list("old.b" = a.ini,
+        res.out.error <- list("old.b" = a.ini[to.recalibrate],
                               "old.rl" = LL0.pen,  # pénalisé   en l'ancien
                               "old.ca" = critb,    # que les alpha1 ici
                               "old.cb" = crit2)    # pénalisé aussi
+        # pas très important, là en cas de plantage, rien d'autres
 
-        sears <- marqLevAlg:::searpas(vw = vw,
-                                      step = step,
-                                      b = a.ini,
-                                      delta = delta,
-                                      funcpa = funcpa,
-                                      res.out.error = res.out.error,
-                                      dynFun=dynFun,
-                                      y = y,
-                                      data = currentData,
-                                      n = n,
-                                      prune = prune,
-                                      parallel=FALSE,
-                                      ncores = 1,
-                                      onlyLL = TRUE,
-                                      lambda = lambda)
+        sears <- searpas(vw = vw,
+                         step = step,
+                         b = a.ini[to.recalibrate],
+                         delta = delta,
+                         funcpa = funcpa,
+                         res.out.error = res.out.error,
+                         dynFUN=dynFUN,
+                         y = y,
+                         data = currentData,
+                         n = n,
+                         prune = prune,
+                         stored = NULL,
+                         to.recalibrate=to.recalibrate,
+                         parallel = TRUE,
+                         ncores = ncores,
+                         lambda = lambda)
 
-        a.final<- a.ini + delta*sears$vw
-
-        currentData$alpha1 <- a.final
+        a.final <- currentData$alpha1[to.recalibrate]
       }
 
       to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
@@ -365,8 +369,8 @@ cv.Remix <- function(project = NULL,
         to.print <- cbind(to.print,
                           TrueValue = signif(as.numeric(trueValue[regParam.toprint]),digits=digits),
                           RelativeBias = round(as.numeric((a.final-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits),
-                          " " = ifelse(a.final==0, ifelse(trueValue[regParam.toprint]==0,"  ✓","  ✗"),
-                                       ifelse(trueValue[regParam.toprint]!=0,"  ✓","  ✗"))
+                          " " = ifelse(a.final==0, ifelse(trueValue[regParam.toprint]==0,"  \u2713","  \u2717"),
+                                       ifelse(trueValue[regParam.toprint]!=0,"  \u2713","  \u2717"))
         )
 
         to.print[is.nan(to.print$RelativeBias) | is.infinite(to.print$RelativeBias),"RelativeBias"] <- " "
@@ -413,7 +417,7 @@ cv.Remix <- function(project = NULL,
       currentData <- readMLX(project = final.project,
                              ObsModel.transfo = ObsModel.transfo,
                              alpha = alpha)
-      LL <- gh.LL(dynFun = dynFun, y = y, data = currentData, n = n, prune = prune, parallel = FALSE)
+      LL <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE)
       LL$ddLL <- -inflate.H.Ariane(-LL$ddLL,print=FALSE)
       LL.pen <- LL$LL - lambda* sum(abs(a.final))
 
@@ -431,8 +435,8 @@ cv.Remix <- function(project = NULL,
       LLpen.outputs <- append(LLpen.outputs,LL.pen)
       param.outputs <- rbind(param.outputs,param)
 
-      to.cat <- c("\n\n   Current parameter criterion :",round(crit1,digits=digits),"\n")
-      to.cat <- c(to.cat,"  Current  ll pen  criterion  :",round(crit2,digits=digits),"\n")
+      to.cat <- c("\n\n   Current parameter convergence criterion :",round(crit1,digits=digits),"\n")
+      to.cat <- c(to.cat,"  Current  ll pen  convergence criterion  :",round(crit2,digits=digits),"\n")
       Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
       crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
@@ -446,24 +450,27 @@ cv.Remix <- function(project = NULL,
       param0 <- param
       a.ini0 <- a.ini <-  a.final
       iter = iter + 1
-      ptm <- proc.time()
     }
     N=length(currentData$mu)
 
     Rsmlx:::mlx.saveProject(final.project)
 
-    return(list(lambda=lambda,
-                res=list(LL=c(Likelihood=LL$LL,PenLikelihood=LL.pen),
+    results <- list(info = list(param.toprint=param.toprint,
+                                regParam.toprint=regParam.toprint,
+                                alpha=alpha),
+                    finalRes=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
                                   param=param,
                                   alpha=a.final,
                                   iter=iter,
                                   time=(proc.time()-ptm.first)["elapsed"],
                                   BIC = -2*LL0.pen+log(N)*sum(param0[paste0(alpha$alpha1,"_pop")]!=0)),
-                outputs=list(param=param.outputs,
-                             LL=LL.outputs,
-                             LL.pen = LLpen.outputs,
-                             estimates=estimates.outputs,
-                             criterion = crit.outputs)))
+                    iterOutputs=list(param=param.outputs,
+                                     LL=LL.outputs,
+                                     LL.pen = LLpen.outputs,
+                                     estimates=estimates.outputs,
+                                     criterion = crit.outputs))
+    class(results) <- "remix"
+    return(results)
   }
 
 
