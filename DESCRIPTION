@@ -8,6 +8,6 @@ Description: Suppose that we have a differential system of equations containing 
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports: foreach, deSolve, data.table, doParallel, stats
+Imports: foreach, deSolve, doParallel, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, lixoftConnectors, snow, stringr
 Depends : foreach
 RoxygenNote: 7.3.1
