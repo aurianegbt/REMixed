@@ -91,10 +91,11 @@ indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
 
 # check -------------------------------------------------------------------
 check.indparm <- function(theta,covariates,eta_i,transfo,transfo.inv){
-  if(any(length(names(theta$phi_pop))==0)){
+
+  if( length(theta$phi_pop)!=0 && any(length(names(theta$phi_pop))==0)){
     stop("Please set unique names for each parameter in theta$phi_pop vector.")
   }
-  if(any(length(names(theta$psi_pop))==0)){
+  if(length(theta$psi_pop)!=0 && any(length(names(theta$psi_pop))==0)){
     stop("Please set unique names for each parameter in theta$psi_pop vector.")
   }
 
