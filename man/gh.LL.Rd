@@ -5,7 +5,7 @@
 \title{Gauss-Hermite approximation of log-likelihood derivates}
 \usage{
 gh.LL(
-  dynFun,
+  dynFUN,
   y,
   mu = NULL,
   Omega = NULL,
@@ -28,9 +28,9 @@ gh.LL(
 )
 }
 \arguments{
-\item{dynFun}{Dynamic function ;}
+\item{dynFUN}{Dynamic function ;}
 
-\item{y}{Initial condition of the model, conform to what is asked in dynFun ;}
+\item{y}{Initial condition of the model, conform to what is asked in dynFUN ;}
 
 \item{mu}{list of named vector of individual random effetcs estimation (size N, and each vector has size m);}
 
@@ -56,9 +56,9 @@ gh.LL(
 
 \item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
 
-  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFun is observed through this variables \eqn{Y_p};
+  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p};
 
-  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFun to identify the output.}
+  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.}
 
 \item{data}{data is a list containing all "mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo" that can be obtain using [readMLX()], if any of this argument is still precise, it will be take into account.}
 
@@ -79,7 +79,7 @@ a list with the approximation by Gauss-Hermite quadrature of the likelihood `L`,
 Compute Gauss-Hermite approximation of the log-likelihood and its derivates in NLMEM with latent observation process.
 }
 \details{
-Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFun`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}  contains in the rows of the matrix `covariates`, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} (in the list `mu`) is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} (in the list `Omega`) is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}} (contain in `theta` through `psi_pop`)  and \eqn{\beta=(\beta_l)_{l\leq m}} (contain in `theta` through `beta`) is the vector of covariates effects on parameters.
+Suppose that we have a differential system of equations containing variables $(S_{p})_{p\leq P}$ and $R$, that depends on some parameters, these dynamics are described by `dynFUN`. We write the process over the time for \eqn{i\leq N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l\leq m,i\leq N}} for the considered individual \eqn{i\leq N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l\leq m})=S_{pi}(\cdot)}, \eqn{p\leq P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l\leq m})=R_i(\cdot)}. Paremeters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i\leq N}  contains in the rows of the matrix `covariates`, random effects \deqn{\eta_i=(\eta_{li})_{l\leq m}\overset{iid}{\sim}\mathcal N(\mu_i,\Omega_i)} for \eqn{i\leq N} where \eqn{\mu_i} (in the list `mu`) is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} (in the list `Omega`) is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l\leq m}} (contain in `theta` through `psi_pop`)  and \eqn{\beta=(\beta_l)_{l\leq m}} (contain in `theta` through `beta`) is the vector of covariates effects on parameters.
 The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\leq N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population. The population parameters \eqn{\phi_{pop}} are contained in `theta`through `phi_pop;`and the covariates effetcs coefficients \eqn{\gamma} in `theta`through `gamma`.
 We assume that individual trajectories \eqn{(S_{pi})_{p\leq P,i\leq N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\leq P}, at differents times \eqn{(t_{pij})_{i\leq N,p\leq P,j\leq n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}}, contain in the list `Sobs` with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal N(0,\varsigma_p^2)} for \eqn{p\leq P} (with \eqn{(\varsigma_p)_{k\leq P}}contain in `Serr`).
 The individual trajectory \eqn{(R_{i})_{i\leq N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\leq K}, observed in \eqn{(t_{kij})_{i\leq N,k\leq K,j\leq n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} (contains in the list `Robs`) where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal N(0,\sigma_k^2)} (with \eqn{(\sigma_k)_{k\leq K}}contains in `Rerr`).
