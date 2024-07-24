@@ -94,9 +94,9 @@ searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,...){
   return(list(vw=vw,fim=fim))
 }
 
-funcpa <- function(b,stored,dynFun, y, data, n, prune,to.recalibrate, ncores,parallel,lambda){
+funcpa <- function(b,stored,dynFUN, y, data, n, prune,to.recalibrate, ncores,parallel,lambda){
   data$alpha1[to.recalibrate] <- b
-  res = fim.searpas(dynFun = dynFun, y = y, data = data, n = n, prune = prune, ncores = ncores,parallel=parallel,stored=stored, to.recalibrate=to.recalibrate)
+  res = fim.searpas(dynFUN = dynFUN, y = y, data = data, n = n, prune = prune, ncores = ncores,parallel=parallel,stored=stored, to.recalibrate=to.recalibrate)
   if(is.null(stored)){
     stored = res$stored
   }
@@ -106,7 +106,7 @@ funcpa <- function(b,stored,dynFun, y, data, n, prune,to.recalibrate, ncores,par
 
 # gh.LL.fim ---------------------------------------------------------------
 fim.searpas <- function(
-    dynFun,
+    dynFUN,
     y,
     stored,
     to.recalibrate,
@@ -164,7 +164,7 @@ fim.searpas <- function(
               Omega_i = Omega[[i]],
               theta = theta,
               alpha1 = alpha1,
-              dynFun = dynFun,
+              dynFUN = dynFUN,
               y = y,
               covariates_i = covariates[i,,drop=F],
               ParModel.transfo = ParModel.transfo,
@@ -190,7 +190,7 @@ fim.searpas <- function(
 }
 
 fim.searpas.ind <- function(
-    dynFun,
+    dynFUN,
     y,
     mu_i=NULL,
     Omega_i=NULL,
@@ -301,11 +301,11 @@ fim.searpas.ind <- function(
   # Not STORED --------------------------------------------------------------
   }else{
     if(dm!=1){
-      mh.parm <- REMix:::amgauss.hermite(n,mu=mu_i,Omega=Omega_i,prune=prune)
+      mh.parm <- amgauss.hermite(n,mu=mu_i,Omega=Omega_i,prune=prune)
       detsq.omega = prod(theta$omega)
       root.omega = diag(1/theta$omega**2)
     }else{
-      mh.parm <- REMix:::agauss.hermite(n,mu = mu_i,sd=sqrt(as.numeric(Omega_i)))
+      mh.parm <- agauss.hermite(n,mu = mu_i,sd=sqrt(as.numeric(Omega_i)))
       detsq.omega = as.numeric(theta$omega)
       root.omega = 1/as.numeric(theta$omega)**2
     }
@@ -323,7 +323,7 @@ fim.searpas.ind <- function(
 
     dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
       PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
-      dyn_eta_i <- dynFun(all.tobs,y,unlist(unname(PSI_i)))
+      dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
 
       return(dyn_eta_i)
     }),paste0("eta_",1:nd))
