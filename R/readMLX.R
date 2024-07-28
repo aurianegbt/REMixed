@@ -1,48 +1,58 @@
-#' Gather information from a monolix project for REMix algorithm.
+#' Extract Data for REMix Algorithm from Monolix Project
 #'
-#' Retrieve all information necessary for the algorithm that can be searched in the created monolix project.
+#' This function retrieves all necessary information from a Monolix project file to format the input for the REMix package. It gathers all relevant data required for the REMix algorithm.
 #'
-#' @param project directory of the monolix project (in .mlxtran), if NULL get current project load (default to NULL);
-#' @param ObsModel.transfo list of 2 list of P,K transformation (it needs to include identity transformation), named with `S` and `R`, and two vector with link to the observation model of the monolix project named with `linkS` and `linkR`. Both `ObsModel.transfo$S` (resp. `ObsModel.transfo$R`) and `ObsModel.transfo$linkS` (resp. `ObsModel.transfo$linkR`) need to have the same length. (see \code{\link{lixoftConnectors::getContinuousObservationModel}} or \code{\link{lixoftConnectors::getObservationInformation}})
-#'   - `ObsModel.transfo$S` corresponds to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)}, the name indicate which dynamic from monolix is observed through this variables \eqn{Y_p}. The link vector `ObsModel.transfo$linkS` indicate for each transformation, mention in the same order as in `ObsModel.transfo$S`, what is the observation model name corresponding in monolix.
-#'   - `ObsModel.transfo$R` corresponds to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily. \eqn{s_k} is applied to the same dynamic but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in the monolix project created, and the name should be the output from `dynFUN` crresponding. The link vector `ObsModel.transfo$linkR` indicate for each transformation, mention in the same order as in `ObsModel.transfo$R`, what is the observation model name corresponding in monolix.
-#' @param alpha list of named vector "alpha0", "alpha1". `alpha$alpha1` is mandatory even if equal to 1. The name of `alpha$alpha0` and `alpha$alpha1` are the observation model names from the monolix project to which they are linked. (if alpha_0 vector empty then all alpha_0 set to 0 ; # if some alpha_0 not define but not all, set NULL to the one missing).
+#' @param project Directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).
+#' @param ObsModel.transfo A list containing two lists of transformations and two vectors with their corresponding links to the observation models in the Monolix project. The list should include identity transformations and be named `S` and `R`. It should also include two vectors, `linkS` and `linkR`, which link to the observation models.
 #'
-#' @return list with parameters, transformations, observations from the monolix project, with the form needed for the implemented algorithm. If a SAEM hasn't been launched, its the initial condition that are returned.
-#'  \itemize{\item `mu` list of estimated mean of the individual random effects distribution a posteriori (if conditional distribution estimation through monolix has been launched for the project).  ;
-#'  \item `Omega` list of the estimated variance-covariance matrix of the  individual random effects distribution a posteriori (if conditional distribution estimation through monolix has been launched for the project) ;
-#'  \item `theta` list of `phi_pop`, `psi_pop` population parameters (whithout and whith r.e. respectively); `gamma`and `beta` the estimated covariates effects coefficients for each population parameters vector; `omega` the estimated variance of r.e. for `psi_pop` parameters.
-#'  \item `alpha1` named vector with the values of regression parameters \eqn{(\alpha_1)_{k\leq K}} linked to our latent process. Names are the observation model names from the monolix project.
-#'  \item `covariates`data.frame with covariates (col.) for each individual (row).
-#'  \item `ParModel.transfo`and `ParModel.transfo.inv` named list of transformation function for individual parameter model.
-#'  \item `Sobs` list (size N) of list of direct observation (size P), each element contain time and observation.
-#' \item `Robs` list (size N) of latent observation (size K), each element contain time and observation.
-#' \item `Serr` vector of size P containing estimated error model constant.
-#' \item `Rerr` vector of size K containing estimated error model constant.
-#' \item `ObsModel.transfo` given in input.}
+#' Both `ObsModel.transfo$S` (for direct observation models) and `ObsModel.transfo$linkS`, as well as `ObsModel.transfo$R` (for latent process models) and `ObsModel.transfo$linkR`, must have the same length.
+#'
+#' See \code{\link{getContinuousObservationModel}} or \code{\link{getObservationInformation}} for further details.
+#'
+#' \itemize{
+#'   \item `ObsModel.transfo$S`: A list of transformations for the direct observation model. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic from Monolix is observed. The `linkS` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$S`.
+#'
+#'   \item `ObsModel.transfo$R`: A list of transformations for the latent process model. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from `dynFUN`. The `linkR` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$R`.
+#' }
+#' @param alpha A list of named vectors "alpha0" and "alpha1". `alpha$alpha1` is mandatory even if equal to 1. The names in `alpha$alpha0` and `alpha$alpha1` should correspond to the observation model names in the Monolix project. If `alpha$alpha0` is empty, all values are set to 0. If some values in `alpha$alpha0` are missing, they are set to NULL.
+#'
+#' @return A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMix algorithm. If an SAEM has not been launched, the initial conditions are returned.
+#'
+#' \itemize{
+#'   \item `mu`: A list of estimated mean values of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
+#'   \item `Omega`: A list of the estimated variance-covariance matrix of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
+#'   \item `theta`: A list of population parameters including `phi_pop`, `psi_pop` (without and with random effects, respectively), `gamma` and `beta` (the estimated covariate effect coefficients for each population parameter vector), and `omega` (the estimated variance of random effects for `psi_pop` parameters).
+#'   \item `alpha1`: A named vector with the values of regression parameters \eqn{(\alpha_1)_{k \leq K}} linked to the latent process. Names correspond to the observation model names in the Monolix project.
+#'   \item `covariates`: A data.frame with covariates (columns) for each individual (rows).
+#'   \item `ParModel.transfo` and `ParModel.transfo.inv`: Named lists of transformation functions for the individual parameter model.
+#'   \item `Sobs`: A list (size N) of lists of direct observations (size P), each element containing time and observation data.
+#'   \item `Robs`: A list (size N) of latent observations (size K), each element containing time and observation data.
+#'   \item `Serr`: A vector of size P containing estimated error model constants.
+#'   \item `Rerr`: A vector of size K containing estimated error model constants.
+#'   \item `ObsModel.transfo`: The input `ObsModel.transfo` list.
+#' }
 #' @export
 #'
-#' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}, \code{\link{lixoftConnectors::getContinuousObservationModel}},  \code{\link{lixoftConnectors::getObservationInformation}}
+#' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
 #'
 #' @examples
-#' # TODO
+#' project <- getMLXdir()
 #'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' res <- readMLX(project,ObsModel.transfo,alpha)
 readMLX <- function(project=NULL,
-                    ObsModel.transfo, # that contains name and info list(S=list(AB=log10),R=list(S=function(x){x},S=function(x){x}))
-                    alpha # names,
+                    ObsModel.transfo,
+                    alpha
                     ){
 
-  # check length alpha1 equal to length alpha0 if not null equal to length obs$R
-  # check obs output name equal to the one in ObsModel.transfo
-  if(length(ObsModel.transfo$S)!=length(ObsModel.transfo$linkS) || length(ObsModel.transfo$R)!=length(ObsModel.transfo$linkR)){
-    stop("Error in length of ObsModel.transfo arguments. S and linkS (resp. R and linkR) should have the same length.")
-  }
-  if(length(alpha$alpha1)!=length(ObsModel.transfo$R)){
-    stop("Error in length of alpha1 parameters. alpha$alpha1 and ObsModel.transfo$R should have the same size. ")
-  }
-  if(!all(names(alpha$alpha1)==ObsModel.transfo$linkR) || (!is.null(alpha$alpha0) && !all(names(alpha$alpha0)==ObsModel.transfo$linkR))){
-    stop("Error in names of ObsModel.transfo and alpha. They must be consistent (and in the same order).")
-  }
+  check.readMLX(ObsModel.transfo,alpha)
 
   suppressMessages({
     if (!is.null(project)){
@@ -53,6 +63,10 @@ readMLX <- function(project=NULL,
 
     lixoftConnectors::loadProject(project)
   })
+
+  if(!all(Reduce(union,list(ObsModel.transfo$linkS,ObsModel.transfo$linkR,names(alpha$alpha0),names(alpha$alpha1))) %in% names(lixoftConnectors::getObservationInformation()))){
+    stop("Inconsistent observation model between the one provided in the monolix project and the one in function inputs.")
+  }
 
   if(lixoftConnectors::getLaunchedTasks()$populationParameterEstimation){
     est = lixoftConnectors::getEstimatedPopulationParameters()
@@ -172,16 +186,11 @@ readMLX <- function(project=NULL,
   }
   names(ParModel.transfo) <-  names(ParModel.transfo.inv) <- names(ParModel)
 
-
-
-
-  browser()
-
   # Sobs Robs
   Observation <- lixoftConnectors::getObservationInformation()
 
-  Sobs <-lapply(ObsModel.transfo$linkS,FUN=function(x){Observation[[x]]})
-  Robs <- lapply(ObsModel.transfo$linkR,FUN=function(x){Observation[[x]]})
+  Sobs <- setNames(lapply(ObsModel.transfo$linkS,FUN=function(x){Observation[[x]]}),ObsModel.transfo$linkS)
+  Robs <- setNames(lapply(ObsModel.transfo$linkR,FUN=function(x){Observation[[x]]}),ObsModel.transfo$linkR)
 
   if(!lixoftConnectors::getLaunchedTasks()$conditionalDistributionSampling){
     return(list(
@@ -238,6 +247,21 @@ readMLX <- function(project=NULL,
 
 
 # OK function -------------------------------------------------------------
+check.readMLX <- function(ObsModel.transfo,alpha){
+  if(length(ObsModel.transfo$S)!=length(ObsModel.transfo$linkS)){
+    stop(paste0("Error in length of ObsModel.transfo arguments. S (length=",length(ObsModel.transfo$S),") and linkS (length=",length(ObsModel.transfo$linkS),") should have the same length."))
+  }else if(length(ObsModel.transfo$R)!=length(ObsModel.transfo$linkR)){
+    stop(paste0("Error in length of ObsModel.transfo arguments. R (length=",length(ObsModel.transfo$R),") and linkR (length=",length(ObsModel.transfo$linkR),") should have the same length."))
+  }else if(length(alpha$alpha1)!=length(ObsModel.transfo$R)){
+    stop("Error in length of alpha1 parameters. alpha$alpha1 (length=",length(alpha$alpha1),") and ObsModel.transfo$R (length=",length(ObsModel.transfo$R),") should have the same size. ")
+  }else if(!is.null(alpha$alpha0) && length(alpha$alpha1)!=length(ObsModel.transfo$R)){
+    stop("Error in length of alpha0 parameters. alpha$alpha0 (length=",length(alpha$alpha0),") and ObsModel.transfo$R (length=",length(ObsModel.transfo$R),") should have the same size. ")
+  }else if(!all(names(alpha$alpha1)==ObsModel.transfo$linkR) || (!is.null(alpha$alpha0) && !all(names(alpha$alpha0)==ObsModel.transfo$linkR))){
+    stop("Error in names of ObsModel.transfo$linkR and alpha parameters. They must be consistent (and in the same order).")
+  }
+  return(invisible(TRUE))
+}
+
 ok.beta <- function(formula,CovariateModel){
   form <- strsplit(formula, "\n")[[1]]
   for(p in 1:length(form)){
