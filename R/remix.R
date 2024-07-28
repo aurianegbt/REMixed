@@ -24,8 +24,8 @@
 #' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
 #' @param dynFUN Dynamic function ;
 #' @param y Initial condition of the model, conform to what is asked in dynFUN ;
-#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` : \itemize{\item  ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p}; \item ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.}
-#' @param alpha list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1.
+#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` : \itemize{\item  ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p}; \item ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in, in same order `alpha$alpha1` ; the name need be set to precise the dynamic from dynFUN to identify the output.}
+#' @param alpha named list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1. The name of alpha$alpha0 and alpha$alpha1 are the observation model names from the monolix project to which they are linked.
 # if alpha_0 vector empty -> all alpha_0 set to 0 ;
 # if some alpha_0 not define but not all, set NULL to the one missing
 #' @param selfInit If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.
@@ -55,7 +55,6 @@ Remix <- function(project = NULL,
                   print = TRUE,
                   digits=3,
                   trueValue = NULL){
-
   ## name0 -> contain the last iterations information
   ## name ->  the current information
 
@@ -71,6 +70,8 @@ Remix <- function(project = NULL,
   op.new <- options()
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
+
+
 
   # load the project
   check.proj(project,alpha) # check if every alpha is normaly distributed,
@@ -145,6 +146,7 @@ Remix <- function(project = NULL,
                                                    names(pop.set2))])
 
 
+  suppressMessages({
   check <- check.init(initial.project,pop.set1) # check if initialization step
   if(identical(check,FALSE)){                   # has been done according to
     suppressMessages({                          # the settings given
@@ -153,6 +155,7 @@ Remix <- function(project = NULL,
     })
     check <- check.init(initial.project,pop.set1)
   }
+  })
 
   if(identical(check,FALSE) || !check$SAEM){
     to.cat <- "     - - - Running Initialization Step - - -\n\n"
@@ -224,6 +227,8 @@ Remix <- function(project = NULL,
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
 
+  browser()
+
   ########################## ESTIMATING FIRST LL  ###########################
   to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -270,6 +275,8 @@ Remix <- function(project = NULL,
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     ptm <- proc.time()
 
+
+    browser()
 
     ############ UPDATING ALPHA1   ###########
     to.cat <- paste0("Computing taylor update for regularization parameters... \n")
@@ -537,16 +544,18 @@ check.proj <- function(project,alpha){
   }else{
     project <- Rsmlx:::mlx.getProjectSettings()$project}
 
+
+
   IndividualParameterModel <- Rsmlx:::mlx.getIndividualParameterModel()
   if(any(IndividualParameterModel$distribution[unlist(alpha)]!="normal")){
-    cmd = paste0("Rsmlx:::mlx.setIndividualParameterDistribution(",paste0(unlist(alpha),"='normal'",collapse=","),")")
+    cmd = paste0("lixoftConnectors::setIndividualParameterDistribution(",paste0(unlist(alpha),"='normal'",collapse=","),")")
     eval(parse(text=cmd))
     message("[INFO] Distribution of alpha parameters have been switched to normal.")
   }
 
   ContinuousObservationModel <- Rsmlx:::mlx.getContinuousObservationModel()
   if(any(ContinuousObservationModel$errorModel!="constant")){
-    cmd = paste0("Rsmlx:::mlx.setErrorModel(",paste0(names(ContinuousObservationModel$errorModel),"='constant'",collapse=","),")")
+    cmd = paste0("Rsmlx:::mlx.setErrorModel(list(",paste0(names(ContinuousObservationModel$errorModel),"='constant'",collapse=","),"))")
     eval(parse(text=cmd))
     message("[INFO] Error Model have been switched to constant.")
   }

@@ -149,14 +149,23 @@ fim.searpas <- function(
 
   if(parallel){
     if(!is.null(ncores)){
-      doParallel::registerDoParallel(cluster <- parallel::makeCluster(ncores))
+      cluster <- snow::makeCluster(ncores)
     }else{
-      doParallel::registerDoParallel(cluster <- parallel::makeCluster(parallel::detectCores()))}}
+      cluster <- snow::makeCluster(snow::detectCores())
+    }
+    DoSNOW::registerDoSNOW(cluster)
+  }
 
   N=length(mu)
 
+
   i = 1
-  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = "fim.searpas.ind")%dopar%{
+  ntasks <- N
+  pb <- utils::txtProgressBar(max = ntasks, style = 3)
+  progress <- function(n) utils::setTxtProgressBar(pb, n)
+  opts <- list(progress = progress)
+
+  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = "fim.searpas.ind",.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
@@ -179,6 +188,10 @@ fim.searpas <- function(
               to.recalibrate = to.recalibrate,
               stored=stored[[i]])
   }
+
+  close(pb)
+  if(parallel)
+    snow::stopCluster(cluster)
 
   LL = sum(sapply(res,FUN=function(ri){ri$LL}))
 
