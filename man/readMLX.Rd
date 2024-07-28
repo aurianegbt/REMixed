@@ -2,31 +2,60 @@
 % Please edit documentation in R/readMLX.R
 \name{readMLX}
 \alias{readMLX}
-\title{Gather information from a monolix project}
+\title{Extract Data for REMix Algorithm from Monolix Project}
 \usage{
 readMLX(project = NULL, ObsModel.transfo, alpha)
 }
 \arguments{
-\item{project}{directory of the monolix project (in .mlxtran), if NULL get current project load, default to NULL}
+\item{project}{Directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).}
 
-\item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
+\item{ObsModel.transfo}{A list containing two lists of transformations and two vectors with their corresponding links to the observation models in the Monolix project. The list should include identity transformations and be named `S` and `R`. It should also include two vectors, `linkS` and `linkR`, which link to the observation models.
 
-  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)}, the name indicate which dynamic from monolix is observed through this variables \eqn{Y_p};
+Both `ObsModel.transfo$S` (for direct observation models) and `ObsModel.transfo$linkS`, as well as `ObsModel.transfo$R` (for latent process models) and `ObsModel.transfo$linkR`, must have the same length.
 
-  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in the monolix project created ;}
+See \code{\link{getContinuousObservationModel}} or \code{\link{getObservationInformation}} for further details.
 
-\item{alpha}{list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1}
+\itemize{
+  \item `ObsModel.transfo$S`: A list of transformations for the direct observation model. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic from Monolix is observed. The `linkS` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$S`.
+
+  \item `ObsModel.transfo$R`: A list of transformations for the latent process model. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from `dynFUN`. The `linkR` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$R`.
+}}
+
+\item{alpha}{A list of named vectors "alpha0" and "alpha1". `alpha$alpha1` is mandatory even if equal to 1. The names in `alpha$alpha0` and `alpha$alpha1` should correspond to the observation model names in the Monolix project. If `alpha$alpha0` is empty, all values are set to 0. If some values in `alpha$alpha0` are missing, they are set to NULL.}
 }
 \value{
-list with parameters, transformations, observations from the monolix project, with the form needed for the implemented algorithm
+A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMix algorithm. If an SAEM has not been launched, the initial conditions are returned.
+
+\itemize{
+  \item `mu`: A list of estimated mean values of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
+  \item `Omega`: A list of the estimated variance-covariance matrix of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
+  \item `theta`: A list of population parameters including `phi_pop`, `psi_pop` (without and with random effects, respectively), `gamma` and `beta` (the estimated covariate effect coefficients for each population parameter vector), and `omega` (the estimated variance of random effects for `psi_pop` parameters).
+  \item `alpha1`: A named vector with the values of regression parameters \eqn{(\alpha_1)_{k \leq K}} linked to the latent process. Names correspond to the observation model names in the Monolix project.
+  \item `covariates`: A data.frame with covariates (columns) for each individual (rows).
+  \item `ParModel.transfo` and `ParModel.transfo.inv`: Named lists of transformation functions for the individual parameter model.
+  \item `Sobs`: A list (size N) of lists of direct observations (size P), each element containing time and observation data.
+  \item `Robs`: A list (size N) of latent observations (size K), each element containing time and observation data.
+  \item `Serr`: A vector of size P containing estimated error model constants.
+  \item `Rerr`: A vector of size K containing estimated error model constants.
+  \item `ObsModel.transfo`: The input `ObsModel.transfo` list.
+}
 }
 \description{
-Retrieve all information necessary for the algorithm that can be search in the created monolix project.
+This function retrieves all necessary information from a Monolix project file to format the input for the REMix package. It gathers all relevant data required for the REMix algorithm.
 }
 \examples{
-# TODO
+project <- getMLXdir()
 
+ObsModel.transfo = list(S=list(AB=log10),
+                        linkS="yAB",
+                        R=rep(list(S=function(x){x}),5),
+                        linkR = paste0("yG",1:5))
+
+alpha=list(alpha0=NULL,
+           alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+
+res <- readMLX(project,ObsModel.transfo,alpha)
 }
 \seealso{
-\code{\link{Remix}}, \code{\link{cv.Remix}}.
+\code{\link{Remix}}, \code{\link{cv.Remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
 }

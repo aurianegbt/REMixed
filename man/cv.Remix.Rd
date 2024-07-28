@@ -13,7 +13,7 @@ cv.Remix(
   alpha,
   lambda.grid = NULL,
   nlambda = 50,
-  eps1 = 10^(-1),
+  eps1 = 10^(-2),
   eps2 = 10^(-1),
   selfInit = FALSE,
   pop.set1 = NULL,
