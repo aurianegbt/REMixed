@@ -1,0 +1,81 @@
+<DATAFILE>
+
+[FILEINFO]
+file='data.txt'
+delimiter = comma
+header={ID, TIME, obs, obsid}
+
+[CONTENT]
+ID = {use=identifier}
+TIME = {use=time}
+obs = {use=observation, yname={'yAB', 'yG1', 'yG2', 'yG3', 'yG4', 'yG5'}, type={continuous, continuous, continuous, continuous, continuous, continuous}}
+obsid = {use=observationtype}
+
+[SETTINGS]
+dataType = {'yAB'=plasma, 'yG1'=plasma, 'yG2'=plasma, 'yG3'=plasma, 'yG4'=plasma, 'yG5'=plasma}
+
+<MODEL>
+
+[INDIVIDUAL]
+input = {phi_S_pop, delta_AB_pop, delta_S_pop, omega_delta_S, omega_phi_S, omega_delta_AB, alpha_11_pop, alpha_12_pop, alpha_13_pop, alpha_14_pop, alpha_15_pop}
+
+DEFINITION:
+phi_S = {distribution=logNormal, typical=phi_S_pop, sd=omega_phi_S}
+delta_AB = {distribution=logNormal, typical=delta_AB_pop, sd=omega_delta_AB}
+delta_S = {distribution=logNormal, typical=delta_S_pop, sd=omega_delta_S}
+alpha_11 = {distribution=normal, typical=alpha_11_pop, no-variability}
+alpha_12 = {distribution=normal, typical=alpha_12_pop, no-variability}
+alpha_13 = {distribution=normal, typical=alpha_13_pop, no-variability}
+alpha_14 = {distribution=normal, typical=alpha_14_pop, no-variability}
+alpha_15 = {distribution=normal, typical=alpha_15_pop, no-variability}
+
+[LONGITUDINAL]
+input = {sigma_AB, sigma_G1, sigma_G2, sigma_G3, sigma_G4, sigma_G5}
+
+file = 'model.txt'
+
+DEFINITION:
+yAB = {distribution=normal, prediction=tAB, errorModel=constant(sigma_AB)}
+yG1 = {distribution=normal, prediction=G1, errorModel=constant(sigma_G1)}
+yG2 = {distribution=normal, prediction=G2, errorModel=constant(sigma_G2)}
+yG3 = {distribution=normal, prediction=G3, errorModel=constant(sigma_G3)}
+yG4 = {distribution=normal, prediction=G4, errorModel=constant(sigma_G4)}
+yG5 = {distribution=normal, prediction=G5, errorModel=constant(sigma_G5)}
+
+<FIT>
+data = {'yAB', 'yG1', 'yG2', 'yG3', 'yG4', 'yG5'}
+model = {yAB, yG1, yG2, yG3, yG4, yG5}
+
+<PARAMETER>
+alpha_11_pop = {value=1, method=MLE}
+alpha_12_pop = {value=0, method=FIXED}
+alpha_13_pop = {value=0, method=FIXED}
+alpha_14_pop = {value=0, method=FIXED}
+alpha_15_pop = {value=0, method=FIXED}
+delta_AB_pop = {value=1, method=MLE}
+delta_S_pop = {value=1, method=MLE}
+omega_delta_AB = {value=1, method=MLE}
+omega_delta_S = {value=1, method=MLE}
+omega_phi_S = {value=1, method=MLE}
+phi_S_pop = {value=1, method=MLE}
+sigma_AB = {value=1, method=MLE}
+sigma_G1 = {value=1, method=MLE}
+sigma_G2 = {value=1, method=MLE}
+sigma_G3 = {value=1, method=MLE}
+sigma_G4 = {value=1, method=MLE}
+sigma_G5 = {value=1, method=MLE}
+
+<MONOLIX>
+
+[TASKS]
+populationParameters()
+individualParameters(method = {conditionalMean, conditionalMode })
+fim(run = false,method = StochasticApproximation)
+logLikelihood(run = false,method = ImportanceSampling)
+plotResult(method = {indfits, obspred, vpc, parameterdistribution, covariatemodeldiagnosis, randomeffects, covariancemodeldiagnosis, residualsscatter, residualsdistribution, saemresults })
+
+[SETTINGS]
+GLOBAL:
+exportpath = 'demoMLX'
+dataandmodelnexttoproject = yes
+

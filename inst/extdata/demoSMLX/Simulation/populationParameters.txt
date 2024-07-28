@@ -1,0 +1,2 @@
+phi_S_pop,delta_AB_pop,delta_S_pop,omega_delta_S,omega_phi_S,omega_delta_AB,sigma_AB,alpha_11,sigma_G1,alpha_12,sigma_G2,alpha_13,sigma_G3,alpha_14,sigma_G4,alpha_15,sigma_G5,group
+611,0.025,0.23,0.1,0.6,0.3,0.11,0.1,0.28,0,0.34,0,0.39,0,0.36,0,0.32,simulationGroup1

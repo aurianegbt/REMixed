@@ -1,0 +1,23 @@
+[LONGITUDINAL]
+input = {delta_S,phi_S,delta_AB,alpha_11,alpha_12,alpha_13,alpha_14,alpha_15}
+
+EQUATION:
+t_0 = 0
+AB_0 = 1000
+S_0 = 5
+
+ddt_S = - delta_S*S
+ddt_AB = phi_S * S  - delta_AB * AB
+tAB = log10(AB)
+
+G1= alpha_11 * S
+G2= alpha_12 * S
+G3= alpha_13 * S
+G4= alpha_14 * S
+G5= alpha_15 * S
+
+OUTPUT:
+output ={tAB,G1,G2,G3,G4,G5}
+
+
+

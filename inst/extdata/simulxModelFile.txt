@@ -1,0 +1,37 @@
+[INDIVIDUAL]
+input = {phi_S_pop,delta_AB_pop,delta_S_pop,omega_delta_S,omega_phi_S,omega_delta_AB}
+
+DEFINITION:
+phi_S = {distribution=lognormal,typical=phi_S_pop,sd=omega_phi_S}
+delta_AB = {distribution=lognormal,typical=delta_AB_pop,sd=omega_delta_AB}
+delta_S = {distribution=lognormal,typical=delta_S_pop,sd=omega_delta_S}
+
+[LONGITUDINAL]
+input = {delta_S,phi_S,delta_AB,sigma_AB,alpha_11,sigma_G1,alpha_12,sigma_G2,alpha_13,sigma_G3,alpha_14,sigma_G4,alpha_15,sigma_G5}
+
+EQUATION:
+t_0 = 0
+AB_0 = 1000
+S_0 = 5
+
+ddt_S = - delta_S*S
+ddt_AB = phi_S * S  - delta_AB * AB
+tAB = log10(AB)
+
+G1= alpha_11 * S
+G2= alpha_12 * S
+G3= alpha_13 * S
+G4= alpha_14 * S
+G5= alpha_15 * S
+
+OUTPUT:
+output ={tAB,G1,G2,G3,G4,G5}
+
+
+DEFINITION:
+yAB = {distribution=normal, prediction=tAB, errorModel=constant(sigma_AB)}
+yG1 = {distribution=normal,prediction=G1,errorModel=constant(sigma_G1)}
+yG2 = {distribution=normal,prediction=G2,errorModel=constant(sigma_G2)}
+yG3 = {distribution=normal,prediction=G3,errorModel=constant(sigma_G3)}
+yG4 = {distribution=normal,prediction=G4,errorModel=constant(sigma_G4)}
+yG5 = {distribution=normal,prediction=G5,errorModel=constant(sigma_G5)}

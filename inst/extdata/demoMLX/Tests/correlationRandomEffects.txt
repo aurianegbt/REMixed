@@ -1,0 +1,4 @@
+eta1,eta2,coeff,statistics,p-value
+eta_delta_S,eta_phi_S,0,-0.537161,0.592362
+eta_delta_S,eta_delta_AB,0,-1.64742,0.102642
+eta_phi_S,eta_delta_AB,0,1.23159,0.221018

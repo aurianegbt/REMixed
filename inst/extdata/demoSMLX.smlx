@@ -1,0 +1,51 @@
+
+<MODEL>
+file = 'simulxModelFile.txt'
+
+<SIMULX>
+
+[SETTINGS]
+GLOBAL:
+exportpath='demoSMLX'
+
+[DEFINITION]
+POPULATION:
+parameters={phi_S_pop, delta_AB_pop, delta_S_pop, omega_delta_S, omega_phi_S, omega_delta_AB, sigma_AB, alpha_11, sigma_G1, alpha_12, sigma_G2, alpha_13, sigma_G3, alpha_14, sigma_G4, alpha_15, sigma_G5}
+'PopParameters' = {{{values={611, 0.025, 0.23, 0.1, 0.6, 0.3, 0.11, 0.1, 0.28, 0, 0.34, 0, 0.39, 0, 0.36, 0, 0.32}}}}
+
+OUTPUT:
+'regularYAB' = {output=yAB, {{start=0, interval=1, final=100}}}
+'regularYG1' = {output=yG1, {{start=0, interval=1, final=100}}}
+'regularYG2' = {output=yG2, {{start=0, interval=1, final=100}}}
+'regularYG3' = {output=yG3, {{start=0, interval=1, final=100}}}
+'regularYG4' = {output=yG4, {{start=0, interval=1, final=100}}}
+'regularYG5' = {output=yG5, {{start=0, interval=1, final=100}}}
+'regularTAB' = {output=tAB, {{start=0, interval=1, final=100}}}
+'regularG1' = {output=G1, {{start=0, interval=1, final=100}}}
+'regularG2' = {output=G2, {{start=0, interval=1, final=100}}}
+'regularG3' = {output=G3, {{start=0, interval=1, final=100}}}
+'regularG4' = {output=G4, {{start=0, interval=1, final=100}}}
+'regularG5' = {output=G5, {{start=0, interval=1, final=100}}}
+'yAB' = {output=yAB, {{times={0, 7, 21, 123, 180, 300}}}}
+'yG1' = {output=yG1, {{times={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}}}}
+'yG2' = {output=yG2, {{times={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}}}}
+'yG3' = {output=yG3, {{times={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}}}}
+'yG4' = {output=yG4, {{times={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}}}}
+'yG5' = {output=yG5, {{times={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}}}}
+
+INDIVIDUAL:
+parameters={phi_S, delta_AB, delta_S}
+'IndivParameters' = {{{values={1, 1, 1}}}}
+
+[SIMULATION]
+GROUPS:
+'simulationGroup1'={size=100, parameter='PopParameters', remaining={alpha_11=1, alpha_12=1, alpha_13=1, alpha_14=1, alpha_15=1, sigma_AB=1, sigma_G1=1, sigma_G2=1, sigma_G3=1, sigma_G4=1, sigma_G5=1}, outputs={'yAB', 'yG1', 'yG2', 'yG3', 'yG4', 'yG5'}}
+
+[EXPLORATION]
+GROUPS:
+'explorationGroup1'={remaining={alpha_11=1, alpha_12=1, alpha_13=1, alpha_14=1, alpha_15=1, sigma_AB=1, sigma_G1=1, sigma_G2=1, sigma_G3=1, sigma_G4=1, sigma_G5=1}, parameter='IndivParameters', outputs={'regularG5', 'regularG4', 'regularG3', 'regularG2', 'regularG1', 'regularTAB'}}
+
+[TASKS]
+simulation()
+endpoint(run=false)
+
