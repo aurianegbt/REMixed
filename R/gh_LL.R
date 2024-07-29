@@ -630,7 +630,8 @@ lambda.max  <- function(
     prune=NULL,
     parallel = TRUE,
     ncores=NULL,
-    onlyLL=FALSE){
+    onlyLL=FALSE,
+    verbose=TRUE){
 
   if(is.null(data)){
     test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
@@ -664,11 +665,14 @@ lambda.max  <- function(
 
 
   i = 1
-
-  ntasks <- N
-  pb <- utils::txtProgressBar(max = ntasks, style = 3)
-  progress <- function(n) utils::setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+  if(verbose){
+    ntasks <- N
+    pb <- utils::txtProgressBar(max = ntasks, style = 3)
+    progress <- function(n) utils::setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)
+  }else{
+    opts <- NULL
+  }
 
   res = foreach::foreach(i = 1:N,.packages = "REMix",.export = c("lambda.max.ind","amgauss.hermite"),.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
@@ -692,7 +696,8 @@ lambda.max  <- function(
                    prune = prune)
     }
 
-  close(pb)
+  if(verbose)
+    close(pb)
   if(parallel)
     snow::stopCluster(cluster)
   return(max(Reduce("+",res)))

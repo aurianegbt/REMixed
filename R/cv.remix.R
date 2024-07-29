@@ -10,7 +10,7 @@
 #' The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
 #'
 #' @param lambda.grid grid of penalisation parameters for lasso regularization;
-#' @param nlambda if lambda.grid is null, number of lambda parameter to use for the lambda.grid;
+#' @param nlambda if lambda.grid is null, number of lambda parameter to use for lambda.grid;
 #' @param eps1 convergence limit for parameters distance at each iteraion ;
 #' @param eps2 convergence limit for penalized log-likelihood distance at each iteration ;
 #' @param pop.set1 Population parameters setting for initialisation ;
@@ -20,26 +20,50 @@
 #' @param ncores number of cores for parallelization (default NULL).
 #' @param print if TRUE, log are printed in console. Logs are allways saved in a summary file in the remix folder created for the job;
 #' @param digits digits to print, (default 3) ;
-#' @param trueValue (FOR SIMULATION, if provided, the error is compute at each iteration. )
+#' @param trueValue a named vector of true value for parameters (for simulation purpose, if provided, the error is compute at each iteration).
 #' @param project the initial Monolix project;
 #' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
 #' @param dynFUN Dynamic function ;
 #' @param y Initial condition of the model, conform to what is asked in dynFUN ;
-#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
-#'
-#'   - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p};
-#'
-#'   - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.
-#' @param alpha list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1
-#'
+#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` : \itemize{\item  ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p}; \item ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in, in same order `alpha$alpha1` ; the name need be set to precise the dynamic from dynFUN to identify the output.}
+#' @param alpha named list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1. The name of alpha$alpha0 and alpha$alpha1 are the observation model names from the monolix project to which they are linked.
 # if alpha_0 vector empty -> all alpha_0 set to 0 ;
+# if some alpha_0 not define but not all, set NULL to the one missing
 #' @param selfInit If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.
 #'
 #' @return list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
 #' @export
 #'
 #' @examples
-#' ## [ TO DO ]
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#'
+#' res = cv.Remix(project = project,
+#'             dynFUN = dynFUN,
+#'             y = y,
+#'             ObsModel.transfo = ObsModel.transfo,
+#'             alpha = alpha,
+#'             selfInit = TRUE,
+#'             eps1=10**(-2),
+#'             ncores=8,
+#'             eps2=1)
+#'
+#' plotConvergence(res)
+#'
+#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+#'
+#' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+#' }
 cv.Remix <- function(project = NULL,
                   final.project = NULL,
                   dynFUN,
@@ -60,11 +84,6 @@ cv.Remix <- function(project = NULL,
                   digits=3,
                   trueValue = NULL){
 
-  ## name0 -> contain the last iterations information
-  ## name ->  the current information
-
-  ################ START INITIALIZATION OF PROJECT REMIXed ################
-
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
@@ -76,9 +95,23 @@ cv.Remix <- function(project = NULL,
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
 
-  # load the project
-  check.proj(project,alpha) # check if every alpha is normaly distributed,
-  # and that each error model is constant
+  ########### Technical PARAMETER ################
+
+  if(is.null(ncores)){
+    if(.Platform$OS.type == "unix"){
+      ncores = parallel::detectCores()
+    }else{
+      ncores = parallel::detectCores()/2
+      if(ncores <1){ncores <- 1}
+    }
+  }
+  cluster <- snow::makeCluster(ncores)
+  doSNOW::registerDoSNOW(cluster)
+
+
+
+  ################ START INITIALIZATION OF PROJECT REMIXed ################
+  check.proj(project,alpha)
 
   if(selfInit){
     pop.set1 <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
@@ -169,8 +202,12 @@ cv.Remix <- function(project = NULL,
   }
   Rsmlx:::mlx.saveProject(initial.project)
 
-  param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()[-which(names(Rsmlx:::mlx.getEstimatedPopulationParameters())%in%rm.param)]
 
+  if(length(rm.param)==0){
+    param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()
+  }else{
+    param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()[-which(names(Rsmlx:::mlx.getEstimatedPopulationParameters())%in%rm.param)]
+  }
 
   ########################## RENDER FIRST ESTIMATION  ###########################
   to.cat <- "\n      - - - <  INITIAL PARAMETERS  > - - -     \n\n"
@@ -204,19 +241,6 @@ cv.Remix <- function(project = NULL,
   }
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
-  ########### Technical PARAMETER ################
-
-  if(is.null(ncores)){
-    if(.Platform$OS.type == "unix"){
-      ncores = parallel::detectCores()
-    }else{
-      ncores = parallel::detectCores()/2
-      if(ncores <1){ncores <- 1}
-    }
-  }
-  cluster <- snow::makeCluster(ncores)
-  doSNOW::registerDoSNOW(cluster)
-
   ######################## Computing Regularization PATH   #########################
   to.cat <- "\nComputing regularization path ... \n"
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -225,13 +249,11 @@ cv.Remix <- function(project = NULL,
 
   if(is.null(lambda.grid)){
     lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
-                            prune = prune, parallel=FALSE)
+                            prune = prune, parallel=FALSE,verbose=FALSE)
 
     lambda.grid = lambda_max*(0.05**((1:nlambda)/nlambda))
     lambda.grid <- lambda.grid[lambda.grid!=0]
   }
-
-
 
 
   ############### START CV ##########################
@@ -241,7 +263,7 @@ cv.Remix <- function(project = NULL,
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
-  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.export = "dynFUN",.options.snow=opts)%dopar%{
+  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.options.snow=opts)%dopar%{
 
     Rsmlx:::prcheck(initial.project)
 
@@ -316,14 +338,13 @@ cv.Remix <- function(project = NULL,
       ############ UPDATING ALPHA1   ###########
       to.cat <- paste0("Computing taylor update for regularization parameters... \n")
       Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-      a.final <- taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL)
+      a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
 
       currentData$alpha1 <- a.final
       LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE) - lambda * sum(abs(a.final))
 
       if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
 
-        print("RECALIBRATE ")
         th <- 1e-5
         step <- log(1.5)
         to.recalibrate = which(a.final!=0)
@@ -356,8 +377,7 @@ cv.Remix <- function(project = NULL,
                          prune = prune,
                          stored = NULL,
                          to.recalibrate=to.recalibrate,
-                         parallel = TRUE,
-                         ncores = ncores,
+                         parallel = FALSE,
                          lambda = lambda)
 
         a.final <- currentData$alpha1[to.recalibrate]
