@@ -1,8 +1,7 @@
 #' Line search
 #' @noRd
-# Proposer le searpas de MLA  restreint aux paramètres à recalibrer en empêchant la fonction de recalculer les marginales donc on change rien
-
 searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,...){
+
   valfpa <- function(vw,b,delta,funcpa,stored,...){
     if(is.na(vw)) return(list(fim=-Inf,stored=stored))
     bk <- b + (exp(vw)*delta)
@@ -95,6 +94,7 @@ searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,...){
 }
 
 funcpa <- function(b,stored,dynFUN, y, data, n, prune,to.recalibrate, ncores,parallel,lambda){
+
   data$alpha1[to.recalibrate] <- b
   res = fim.searpas(dynFUN = dynFUN, y = y, data = data, n = n, prune = prune, ncores = ncores,parallel=parallel,stored=stored, to.recalibrate=to.recalibrate)
   if(is.null(stored)){
@@ -293,13 +293,14 @@ fim.searpas.ind <- function(
 
 
       res = prod(sapply(to.recalibrate,FUN=function(k){
-        sig = Rerr[[k]]
-        tki = Robs_i[[k]]$time
-        Zki = Robs_i[[k]][,3]
+        yGk = ObsModel.transfo$linkR[k]
+        sig = Rerr[[yGk]]
+        tki = Robs_i[[yGk]]$time
+        Zki = Robs_i[[yGk]][,yGk]
 
-        a0 = theta$alpha0[[k]]
-        a1 = alpha1[[k]]
-        trs = ObsModel.transfo[[2]][k]
+        a0 = theta$alpha0[[yGk]]
+        a1 = alpha1[[yGk]]
+        trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
         prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
@@ -348,13 +349,14 @@ fim.searpas.ind <- function(
 
 
       res = prod(sapply(not.computed.again,FUN=function(k){
-        sig = Rerr[[k]]
-        tki = Robs_i[[k]]$time
-        Zki = Robs_i[[k]][,3]
+        yGk = ObsModel.transfo$linkR[k]
+        sig = Rerr[[yGk]]
+        tki = Robs_i[[yGk]]$time
+        Zki = Robs_i[[yGk]][,yGk]
 
-        a0 = theta$alpha0[[k]]
-        a1 = alpha1[[k]]
-        trs = ObsModel.transfo[[2]][k]
+        a0 = theta$alpha0[[yGk]]
+        a1 = alpha1[[yGk]]
+        trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
         prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
@@ -366,13 +368,14 @@ fim.searpas.ind <- function(
 
 
       res = prod(sapply(to.recalibrate,FUN=function(k){
-        sig = Rerr[[k]]
-        tki = Robs_i[[k]]$time
-        Zki = Robs_i[[k]][,3]
+        yGk = ObsModel.transfo$linkR[k]
+        sig = Rerr[[yGk]]
+        tki = Robs_i[[yGk]]$time
+        Zki = Robs_i[[yGk]][,yGk]
 
-        a0 = theta$alpha0[[k]]
-        a1 = alpha1[[k]]
-        trs = ObsModel.transfo[[2]][k]
+        a0 = theta$alpha0[[yGk]]
+        a1 = alpha1[[yGk]]
+        trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
         prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
@@ -385,11 +388,12 @@ fim.searpas.ind <- function(
         dyn.ei = dyn[[paste0("eta_",ei)]]
 
         res = prod(sapply(1:S.sz,FUN=function(p){
-          sig = Serr[[p]]
-          tpi = Sobs_i[[p]]$time
-          Ypi = Sobs_i[[p]][,3]
+          Yp = ObsModel.transfo$linkS[p]
+          sig = Serr[[Yp]]
+          tpi = Sobs_i[[Yp]]$time
+          Ypi = Sobs_i[[Yp]][,Yp]
 
-          trs = ObsModel.transfo[[1]][p]
+          trs = ObsModel.transfo$S[which(ObsModel.transfo$linkS==Yp)]
           Spi = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tpi,names(trs)])
 
           prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Ypi-Spi)/sig)**2))

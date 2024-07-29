@@ -71,8 +71,6 @@ Remix <- function(project = NULL,
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
 
-
-
   # load the project
   check.proj(project,alpha) # check if every alpha is normaly distributed,
   # and that each error model is constant
@@ -225,10 +223,6 @@ Remix <- function(project = NULL,
     to.print[param0[regParam.toprint]==0,"EstimatedValue"] <- "  "
   }
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
-
-
-  browser()
-
   ########################## ESTIMATING FIRST LL  ###########################
   to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
   Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -275,13 +269,10 @@ Remix <- function(project = NULL,
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     ptm <- proc.time()
 
-
-    browser()
-
     ############ UPDATING ALPHA1   ###########
     to.cat <- paste0("Computing taylor update for regularization parameters... \n")
     Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    a.final <- taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL)
+    a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
 
     currentData$alpha1 <- a.final
     LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL=TRUE) - lambda * sum(abs(a.final))
@@ -322,7 +313,6 @@ Remix <- function(project = NULL,
                        prune = prune,
                        stored = NULL,
                        to.recalibrate=to.recalibrate,
-                       parallel = TRUE,
                        parallel = FALSE,
                        lambda = lambda)
 
@@ -543,8 +533,6 @@ check.proj <- function(project,alpha){
     project <- Rsmlx:::prcheck(project)$project
   }else{
     project <- Rsmlx:::mlx.getProjectSettings()$project}
-
-
 
   IndividualParameterModel <- Rsmlx:::mlx.getIndividualParameterModel()
   if(any(IndividualParameterModel$distribution[unlist(alpha)]!="normal")){
