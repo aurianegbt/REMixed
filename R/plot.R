@@ -1,6 +1,5 @@
 #' Display the value of parameters at each iteration
 #'
-#'
 #' @param fit object of class remix, from \code{\link{Remix}} or a certain build from \code{\link{cv.Remix}} output.
 #' @param paramToPlot Population parameters to plot (which have been estimated by SAEM) ;
 #' @param trueValue (for simulation purpose) vector named of true values ;

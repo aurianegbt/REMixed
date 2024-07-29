@@ -9,15 +9,15 @@
 #'
 #' @return Matrix of time and observation of antibody titer Ab, and ASCs S and L.
 #' @export
-#' @seealso [indParm()]
+#' @seealso \code{\link{indParm}}
 #'
 #' @examples
 #' y = c(A=0,S=5,L=5)
 #' parms = c(theta_S = 611,
-#'        theta_L = 3.5,
-#'               delta_Ab = 0.025,
-#'               delta_S = 0.231,
-#'               delta_L = 0.000152)
+#'           theta_L = 3.5,
+#'           delta_Ab = 0.025,
+#'           delta_S = 0.231,
+#'           delta_L = 0.000152)
 #'
 #' t = seq(0,100,5)
 #' res <- Pasin(t,y,parms)

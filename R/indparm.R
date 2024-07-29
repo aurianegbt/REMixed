@@ -41,7 +41,6 @@
 #' transfo.inv = list(delta_Ab = exp,phi_S=exp,phi_L=exp)
 #'
 #' indParm(theta,covariates,eta_i,transfo,transfo.inv)
-
 indParm <- function(theta,covariates,eta_i,transfo,transfo.inv){
 
   check.indparm(theta,covariates,eta_i,transfo,transfo.inv)

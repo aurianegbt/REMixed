@@ -18,7 +18,7 @@
 #' \item `parms` a named vector of parameter.
 #' \item `time` vector a timepoint.}
 #'
-#' See \code{\link{dynFUN_demo}} for example.
+#' See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for example.
 #' @param y Initial condition of the model, conforming to what is required in `dynFUN`.
 #' @param theta Model parameters : contains `phi_pop` (size L), `psi_pop` (size m), `gamma` (list of size L, each containing a vector of size m), `beta` (list of size m, each containing a vector of size m), and `alpha0` (size K).
 #' @param alpha1 Regularization parameter (size K). It should be named with observation model names.
@@ -37,9 +37,9 @@
 #' }
 #' @param n Number of points for the adaptative Gaussian quadrature (default is \code{floor(100^(1/length(theta$psi_pop)))}).
 #' @param prune Percentage for pruning in [0, 1] (default is NULL).
-#' @param mu List of named vectors of individual random effects estimations (size N, each vector has size m). Individuals must be sorted in the same order in `Omega` and `covariates`.
-#' @param Omega List of named diagonal matrices of individual standard deviation estimations (size N, each element is size m x m). Individuals must be sorted in the same order in `mu` and `covariates`.
-#' @param covariates Matrix of individual covariates (size N x n). Individuals must be sorted in the same order in `mu` and `Omega`.
+#' @param mu List of named vectors of individual random effects estimations (size N, each vector has size m). Individuals must be sorted in the same order than `Omega` and `covariates`.
+#' @param Omega List of named diagonal matrices of individual standard deviation estimations (size N, each element is size m x m). Individuals must be sorted in the same order than `mu` and `covariates`.
+#' @param covariates Matrix of individual covariates (size N x n). Individuals must be sorted in the same order than `mu` and `Omega`.
 #' @param Sobs List (size N) of lists of direct observations (size P), each element containing time and observation (in column 3). The element list name must be the observation variable names.
 #' @param Robs List (size N) of latent observations (size K), each element containing time and observation (in column 3). The element list name must be the observation variable names. (same as in `ObsModel.transfo$link[...]`, etc.)
 #' @param ncores Number of cores for parallelization (default is NULL).
@@ -265,6 +265,7 @@ gh.LL.ind <- function(
   all.tobs = sort(union(unlist(lapply(Robs_i,FUN=function(x){x$time})),unlist(lapply(Sobs_i,FUN=function(x){x$time}))))
 
   # Need to compute, for each eta_i x individual i, the dynamics of the model
+  # eta_i = split(mh.parm$Points,1:nd)[[1]]
   dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
     PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
     dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
@@ -350,7 +351,7 @@ gh.LL.ind <- function(
     ddfact = lapply(1:R.sz,FUN=function(k){
       setNames(sapply(1:nd,FUN=function(ei){
         dyn.ei = dyn[[paste0("eta_",ei)]]
-        yGk = ObsModel.transfo$linkR
+        yGk = ObsModel.transfo$linkR[k]
         sig = Rerr[[yGk]]
         tki = Robs_i[[yGk]]$time
         Zki = Robs_i[[yGk]][,yGk]

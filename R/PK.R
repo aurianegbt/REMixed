@@ -14,7 +14,6 @@
 #' res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
 #'
 #' plot(res)
-
 PK <- function(t,y,parms){
   if(!setequal(names(y),"C")){
     stop(paste0("Missing initial condition for ",setdiff(c("C"),names(y))," and ",setdiff(names(y),c("C"))," isn't in the model."))
