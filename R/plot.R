@@ -11,7 +11,36 @@
 #' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}.
 #'
 #' @examples
-#' # # [ TO DO ]
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#' lambda = 1440
+#'
+#' res = Remix(project = project,
+#'             dynFUN = dynFUN,
+#'             y = y,
+#'             ObsModel.transfo = ObsModel.transfo,
+#'             alpha = alpha,
+#'             selfInit = TRUE,
+#'             eps1=10**(-2),
+#'             eps2=1,
+#'             lambda=lambda)
+#'
+#' plotConvergence(res)
+#'
+#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+#'
+#' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+#' }
 plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES to remove (id with name of variable )
   estimates = dplyr::filter(fit$iterOutputs$estimates,iteration!=0)
   if(!identical(paramToPlot,"all")){
@@ -63,7 +92,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 
   eval(parse(text=cmd))
 
-  return(invisible(finalPlot))
+  return(finalPlot)
 }
 
 #' Log-likelihood convergence.
@@ -76,7 +105,36 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}.
 #'
 #' @examples
-#' ## [ TO DO ]
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#' lambda = 1440
+#'
+#' res = Remix(project = project,
+#'             dynFUN = dynFUN,
+#'             y = y,
+#'             ObsModel.transfo = ObsModel.transfo,
+#'             alpha = alpha,
+#'             selfInit = TRUE,
+#'             eps1=10**(-2),
+#'             eps2=1,
+#'             lambda=lambda)
+#'
+#' plotConvergence(res)
+#'
+#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+#'
+#' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+#' }
 plotConvergence <- function(fit){
   LL.outputs <- sapply(fit$iterOutputs$LL,FUN=function(Liter){Liter$LL})
   LLpen.outputs <- unlist(fit$iterOutputs$LL.pen)

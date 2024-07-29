@@ -18,8 +18,8 @@
 #' @param n (default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;
 #' @param ncores number of cores for parallelization (default NULL).
 #' @param print if TRUE, log are printed in console. Logs are allways saved in a summary file in the remix folder created for the job;
-#' @param digits digits to print, (default 2) ;
-#' @param trueValue (FOR SIMULATION, if provided, the error is compute at each iteration. )
+#' @param digits digits to print, (default 3) ;
+#' @param trueValue a named vector of true value for parameters (for simulation purpose, if provided, the error is compute at each iteration).
 #' @param project the initial Monolix project;
 #' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
 #' @param dynFUN Dynamic function ;
@@ -30,13 +30,42 @@
 # if some alpha_0 not define but not all, set NULL to the one missing
 #' @param selfInit If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.
 #'
-#' @return list fo outputs of final project and through the iteration
+#' @return list of outputs of final project and through the iteration
 #' @export
 #'
 #' @seealso \code{\link{cv.Remix}}
 #'
 #' @examples
-#' # [ TO DO ]
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#' lambda = 1440
+#'
+#' res = Remix(project = project,
+#'             dynFUN = dynFUN,
+#'             y = y,
+#'             ObsModel.transfo = ObsModel.transfo,
+#'             alpha = alpha,
+#'             selfInit = TRUE,
+#'             eps1=10**(-2),
+#'             eps2=1,
+#'             lambda=lambda)
+#'
+#' plotConvergence(res)
+#'
+#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+#'
+#' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+#' }
 Remix <- function(project = NULL,
                   final.project = NULL,
                   dynFUN,
@@ -55,10 +84,6 @@ Remix <- function(project = NULL,
                   print = TRUE,
                   digits=3,
                   trueValue = NULL){
-  ## name0 -> contain the last iterations information
-  ## name ->  the current information
-
-  ################ START INITIALIZATION OF PROJECT REMIXed ################
 
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
@@ -71,9 +96,22 @@ Remix <- function(project = NULL,
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
 
-  # load the project
-  check.proj(project,alpha) # check if every alpha is normaly distributed,
-  # and that each error model is constant
+  ########### Technical PARAMETER ################
+
+  if(is.null(ncores)){
+    if(.Platform$OS.type == "unix"){
+      ncores = parallel::detectCores()
+    }else{
+      ncores = parallel::detectCores()/2
+      if(ncores <1){ncores <- 1}
+    }
+  }
+  cluster <- snow::makeCluster(ncores)
+  doSNOW::registerDoSNOW(cluster)
+
+
+  ################ START INITIALIZATION OF PROJECT REMIXed ################
+  check.proj(project,alpha)
 
   if(selfInit){
     pop.set1 <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
@@ -98,18 +136,6 @@ Remix <- function(project = NULL,
   summary.file = file.path(remix.dir, "summary.txt")
   unlink(summary.file,force=TRUE)
   Sys.sleep(0.1)
-
-  if(is.null(ncores)){
-    if(.Platform$OS.type == "unix"){
-      ncores = parallel::detectCores()
-    }else{
-      ncores = parallel::detectCores()/2
-      if(ncores <1){ncores <- 1}
-    }
-  }
-  cluster <- snow::makeCluster(ncores)
-  doSNOW::registerDoSNOW(cluster)
-
 
   ########################## FIRST ESTIMATION  ###########################
   to.cat <- paste0("\n", dashed.line, " Starting Regulatization and Estimation Algorithm\n")
@@ -280,7 +306,6 @@ Remix <- function(project = NULL,
 
     if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
 
-      print("RECALIBRATE ")
       th <- 1e-5
       step <- log(1.5)
       to.recalibrate = which(a.final!=0)
