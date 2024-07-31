@@ -26,7 +26,7 @@
 #' lambda = 1440
 #'
 #' res = Remix(project = project,
-#'             dynFUN = dynFUN,
+#'             dynFUN = dynFUN_demo,
 #'             y = y,
 #'             ObsModel.transfo = ObsModel.transfo,
 #'             alpha = alpha,
