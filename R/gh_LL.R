@@ -46,6 +46,7 @@
 #' @param data A list containing all `mu`, `Omega`, `theta`, `alpha1`, `covariates`, `ParModel.transfo`, `ParModel.transfo.inv`, `Sobs`, `Robs`, `Serr`, `Rerr`, and `ObsModel.transfo`, which can be obtained using \code{\link{readMLX}} from a monolix project. If any of these arguments are specified, they will be used in priority.
 #' @param onlyLL If only the log-likelihood needs to be returned (default is FALSE).
 #' @param parallel If the computation should be done in parallel (default is TRUE).
+#' @param verbose if TRUE, progress bar appears.
 #'
 #' @return A list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihood `LL`, the gradient of the log-likelihood `dLL`, and the Hessian of the log-likelihood `ddLL` at the point \eqn{\theta, \alpha}.
 #'
@@ -87,12 +88,12 @@ gh.LL <- function(
     Rerr=NULL,
     ObsModel.transfo=NULL,
     data=NULL,
-    n = NULL,
+    n=NULL,
     prune=NULL,
-    parallel = TRUE,
+    parallel=TRUE,
     ncores=NULL,
     onlyLL=FALSE,
-    print=TRUE){
+    verbose=TRUE){
 
   if(is.null(data)){
     test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
@@ -125,10 +126,16 @@ gh.LL <- function(
   N=length(mu)
 
   i = 1
+
   ntasks <- N
-  pb <- utils::txtProgressBar(max = ntasks, style = 3)
-  progress <- function(n) utils::setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+  if(verbose){
+    pb <- utils::txtProgressBar(max = ntasks, style = 3)
+    progress <- function(n) utils::setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)
+  }else{
+    opts <- NULL
+  }
+
 
   res = foreach::foreach(i = 1:N,.packages = "REMix",.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
@@ -160,7 +167,9 @@ gh.LL <- function(
 
   LL = sum(sapply(res,FUN=function(ri){ri$LLi}))
 
-  close(pb)
+
+  if(verbose)
+    close(pb)
   if(parallel){
     snow::stopCluster(cluster)
   }
