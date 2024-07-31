@@ -23,10 +23,10 @@ The model correspond to the dynamics of the humoral response, from 7 days after 
 \examples{
 y = c(A=0,S=5,L=5)
 parms = c(theta_S = 611,
-       theta_L = 3.5,
-              delta_Ab = 0.025,
-              delta_S = 0.231,
-              delta_L = 0.000152)
+          theta_L = 3.5,
+          delta_Ab = 0.025,
+          delta_S = 0.231,
+          delta_L = 0.000152)
 
 t = seq(0,100,5)
 res <- Pasin(t,y,parms)
@@ -37,5 +37,5 @@ plot(res)
 Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
 }
 \seealso{
-[indParm()]
+\code{\link{indParm}}
 }
