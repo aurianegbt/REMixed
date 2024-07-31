@@ -48,7 +48,7 @@ retrieveBest <- function(fit){
 
   argmin.id = which.min(fit$BIC)
 
-  results = list(info = append(fit$info,lambda=fit$lambda[argmin.id]),
+  results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id])),
                  finalRes = fit$res[[argmin.id]],
                  iterOutputs = fit$outputs[[argmin.id]])
   class(results) <- "remix"
