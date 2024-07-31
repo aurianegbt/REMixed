@@ -30,7 +30,7 @@ alpha=list(alpha0=NULL,
 y = c(S=5,AB=1000)
 
 cv.outputs = cv.Remix(project = project,
-            dynFUN = dynFUN,
+            dynFUN = dynFUN_demo,
             y = y,
             ObsModel.transfo = ObsModel.transfo,
             alpha = alpha,
