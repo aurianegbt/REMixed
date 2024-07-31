@@ -16,7 +16,36 @@ Log-Likelihood values throughout the algorithm iteration.
 Log-likelihood convergence.
 }
 \examples{
-## [ TO DO ]
+\dontrun{
+project <- getMLXdir()
+
+ObsModel.transfo = list(S=list(AB=log10),
+                        linkS="yAB",
+                        R=rep(list(S=function(x){x}),5),
+                        linkR = paste0("yG",1:5))
+
+alpha=list(alpha0=NULL,
+           alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+
+y = c(S=5,AB=1000)
+lambda = 1440
+
+res = Remix(project = project,
+            dynFUN = dynFUN,
+            y = y,
+            ObsModel.transfo = ObsModel.transfo,
+            alpha = alpha,
+            selfInit = TRUE,
+            eps1=10**(-2),
+            eps2=1,
+            lambda=lambda)
+
+plotConvergence(res)
+
+trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+
+plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+}
 }
 \seealso{
 \code{\link{Remix}}, \code{\link{cv.Remix}}.

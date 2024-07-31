@@ -23,7 +23,8 @@ cv.Remix(
   ncores = NULL,
   print = TRUE,
   digits = 3,
-  trueValue = NULL
+  trueValue = NULL,
+  unlinkBuildProject = TRUE
 )
 }
 \arguments{
@@ -35,17 +36,13 @@ cv.Remix(
 
 \item{y}{Initial condition of the model, conform to what is asked in dynFUN ;}
 
-\item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` :
+\item{ObsModel.transfo}{list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` : \itemize{\item  ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p}; \item ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in, in same order `alpha$alpha1` ; the name need be set to precise the dynamic from dynFUN to identify the output.}}
 
-  - ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order (as in Sobs) must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p};
-
-  - ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in Robs ; the name need be set to precise the dynamic from dynFUN to identify the output.}
-
-\item{alpha}{list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1}
+\item{alpha}{named list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1. The name of alpha$alpha0 and alpha$alpha1 are the observation model names from the monolix project to which they are linked.}
 
 \item{lambda.grid}{grid of penalisation parameters for lasso regularization;}
 
-\item{nlambda}{if lambda.grid is null, number of lambda parameter to use for the lambda.grid;}
+\item{nlambda}{if lambda.grid is null, number of lambda parameter to use for lambda.grid;}
 
 \item{eps1}{convergence limit for parameters distance at each iteraion ;}
 
@@ -67,7 +64,7 @@ cv.Remix(
 
 \item{digits}{digits to print, (default 3) ;}
 
-\item{trueValue}{(FOR SIMULATION, if provided, the error is compute at each iteration. )}
+\item{trueValue}{a named vector of true value for parameters (for simulation purpose, if provided, the error is compute at each iteration).}
 }
 \value{
 list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
@@ -82,5 +79,28 @@ We assume that individual trajectories \eqn{(S_{pi})_{p\le P,i\le N}} are observ
 The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
 }
 \examples{
-## [ TO DO ]
+\dontrun{
+project <- getMLXdir()
+
+ObsModel.transfo = list(S=list(AB=log10),
+                        linkS="yAB",
+                        R=rep(list(S=function(x){x}),5),
+                        linkR = paste0("yG",1:5))
+
+alpha=list(alpha0=NULL,
+           alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+
+y = c(S=5,AB=1000)
+
+res = cv.Remix(project = project,
+               dynFUN = dynFUN_demo,
+               y = y,
+               ObsModel.transfo = ObsModel.transfo,
+               alpha = alpha,
+               selfInit = TRUE,
+               eps1=10**(-2),
+               ncores=8,
+               nlambda=8,
+               eps2=1)
+}
 }

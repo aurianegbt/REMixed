@@ -58,12 +58,12 @@ Remix(
 
 \item{print}{if TRUE, log are printed in console. Logs are allways saved in a summary file in the remix folder created for the job;}
 
-\item{digits}{digits to print, (default 2) ;}
+\item{digits}{digits to print, (default 3) ;}
 
-\item{trueValue}{(FOR SIMULATION, if provided, the error is compute at each iteration. )}
+\item{trueValue}{a named vector of true value for parameters (for simulation purpose, if provided, the error is compute at each iteration).}
 }
 \value{
-list fo outputs of final project and through the iteration
+list of outputs of final project and through the iteration
 }
 \description{
 Regularization and Estimation in MIXed effects model.
@@ -75,7 +75,36 @@ We assume that individual trajectories \eqn{(S_{pi})_{p\le P,i\le N}} are observ
 The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
 }
 \examples{
-# [ TO DO ]
+\dontrun{
+project <- getMLXdir()
+
+ObsModel.transfo = list(S=list(AB=log10),
+                        linkS="yAB",
+                        R=rep(list(S=function(x){x}),5),
+                        linkR = paste0("yG",1:5))
+
+alpha=list(alpha0=NULL,
+           alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+
+y = c(S=5,AB=1000)
+lambda = 1440
+
+res = Remix(project = project,
+            dynFUN = dynFUN_demo,
+            y = y,
+            ObsModel.transfo = ObsModel.transfo,
+            alpha = alpha,
+            selfInit = TRUE,
+            eps1=10**(-2),
+            eps2=1,
+            lambda=lambda)
+
+plotConvergence(res)
+
+trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+
+plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+}
 }
 \seealso{
 \code{\link{cv.Remix}}

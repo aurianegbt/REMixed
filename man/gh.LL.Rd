@@ -25,7 +25,7 @@ gh.LL(
   parallel = TRUE,
   ncores = NULL,
   onlyLL = FALSE,
-  print = TRUE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -33,19 +33,19 @@ gh.LL(
 \item `parms` a named vector of parameter.
 \item `time` vector a timepoint.}
 
-See \code{\link{dynFUN_demo}} for example.}
+See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for example.}
 
 \item{y}{Initial condition of the model, conforming to what is required in `dynFUN`.}
 
-\item{mu}{List of named vectors of individual random effects estimations (size N, each vector has size m). Individuals must be sorted in the same order in `Omega` and `covariates`.}
+\item{mu}{List of named vectors of individual random effects estimations (size N, each vector has size m). Individuals must be sorted in the same order than `Omega` and `covariates`.}
 
-\item{Omega}{List of named diagonal matrices of individual standard deviation estimations (size N, each element is size m x m). Individuals must be sorted in the same order in `mu` and `covariates`.}
+\item{Omega}{List of named diagonal matrices of individual standard deviation estimations (size N, each element is size m x m). Individuals must be sorted in the same order than `mu` and `covariates`.}
 
 \item{theta}{Model parameters : contains `phi_pop` (size L), `psi_pop` (size m), `gamma` (list of size L, each containing a vector of size m), `beta` (list of size m, each containing a vector of size m), and `alpha0` (size K).}
 
 \item{alpha1}{Regularization parameter (size K). It should be named with observation model names.}
 
-\item{covariates}{Matrix of individual covariates (size N x n). Individuals must be sorted in the same order in `mu` and `Omega`.}
+\item{covariates}{Matrix of individual covariates (size N x n). Individuals must be sorted in the same order than `mu` and `Omega`.}
 
 \item{ParModel.transfo}{Named list of transformation functions for the individual parameter model (names must be consistent with `phi_pop` and `psi_pop`, missing entries default to identity).}
 
@@ -80,6 +80,8 @@ Both `ObsModel.transfo$S` (for direct observation models) and `ObsModel.transfo$
 \item{ncores}{Number of cores for parallelization (default is NULL).}
 
 \item{onlyLL}{If only the log-likelihood needs to be returned (default is FALSE).}
+
+\item{verbose}{if TRUE, progress bar appears.}
 }
 \value{
 A list with the approximation by Gauss-Hermite quadrature of the likelihood `L`, the log-likelihood `LL`, the gradient of the log-likelihood `dLL`, and the Hessian of the log-likelihood `ddLL` at the point \eqn{\theta, \alpha}.
