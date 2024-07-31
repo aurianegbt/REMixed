@@ -49,40 +49,36 @@
 #' y = c(S=5,AB=1000)
 #'
 #' res = cv.Remix(project = project,
-#'             dynFUN = dynFUN,
-#'             y = y,
-#'             ObsModel.transfo = ObsModel.transfo,
-#'             alpha = alpha,
-#'             selfInit = TRUE,
-#'             eps1=10**(-2),
-#'             ncores=8,
-#'             eps2=1)
-#'
-#' plotConvergence(res)
-#'
-#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
-#'
-#' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
+#'                dynFUN = dynFUN_demo,
+#'                y = y,
+#'                ObsModel.transfo = ObsModel.transfo,
+#'                alpha = alpha,
+#'                selfInit = TRUE,
+#'                eps1=10**(-2),
+#'                ncores=8,
+#'                nlambda=8,
+#'                eps2=1)
 #' }
 cv.Remix <- function(project = NULL,
-                  final.project = NULL,
-                  dynFUN,
-                  y,
-                  ObsModel.transfo,
-                  alpha,
-                  lambda.grid=NULL,
-                  nlambda = 50,
-                  eps1 = 10**(-2),
-                  eps2 = 10**(-1),
-                  selfInit = FALSE,
-                  pop.set1 = NULL,
-                  pop.set2 = NULL,
-                  prune = NULL,
-                  n = NULL,
-                  ncores = NULL,
-                  print = TRUE,
-                  digits=3,
-                  trueValue = NULL){
+                     final.project = NULL,
+                     dynFUN,
+                     y,
+                     ObsModel.transfo,
+                     alpha,
+                     lambda.grid=NULL,
+                     nlambda = 50,
+                     eps1 = 10**(-2),
+                     eps2 = 10**(-1),
+                     selfInit = FALSE,
+                     pop.set1 = NULL,
+                     pop.set2 = NULL,
+                     prune = NULL,
+                     n = NULL,
+                     ncores = NULL,
+                     print = TRUE,
+                     digits=3,
+                     trueValue = NULL,
+                     unlinkBuildProject = TRUE){
 
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
@@ -256,19 +252,20 @@ cv.Remix <- function(project = NULL,
   }
 
 
-  ############### START CV ##########################
-  array = 1
+  # ############### START CV ##########################
+  # array = 1
   ntasks <- length(lambda.grid)
-  pb <- utils::txtProgressBar(max = ntasks, style = 3)
-  progress <- function(n) utils::setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+  # pb <- utils::txtProgressBar(max = ntasks, style = 3)
+  # progress <- function(n) utils::setTxtProgressBar(pb, n)
 
-  cv.res <- foreach::foreach(array = 1:length(lambda.grid),.packages = "REMix",.options.snow=opts)%dopar%{
+  browser()
 
+  cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     Rsmlx:::prcheck(initial.project)
 
-    lambda = lambda.grid[array]
-    print = FALSE
+    lambda = rev(lambda.grid)[array]
+    PRINT <- print
+    print <- FALSE
 
     ptm.first <- ptm <- proc.time()
 
@@ -277,11 +274,11 @@ cv.Remix <- function(project = NULL,
     Sys.sleep(0.1)
     file.copy(from=summary.file,
               to = summary.file.new)
-    summary.file <- summary.file.new
 
-    to.cat <- paste0("array =",array,"\nlambda =",round(lambda.grid[array],digits=digits))
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-
+    to.cat <- paste0(" Starting algorithm n°",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
+    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+    to.cat <- paste0("       initialization...\n")
+    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
     if (is.null(final.project)){
       final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))}
@@ -294,17 +291,17 @@ cv.Remix <- function(project = NULL,
 
     ########################## ESTIMATING FIRST LL  ###########################
     to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
     LL0 <- LL <-
       gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
-            prune = prune, parallel = FALSE)
+            prune = prune, parallel = FALSE,verbose=TRUE)
     LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=FALSE)
     LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
 
 
     to.cat <- paste0("             LL : ",round(LL$LL,digits=digits))
     to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
     suppressMessages({Rsmlx:::mlx.loadProject(final.project)})
 
@@ -323,25 +320,28 @@ cv.Remix <- function(project = NULL,
     iter =  1
     crit1 <- crit2 <- critb <- 1
 
-
     ##########################       ITERATION       ###########################
     while(!stop){
+      to.cat <- paste0("       starting iteration n°",iter," :\n")
+      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
       ############ START ITERATION   ###########
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
       to.cat <- c(to.cat,dashed.line)
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       to.cat <- c("                 ITERATION ",iter,"\n\n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       ptm <- proc.time()
 
 
+      to.cat <- paste0("        update of regulatization parameters...\n")
+      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
       ############ UPDATING ALPHA1   ###########
       to.cat <- paste0("Computing taylor update for regularization parameters... \n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
 
       currentData$alpha1 <- a.final
-      LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE) - lambda * sum(abs(a.final))
+      LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
 
       if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
 
@@ -398,11 +398,13 @@ cv.Remix <- function(project = NULL,
         to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
         to.print[a.final==0,"EstimatedValue"] <- "  "
       }
-      Rsmlx:::print_result(print, summary.file, to.cat = NULL, to.print = to.print)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
 
+      to.cat <- paste0("        update of population parameters...\n")
+      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
       ############ SAEM UPDATE   ###########
       to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       re <- saemUpdate(project = final.project, final.project = final.project,
                        alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
                        conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
@@ -426,14 +428,14 @@ cv.Remix <- function(project = NULL,
                           TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific=TRUE),
                           RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
       }
-      Rsmlx:::print_result(print, summary.file, to.cat = NULL, to.print = to.print)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
 
       param <- re$param[-(which(names(re$param) %in% rm.param))]
 
 
       ############ ESTIMATE PENALIZED   ###########
       to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       currentData <- readMLX(project = final.project,
                              ObsModel.transfo = ObsModel.transfo,
                              alpha = alpha)
@@ -443,7 +445,7 @@ cv.Remix <- function(project = NULL,
 
       to.cat <- paste0("        LL :",round(LL$LL,digits=digits))
       to.cat <- paste0(to.cat,"\n    LL.pen :",round(LL.pen,digits=digits),"\n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
       ############ UPDATE CRITERION  ###########
       crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
@@ -457,7 +459,7 @@ cv.Remix <- function(project = NULL,
 
       to.cat <- c("\n\n   Current parameter convergence criterion :",round(crit1,digits=digits),"\n")
       to.cat <- c(to.cat,"  Current  ll pen  convergence criterion  :",round(crit2,digits=digits),"\n")
-      Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
       crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
 
@@ -483,21 +485,43 @@ cv.Remix <- function(project = NULL,
                                   alpha=a.final,
                                   iter=iter,
                                   time=(proc.time()-ptm.first)["elapsed"],
-                                  BIC = -2*LL0.pen+log(N)*sum(param0[paste0(alpha$alpha1,"_pop")]!=0)),
+                                  BIC = -2*LL0.pen+log(N)*sum(a.final!=0)),
                     iterOutputs=list(param=param.outputs,
                                      LL=LL.outputs,
                                      LL.pen = LLpen.outputs,
                                      estimates=estimates.outputs,
                                      criterion = crit.outputs))
+
+    Sys.sleep(0.1)
+    # progress(array)
+
     class(results) <- "remix"
+
+    to.cat <- "        DONE !\n"
+    to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n",dashed.short)
+    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+
     return(results)
-  }
+  })
+
+  if(unlinkBuildProject)
+    lapply(1:length(lambda.grid),
+           FUN=function(array){
+             final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))
+             unlink(final.project,recursive=TRUE,force=TRUE)})
 
 
-  close(pb)
+  # close(pb)
   snow::stopCluster(cluster)
-  bestBuild=which.min(sapply(res,FUN=function(r){r$res$res$BIC}))
 
-  return(list(bestBuild=cv.res[[bestBuild]],
-              cv.res=cv.res))
+  finalRES = list(info = cv.res[[1]]$info,
+                  lambda = lambda.grid,
+                  BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
+                  LL = sapply(cv.res,FUN=function(f){f$finalRes$LL$Likelihood.LL}),
+                  LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL$PenLikelihood}),
+                  res = lapply(cv.res,FUN=function(f){f$finalRes}),
+                  outputs = lapply(cv.res,FUN=function(f){f$iterOutputs}))
+
+  class(finalRES) <- "cvRemix"
+  return(finalRES)
 }
