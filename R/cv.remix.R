@@ -258,8 +258,6 @@ cv.Remix <- function(project = NULL,
   # pb <- utils::txtProgressBar(max = ntasks, style = 3)
   # progress <- function(n) utils::setTxtProgressBar(pb, n)
 
-  browser()
-
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     Rsmlx:::prcheck(initial.project)
 
