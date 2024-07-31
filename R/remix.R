@@ -51,7 +51,7 @@
 #' lambda = 1440
 #'
 #' res = Remix(project = project,
-#'             dynFUN = dynFUN,
+#'             dynFUN = dynFUN_demo,
 #'             y = y,
 #'             ObsModel.transfo = ObsModel.transfo,
 #'             alpha = alpha,
@@ -440,7 +440,8 @@ Remix <- function(project = NULL,
 
   results <- list(info = list(param.toprint=param.toprint,
                               regParam.toprint=regParam.toprint,
-                              alpha=alpha),
+                              alpha=alpha,
+                              lambda=lambda),
                   finalRes=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
                                 param=param,
                                 alpha=a.final,
