@@ -258,6 +258,8 @@ cv.Remix <- function(project = NULL,
   # pb <- utils::txtProgressBar(max = ntasks, style = 3)
   # progress <- function(n) utils::setTxtProgressBar(pb, n)
 
+  keep.lines <- readLines(summary.file)
+
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     Rsmlx:::prcheck(initial.project)
 
@@ -270,13 +272,13 @@ cv.Remix <- function(project = NULL,
     summary.file.new <- file.path(remix.dir, paste0("summary_",array,".txt"))
     unlink(summary.file.new,force=TRUE)
     Sys.sleep(0.1)
-    file.copy(from=summary.file,
-              to = summary.file.new)
+    writeLines(keep.lines,summary.file.new)
 
     to.cat <- paste0(" Starting algorithm n°",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
     Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+    Rsmlx:::print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
     to.cat <- paste0("       initialization...\n")
-    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+    if(PRINT){cat(to.cat)}
 
     if (is.null(final.project)){
       final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))}
@@ -318,10 +320,12 @@ cv.Remix <- function(project = NULL,
     iter =  1
     crit1 <- crit2 <- critb <- 1
 
+
+
     ##########################       ITERATION       ###########################
     while(!stop){
       to.cat <- paste0("       starting iteration n°",iter," :\n")
-      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+      if(PRINT){cat(to.cat)}
       ############ START ITERATION   ###########
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
       to.cat <- c(to.cat,dashed.line)
@@ -332,7 +336,7 @@ cv.Remix <- function(project = NULL,
 
 
       to.cat <- paste0("        update of regulatization parameters...\n")
-      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+      if(PRINT){cat(to.cat)}
       ############ UPDATING ALPHA1   ###########
       to.cat <- paste0("Computing taylor update for regularization parameters... \n")
       Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
@@ -396,10 +400,11 @@ cv.Remix <- function(project = NULL,
         to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
         to.print[a.final==0,"EstimatedValue"] <- "  "
       }
+      to.printEND <- to.print
       Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
 
       to.cat <- paste0("        update of population parameters...\n")
-      Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+      if(PRINT){cat(to.cat)}
       ############ SAEM UPDATE   ###########
       to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
       Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
@@ -427,6 +432,7 @@ cv.Remix <- function(project = NULL,
                           RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
       }
       Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+      to.printEND2 <- to.print
 
       param <- re$param[-(which(names(re$param) %in% rm.param))]
 
@@ -496,8 +502,13 @@ cv.Remix <- function(project = NULL,
     class(results) <- "remix"
 
     to.cat <- "        DONE !\n"
-    to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n",dashed.short)
+    to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n")
     Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+
+    to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
+    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
+    Rsmlx:::print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
+    if(PRINT){cat("\n",dashed.short)}
 
     return(results)
   })
