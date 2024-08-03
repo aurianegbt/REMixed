@@ -1,6 +1,6 @@
 #' Display the value of parameters at each iteration
 #'
-#' @param fit object of class remix, from \code{\link{Remix}} or a certain build from \code{\link{cv.Remix}} output.
+#' @param fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.
 #' @param paramToPlot Population parameters to plot (which have been estimated by SAEM) ;
 #' @param trueValue (for simulation purpose) vector named of true values ;
 #'
@@ -8,13 +8,13 @@
 #' For each parameters, the values at the end of each iteration of remix algorithm is drawn. Moreover, the SAEM steps of each iteration are displayed.
 #' @export
 #'
-#' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}.
+#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
 #'
 #' @examples
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(AB=log10),
+#' ObsModel.transfo = list(S=list(Ab=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -22,7 +22,7 @@
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,AB=1000)
+#' y = c(S=5,Ab=1000)
 #' lambda = 1440
 #'
 #' res = Remix(project = project,
@@ -37,7 +37,7 @@
 #'
 #' plotConvergence(res)
 #'
-#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+#' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))
 #'
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
