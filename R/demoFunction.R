@@ -3,6 +3,8 @@
 #' @return path to the monolix demo from REMix package.
 #' @export
 #'
+#' @seealso \code{\link{dynFUN_demo}}.
+#'
 #' @examples
 #' print(getMLXdir())
 getMLXdir <- function(){
