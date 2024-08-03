@@ -15,3 +15,6 @@ Get monolix demo project path.
 \examples{
 print(getMLXdir())
 }
+\seealso{
+\code{\link{dynFUN_demo}}.
+}

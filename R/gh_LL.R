@@ -10,7 +10,7 @@
 #' \item\code{parms} : a named vector of parameter.
 #' \item\code{time} : vector a timepoint.}
 #'
-#' See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.
+#' See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.
 #' @param y initial condition of the mechanism model, conform to what is asked in \code{dynFUN}.
 #' @param mu list of individuals random effects estimation (vector of r.e. need to be named by the parameter names), use to locate the density mass; (optional, see description).
 #' @param Omega list of individuals estimated standard deviation diagonal matrix (matrix need to have rows and columns named by the parameter names), use to locate the density mass; (optional, see description).

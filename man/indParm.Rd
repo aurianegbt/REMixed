@@ -45,5 +45,5 @@ transfo.inv = list(delta_Ab = exp,phi_S=exp,phi_L=exp)
 indParm(theta,covariates,eta_i,transfo,transfo.inv)
 }
 \seealso{
-\code{\link{Clairon}}, \code{\link{Pasin}}.
+\code{\link{model.clairon}}, \code{\link{model.pasin}}.
 }

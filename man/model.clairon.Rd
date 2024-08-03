@@ -37,7 +37,7 @@ parms = c(fM2 = 4.5,
 
 t = seq(0,35,1)
 
-res <- Clairon(t,y,parms)
+res <- model.clairon(t,y,parms)
 
 plot(res)
 

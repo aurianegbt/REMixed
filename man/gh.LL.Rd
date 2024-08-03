@@ -33,7 +33,7 @@ gh.LL(
 \item\code{parms} : a named vector of parameter.
 \item\code{time} : vector a timepoint.}
 
-See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.}
+See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
 
 \item{y}{initial condition of the mechanism model, conform to what is asked in \code{dynFUN}.}
 
