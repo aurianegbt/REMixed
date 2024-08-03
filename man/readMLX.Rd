@@ -2,46 +2,52 @@
 % Please edit documentation in R/readMLX.R
 \name{readMLX}
 \alias{readMLX}
-\title{Extract Data for REMix Algorithm from Monolix Project}
+\title{Extract Data for REMix Algorithm from a Monolix Project}
 \usage{
 readMLX(project = NULL, ObsModel.transfo, alpha)
 }
 \arguments{
-\item{project}{Directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).}
+\item{project}{directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).}
 
-\item{ObsModel.transfo}{A list containing two lists of transformations and two vectors with their corresponding links to the observation models in the Monolix project. The list should include identity transformations and be named `S` and `R`. It should also include two vectors, `linkS` and `linkR`, which link to the observation models.
+\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be named \code{linkS} and \code{linkR}.
 
-Both `ObsModel.transfo$S` (for direct observation models) and `ObsModel.transfo$linkS`, as well as `ObsModel.transfo$R` (for latent process models) and `ObsModel.transfo$linkR`, must have the same length.
-
-See \code{\link{getContinuousObservationModel}} or \code{\link{getObservationInformation}} for further details.
+Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 
 \itemize{
-  \item `ObsModel.transfo$S`: A list of transformations for the direct observation model. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic from Monolix is observed. The `linkS` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$S`.
+  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
 
-  \item `ObsModel.transfo$R`: A list of transformations for the latent process model. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from `dynFUN`. The `linkR` vector specifies the observation model name in Monolix for each transformation, in the same order as in `ObsModel.transfo$R`.
+  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
 }}
 
-\item{alpha}{A list of named vectors "alpha0" and "alpha1". `alpha$alpha1` is mandatory even if equal to 1. The names in `alpha$alpha0` and `alpha$alpha1` should correspond to the observation model names in the Monolix project. If `alpha$alpha0` is empty, all values are set to 0. If some values in `alpha$alpha0` are missing, they are set to NULL.}
+\item{alpha}{named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).}
 }
 \value{
-A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMix algorithm. If an SAEM has not been launched, the initial conditions are returned.
-
+A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMix algorithm :
 \itemize{
-  \item `mu`: A list of estimated mean values of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
-  \item `Omega`: A list of the estimated variance-covariance matrix of the individual random effects distribution a posteriori (if conditional distribution estimation through Monolix has been launched).
-  \item `theta`: A list of population parameters including `phi_pop`, `psi_pop` (without and with random effects, respectively), `gamma` and `beta` (the estimated covariate effect coefficients for each population parameter vector), and `omega` (the estimated variance of random effects for `psi_pop` parameters).
-  \item `alpha1`: A named vector with the values of regression parameters \eqn{(\alpha_1)_{k \leq K}} linked to the latent process. Names correspond to the observation model names in the Monolix project.
-  \item `covariates`: A data.frame with covariates (columns) for each individual (rows).
-  \item `ParModel.transfo` and `ParModel.transfo.inv`: Named lists of transformation functions for the individual parameter model.
-  \item `Sobs`: A list (size N) of lists of direct observations (size P), each element containing time and observation data.
-  \item `Robs`: A list (size N) of latent observations (size K), each element containing time and observation data.
-  \item `Serr`: A vector of size P containing estimated error model constants.
-  \item `Rerr`: A vector of size K containing estimated error model constants.
-  \item `ObsModel.transfo`: The input `ObsModel.transfo` list.
+  \item\code{mu} list of individuals random effects estimation (vector of r.e. need to be named by the parameter names), use to locate the density mass (if conditional distribution estimation through Monolix has been launched);
+  \item\code{Omega} list of individuals estimated standard deviation diagonal matrix (matrix need to have rows and columns named by the parameter names), use to locate the density mass (if conditional distribution estimation through Monolix has been launched);
+  \item\code{theta} list of model parameters containing i\itemize{\item\code{phi_pop} : named vector with the population parameters with no r.e. \eqn{(\phi_{l\ pop})_{l\leq L}} (NULL if none) ;
+\item\code{psi_pop} : named vector with the population parameters with r.e. \eqn{(\psi_{l\ pop})_{l\leq m}} ;
+\item\code{gamma} : named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with no r.e. ;
+\item\code{beta} : named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with r.e..
+\item\code{alpha0} : named vector of \eqn{(\alpha_{0k})_{k\leq K}} parameters (names are identifier of the observation model, such as in a Monolix project);
+\item\code{omega} : named vector of estimated r.e. standard deviation;}
+  \item\code{alpha1}  named vector of regulatization parameters \eqn{(\alpha_{1k})_{k\leq K}}, with identifier of observation model as names;
+  \item\code{covariates} matrix of individual covariates (size N x n). Individuals must be sorted in the same order than in \code{mu} and \code{Omega};
+  \item\code{ParModel.transfo} named list of transformation functions \eqn{(h_l)_{l\leq m}} and \eqn{(s_k)_{k\leq K}} for the individual parameter model (names must be consistent with \code{phi_pop} and \code{psi_pop}, missing entries are set by default to the identity function ;
+  \item \code{ParModel.transfo.inv} Named list of inverse transformation functions for the individual parameter model (names must be consistent with \code{phi_pop} and \code{psi_pop} ;
+  \item\code{Sobs} ist of individuals trajectories for the direct observation models \eqn{(Y_{pi})_{p \leq P,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{p\leq P} data.frame with time  \eqn{(t_{pij})_{j\leq n_{ip}}} and observations  \eqn{(Y_{pij})_{j\leq n_{ip}}}. Each data.frame is named with the observation model identifiers ;
+  \item\code{Robs} list of individuals trajectories for the latent observation models \eqn{(Z_{ki})_{k \leq K,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{k\leq K} data.frame with time  \eqn{(t_{kij})_{j\leq n_{ik}}} and observations  \eqn{(Z_{kij})_{j\leq n_{ik}}}. Each data.frame is named with the observation model identifiers ;
+  \item\code{Serr}  named vector of the estimated error mocel constants \eqn{(\varsigma_p)_{p\leq P}} with observation model identifiers as names ;
+  \item\code{Rerr} named vector of the estimated error mocel constants \eqn{(\sigma_k)_{k\leq K}} with observation model identifiers as names ;
+  \item\code{ObsModel.transfo} same as input\code{ObsModel.transfo} list.
 }
 }
 \description{
 This function retrieves all necessary information from a Monolix project file to format the input for the REMix package. It gathers all relevant data required for the REMix algorithm.
+}
+\details{
+To simplify its use, functions \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{gh.LL}} can be used with arguments \code{data} rather than all necessary informations "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" that could be extract from a monolix project. If the SAEM task of the project hasn't been launched, it's the initial condition and not the estimated parameters that are returned. If the conditional distribution estimation task has been launched, parameters "\code{mu}" and "\code{Omega}" are returned too.
 }
 \examples{
 project <- getMLXdir()
@@ -57,5 +63,5 @@ alpha=list(alpha0=NULL,
 res <- readMLX(project,ObsModel.transfo,alpha)
 }
 \seealso{
-\code{\link{Remix}}, \code{\link{cv.Remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
+\code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
 }
