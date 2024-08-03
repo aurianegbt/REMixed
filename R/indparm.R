@@ -18,7 +18,7 @@
 #'
 #' @return a list with \code{phi_i} and \code{psi_i} parameters.
 #' @export
-#' @seealso \code{\link{Clairon}}, \code{\link{Pasin}}.
+#' @seealso \code{\link{model.clairon}}, \code{\link{model.pasin}}.
 #'
 #' @examples
 #' phi_pop = c(delta_S = 0.231, delta_L = 0.000316)
