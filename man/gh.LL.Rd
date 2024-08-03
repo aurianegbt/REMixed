@@ -29,53 +29,53 @@ gh.LL(
 )
 }
 \arguments{
-\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a foreach loop). The output of this function need to return a data.frame with \code{time} : as first columns and named dynamics in other columns. It must take in input : \itemize{\item\code{y} a named vector with the initial condition. The names are the dynamics names.
+\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a foreach loop). The output of this function need to return a data.frame with \code{time} : as first columns and named dynamics in other columns. It must take in input : \itemize{\item\code{y} : a named vector with the initial condition. The names are the dynamics names.
 \item\code{parms} : a named vector of parameter.
 \item\code{time} : vector a timepoint.}
 
 See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.}
 
-\item{y}{initial condition of the mechanism model, conform to what is asked in dynFUN.}
+\item{y}{initial condition of the mechanism model, conform to what is asked in \code{dynFUN}.}
 
 \item{mu}{list of individuals random effects estimation (vector of r.e. need to be named by the parameter names), use to locate the density mass; (optional, see description).}
 
 \item{Omega}{list of individuals estimated standard deviation diagonal matrix (matrix need to have rows and columns named by the parameter names), use to locate the density mass; (optional, see description).}
 
-\item{theta}{list of model parameters containing (see details) \itemize{\item\code{theta$phi_pop} named vector with the population parameters with no r.e. \eqn{(\phi_{l\ pop})_{l\leq L}} (NULL if none) ;
-\item\code{theta$psi_pop} : named vector with the population parameters with r.e. \eqn{(\psi_{l\ pop})_{l\leq m}} ;
-\item\code{theta$gamma} : named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with no r.e. ;
-\item\code{theta$beta} named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with r.e..
-\item\code{theta$alpha0} named vector of \eqn{(\alpha_{0k})_{k\leq K}} parameters (names are identifier of the observation model, such as in a Monolix project);
-\item\code{theta$omega} named vector of estimated r.e. standard deviation;}
+\item{theta}{list of model parameters containing (see details) \itemize{\item\code{phi_pop} : named vector with the population parameters with no r.e. \eqn{(\phi_{l\ pop})_{l\leq L}} (NULL if none) ;
+\item\code{psi_pop} : named vector with the population parameters with r.e. \eqn{(\psi_{l\ pop})_{l\leq m}} ;
+\item\code{gamma} : named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with no r.e. ;
+\item\code{beta} : named list (for each parameters) of named vector (for each covariates) of covariate effects from parameters with r.e..
+\item\code{alpha0} : named vector of \eqn{(\alpha_{0k})_{k\leq K}} parameters (names are identifier of the observation model, such as in a Monolix project);
+\item\code{omega} : named vector of estimated r.e. standard deviation;}
 (optional, see description).}
 
 \item{alpha1}{named vector of regulatization parameters \eqn{(\alpha_{1k})_{k\leq K}}, with identifier of observation model as names, (optional, see description).}
 
-\item{covariates}{matrix of individual covariates (size N x n). Individuals must be sorted in the same order than in\code{mu} and\code{Omega}, (optional, see description).}
+\item{covariates}{matrix of individual covariates (size N x n). Individuals must be sorted in the same order than in \code{mu} and \code{Omega}, (optional, see description).}
 
-\item{ParModel.transfo}{named list of transformation functions \eqn{(h_l)_{l\leq m}} and \eqn{s_k()} for the individual parameter model (names must be consistent with\code{phi_pop} and\code{psi_pop}, missing entries are set by default to the identity function), (optional, see description).}
+\item{ParModel.transfo}{named list of transformation functions \eqn{(h_l)_{l\leq m}} and \eqn{(s_k)_{k\leq K}} for the individual parameter model (names must be consistent with \code{phi_pop} and \code{psi_pop}, missing entries are set by default to the identity function ; optional, see description).}
 
-\item{ParModel.transfo.inv}{Named list of inverse transformation functions for the individual parameter model (names must be consistent with\code{phi_pop} and\code{psi_pop}, (optional, see description).}
+\item{ParModel.transfo.inv}{Named list of inverse transformation functions for the individual parameter model (names must be consistent with \code{phi_pop} and \code{psi_pop} ; optional, see description).}
 
-\item{Sobs}{list of individuals trajectories for the direct observation models \eqn{(Y_{pi})_{p \leq P,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{p\leq P} data.frame with time  \eqn{(t_(pij))_{j\leq n_{ip}}} and observations  \eqn{(Y_{pij})_{j\leq n_{ip}}}. Each data.frame is named with the observation model identifiers.}
+\item{Sobs}{list of individuals trajectories for the direct observation models \eqn{(Y_{pi})_{p \leq P,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{p\leq P} data.frame with time  \eqn{(t_{pij})_{j\leq n_{ip}}} and observations  \eqn{(Y_{pij})_{j\leq n_{ip}}}. Each data.frame is named with the observation model identifiers.}
 
-\item{Robs}{list of individuals trajectories for the latent observation models \eqn{(Z_{ki})_{k \leq K,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{k\leq K} data.frame with time  \eqn{(t_(kij))_{j\leq n_{ik}}} and observations  \eqn{(Z_{kij})_{j\leq n_{ik}}}. Each data.frame is named with the observation model identifiers.}
+\item{Robs}{list of individuals trajectories for the latent observation models \eqn{(Z_{ki})_{k \leq K,i\leq N}}. Each element \eqn{i\leq N} of the list, is a list of \eqn{k\leq K} data.frame with time  \eqn{(t_{kij})_{j\leq n_{ik}}} and observations  \eqn{(Z_{kij})_{j\leq n_{ik}}}. Each data.frame is named with the observation model identifiers.}
 
 \item{Serr}{named vector of the estimated error mocel constants \eqn{(\varsigma_p)_{p\leq P}} with observation model identifiers as names.}
 
 \item{Rerr}{named vector of the estimated error mocel constants \eqn{(\sigma_k)_{k\leq K}} with observation model identifiers as names.}
 
-\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named\code{S} and\code{R}. The two vectors should be name\code{linkS} and\code{linkR}.
+\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be named \code{linkS} and \code{linkR}.
 
-Both\code{ObsModel.transfo$S} (for the direct observation models) and\code{ObsModel.transfo$linkS}, as well as\code{ObsModel.transfo$R} (for latent process models) and\code{ObsModel.transfo$linkR}, must have the same length.
+Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 
 \itemize{
-  \item\code{ObsModel.transfo$S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from\code{dynFUN}). The\code{linkS} vector specifies the observation model names (that is used in the monolix project,\code{alpha1}, etc.) for each transformation, in the same order as in\code{ObsModel.transfo$S}.
+  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
 
-  \item\code{ObsModel.transfo$R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from\code{dynFUN}. The\code{linkR} vector specifies the observation model names for each transformation, in the same order as in\code{ObsModel.transfo$R}.
+  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
 }}
 
-\item{data}{output from \code{\link{readMLX}} containing parameters "mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo" extract from a monolix project.}
+\item{data}{output from \code{\link{readMLX}} containing parameters "\code{mu}", "\code{Omega}", "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" extract from a monolix project.}
 
 \item{n}{number of points to use for the Gauss-Hermite quadrature rule (see \code{\link{gaussHermiteData}}).}
 
@@ -90,7 +90,7 @@ Both\code{ObsModel.transfo$S} (for the direct observation models) and\code{ObsMo
 \item{verbose}{logical, if progress bar should be printed through the computation.}
 }
 \value{
-A list with the approximation by Gauss-Hermite quadrature of the likelihood\code{L}, the log-likelihood\code{LL}, the gradient of the log-likelihood\code{dLL}, and the Hessian of the log-likelihood\code{ddLL} at the point \eqn{\theta, \alpha} provided.
+A list with the approximation by Gauss-Hermite quadrature of the likelihood \code{L}, the log-likelihood \code{LL}, the gradient of the log-likelihood \code{dLL}, and the Hessian of the log-likelihood \code{ddLL} at the point \eqn{\theta, \alpha} provided.
 }
 \description{
 Computes Adaptive Gauss-Hermite approximation of the log-likelihood and its derivatives in NLMEM with latent observation processes, see \code{\link{REMix-package}} for details on the model.

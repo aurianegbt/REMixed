@@ -7,35 +7,27 @@
 indParm(theta, covariates, eta_i, transfo, transfo.inv)
 }
 \arguments{
-\item{theta}{model parameter contain phi_pop, psi_pop, gamma, beta ; list with name `phi_pop`, `psi_pop`, `gamma`, `beta` ;
+\item{theta}{list with at least \code{phi_pop}, \code{psi_pop}, \code{gamma}, \code{beta} (named ; corresponding to the model parameter \eqn{\phi_{pop}}, \eqn{\psi_{pop}}, \eqn{\gamma}, \eqn{\beta} ) : \itemize{\item \code{phi_pop} named vector of population parameters without r.e ;\item \code{psi_pop} named vector of population parameters with r.e ;\item \code{gamma} named list of vector of covariates effects for  \code{phi_pop} parameters, if NULL no covariates effect on parameters. ;\item \code{beta} named list of vector of covariates effects for each \code{psi_pop}, if NULL no covariates effect on parameters.}}
 
-- `phi_pop` named vector of population parameters without r.e ;
+\item{covariates}{line data.frame of individual covariates ;}
 
-- `psi_pop` named vector of population parameters with r.e ;
+\item{eta_i}{named vector of random effect for each \code{psi} parameter ;}
 
-- `gamma` named list of vector of covariates effects for  `phi_pop` parameters, if NULL no covariates effect on parameters. ;
+\item{transfo}{named list of transformation functions \eqn{(h_l)_{l\leq m}} and \eqn{(s_k)_{k\leq K}} for the individual parameter model (names must be consistent with \code{phi_pop} and \code{psi_pop}, missing entries are set by default to the identity function).}
 
-- `beta` named list of vector of covariates effects for each `psi_pop`, if NULL no covariates effect on parameters.}
-
-\item{covariates}{line matrix/data.frame of individual covariates ;}
-
-\item{eta_i}{named vector of random effect for each `psi` parameter ;}
-
-\item{transfo}{named list of transformation for `phi_pop` and `psi_pop` parameters ; if NULL id transformation is used;}
-
-\item{transfo.inv}{named list of inverse transformation for `phi_pop` and `psi_pop` parameters ; if NULL id transformation is used.}
+\item{transfo.inv}{amed list of inverse transformation functions for the individual parameter model (names must be consistent with\code{phi_pop} and\code{psi_pop}).}
 }
 \value{
-a list with `phi_i` and `psi_i` parameters.
+a list with \code{phi_i} and \code{psi_i} parameters.
 }
 \description{
-Generate the individual parameters of indivual whose covariates are `covariates` and random effects `eta_i`.
+Generate the individual parameters of indivual whose covariates are \code{covariates} and random effects \code{eta_i}.
 }
 \details{
 The models used for the parameters are :
 \deqn{ h_l(\psi_{li}) = h_l(\psi_{lpop})+X_i\beta_l + \eta_{li} }
 with \eqn{h_l} the transformation, \eqn{\beta_l} the vector of covariates effect and  with \eqn{\eta_i} the random effects associated \eqn{\psi_l} parameter ;
-\deqn{ g_k(\phi_{ki}) = g_k(\phi_{kpop})+X_i \gamma_l + \eta_{ki}}
+\deqn{ g_k(\phi_{ki}) = g_k(\phi_{kpop})+X_i \gamma_l }
 with \eqn{g_k} the transformation and  \eqn{\gamma_k} the vector of covariates effect associated \eqn{\phi_k} parameter.
 }
 \examples{
