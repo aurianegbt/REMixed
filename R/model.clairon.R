@@ -1,15 +1,19 @@
-#' Generate trajectory of antibody response to SARS-Cov vaccine.
+#' Model from Clairon and al.,2023.
 #'
-#' The model correspond to the antibody response to two injection of vaccine at time \eqn{t_0=0} and \eqn{t_{inj}}.Model is defined as
-#' \deqn{\displaystyle\left\{\begin{matrix} \frac{d}{dt} S(t) &=& f_{\overline M_k} e^{-\delta_V(t-t_k)}-\delta_S S(t) \\ \frac{d}{dt} AB(t) &=& \theta S(t) - \delta_{Ab} AB(t)\end{matrix}\right.  }
+#' @description
+#' Generates the dynamics of antibodies secreting cells -\eqn{S}- that produces antibodies -\eqn{AB}-   over time, with two injection of vaccine at time \eqn{t_0=0} and \eqn{t_{inj}}, using Clairon and al., 2023, model.
+#'
+#' @details
+#' Model is defined as
+#' \deqn{\displaystyle\left\{\begin{matrix} \frac{d}{dt} S(t) &=& f_{\overline M_k} e^{-\delta_V(t-t_k)}-\delta_S S(t) \\ \frac{d}{dt} Ab(t) &=& \theta S(t) - \delta_{Ab} Ab(t)\end{matrix}\right.  }
 #' on each interval \eqn{I_1=[0;t_{inj}[ } and \eqn{I_2=[t_{inj};+\infty[}. For each interval \eqn{I_k}, we have \eqn{t_k} corresponding to the last injection date of vaccine, such that \eqn{t_1=0} and \eqn{t_2=t_{inj}}. By definition, \eqn{f_{\overline M_1}=1} (Clairon and al., 2023).
 #'
-#' @param t vector of time ;
-#' @param y initial condition, named vector of form c(S=S0,AB=A0) ;
-#' @param parms named vector of model parameter ; should contain "fM2","theta","delta_S","delta_Ab","delta_V" ;
+#' @param t vector of timepoint.
+#' @param y initial condition, named vector of form c(S=S0,Ab=A0).
+#' @param parms named vector of model parameter (should contain "\code{fM2}","\code{theta}","\code{delta_S}","\code{delta_Ab}","\code{delta_V}").
 #' @param tinj time of injection (default to 21).
 #'
-#' @return Matrix of time and observation of antibody secreting cells S and antibody titer AB.
+#' @return Matrix of time and observation of antibody secreting cells \eqn{S} and antibody titer \eqn{Ab}.
 #' @export
 #' @seealso \code{\link{indParm}}
 #'
@@ -24,13 +28,12 @@
 #'
 #' t = seq(0,35,1)
 #'
-#' res <- Clairon(t,y,parms)
+#' res <- model.clairon(t,y,parms)
 #'
 #' plot(res)
 #'
 #' @references Quentin Clairon, Mélanie Prague, Delphine Planas, Timothée Bruel, Laurent Hocqueloux, et al.. Modeling the evolution of the neutralizing antibody response against SARS-CoV-2 variants after several administrations of Bnt162b2. 2023. hal-03946556
-
-Clairon <- function(t,y,parms,tinj=21){
+model.clairon <- function(t,y,parms,tinj=21){
   #t_inj,fM1,fM2,theta1,theta2,delta_S,delta_V=2.7,delta_Ab=0.03
   if(!setequal(names(y),c("S","Ab"))){
     stop(paste0("Missing initial condition for ",setdiff(c("S","Ab"),names(y))," and ",setdiff(names(y),c("S","Ab"))," isn't in the model."))
