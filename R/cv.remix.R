@@ -36,13 +36,14 @@
 #' @param pop.set2 population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings()}}).
 #' @param prune percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).
 #' @param n number of points for  gaussian quadrature (see \code{\link{gh.LL}}).
+#' @param parallel logical, if the computation should be done in parallel when possible (default TRUE).
 #' @param ncores number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
 #' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
 #'
-#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid.
+#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 #' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
 #' @export
 #'
@@ -87,6 +88,7 @@ cv.remix <- function(project = NULL,
                      pop.set2 = NULL,
                      prune = NULL,
                      n = NULL,
+                     parallel=TRUE,
                      ncores = NULL,
                      print = TRUE,
                      digits=3,
@@ -106,16 +108,13 @@ cv.remix <- function(project = NULL,
 
   ########### Technical PARAMETER ################
 
-  if(is.null(ncores)){
-    if(.Platform$OS.type == "unix"){
+  if(parallel){
+    if(is.null(ncores)){
       ncores = parallel::detectCores()
-    }else{
-      ncores = parallel::detectCores()/2
-      if(ncores <1){ncores <- 1}
     }
+    cluster <- snow::makeCluster(ncores)
+    doSNOW::registerDoSNOW(cluster)
   }
-  cluster <- snow::makeCluster(ncores)
-  doSNOW::registerDoSNOW(cluster)
 
 
 
@@ -532,7 +531,9 @@ cv.remix <- function(project = NULL,
 
 
   # close(pb)
-  snow::stopCluster(cluster)
+  if(parallel){
+    snow::stopCluster(cluster)
+  }
 
   finalRES = list(info = cv.res[[1]]$info,
                   lambda = lambda.grid,

@@ -21,6 +21,7 @@ cv.remix(
   pop.set2 = NULL,
   prune = NULL,
   n = NULL,
+  parallel = TRUE,
   ncores = NULL,
   print = TRUE,
   digits = 3,
@@ -73,6 +74,8 @@ Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{Obs
 
 \item{n}{number of points for  gaussian quadrature (see \code{\link{gh.LL}}).}
 
+\item{parallel}{logical, if the computation should be done in parallel when possible (default TRUE).}
+
 \item{ncores}{number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).}
 
 \item{print}{logical, if the results and algotihm steps should be displayed in the console (default to TRUE).}
@@ -84,7 +87,7 @@ Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{Obs
 \item{unlinkBuildProject}{logical, if the build project of each lambda should be deleted.}
 }
 \value{
-a list of outputs of final project and through the iteration for every lambda on lambda.grid.
+a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 }
 \description{
 Regularization and Estimation in MIXed effects model, over a regularization path.
