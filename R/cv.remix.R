@@ -4,34 +4,46 @@
 #' Regularization and Estimation in MIXed effects model, over a regularization path.
 #'
 #' @details
-#' Suppose that we have a differential system of equations containing variables \eqn{(S_{p})_{p \le P}} and \eqn{R}, that depends on some parameters, these dynamics are described by `dynFUN`. We write the process over time for \eqn{i \le N} individuals, resulting from the differential system for a set of parameters \eqn{\phi_i,(\psi_{li})_{l \le m,i \le N}} for the considered individual \eqn{i \le N}, as \eqn{S_{p}(\cdot,\phi_i,(\psi_{li})_{l \le m})=S_{pi}(\cdot)}, \eqn{p \le P} and \eqn{R(\cdot,\phi_i,(\psi_{li})_{l \le m})=R_i(\cdot)}. Parameters are described as \deqn{h_l(\psi_{li}) = h_l(\psi_{lpop}) + X_i\beta_l + \eta_{li}} with the covariates of individual \eqn{i \le N}, random effects \deqn{\eta_i=(\eta_{li})_{l \le m} \overset{iid}{\sim} \mathcal{N}(\mu_i,\Omega_i)} for \eqn{i \le N} where \eqn{\mu_i} is the estimated random effects of individual \eqn{i} and \eqn{\Omega_i} is the diagonal matrix of estimated standard deviation of random effects of individual \eqn{i}. The population parameters \eqn{\psi_{pop}=(\psi_{lpop})_{l \le m}} and \eqn{\beta=(\beta_l)_{l \le m}} is the vector of covariates effects on parameters.
-#' The rest of the population parameters of the structural model, that hasn't random effetcs, are denoted by \eqn{(\phi_i)_{i\le N}}, and are defined as \eqn{\phi_i=\phi_{pop} + X_i \gamma}, they can depends on covariates effects or be constant over the all population.
-#' We assume that individual trajectories \eqn{(S_{pi})_{p\le P,i\le N}} are observed through a direct observation model, up to a transformation \eqn{g_p}, \eqn{p\le P}, at differents times \eqn{(t_{pij})_{i\le N,p\le P,j\le n_{ip}}} : \deqn{Y_{pij}=g_p(S_{pi}(t_{pij}))+\epsilon_{pij}} with error \eqn{\epsilon_p=(\epsilon_{pij})\overset{iid}{\sim}\mathcal{N}(0,\varsigma_p^2)} for \eqn{p\le P}.
-#' The individual trajectory \eqn{(R_{i})_{i\le N}} is observed through latent processes, up to a transformation \eqn{s_k}, \eqn{k\le K}, observed in \eqn{(t_{kij})_{i\le N,k\le K,j\le n_{kij}}} : \deqn{Z_{kij}=\alpha_{k0}+\alpha_{k1} s_k(R_i(t_{kij}))+\varepsilon_{kij}} where \eqn{\varepsilon_k\overset{iid}{\sim} \mathcal{N}(0,\sigma_k^2)}.
+#' See \code{\link{REMix-package}} for details on the model.
+#' The grid of \eqn{\lambda}, \eqn{\Lambda}, is by default \deqn{\lambda_l = \lambda_{max}\times \alpha_{\lambda}^{\frac{l}{N_{\lambda}}},   \forall l\leq N_{\lambda}} with \eqn{\lambda_{max}=\max{\partial_{\alpha_1}LL(\theta,\alpha_1)}|_{\alpha_1=\mathbf 0}}. The arguments \code{nlambda} control the number of points on the grid (default to 50), and the user can provide a custom \eqn{\alpha_{\lambda}} (default to 0.05).
+#' For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
 #'
-#' @param lambda.grid grid of penalisation parameters for lasso regularization;
-#' @param nlambda if lambda.grid is null, number of lambda parameter to use for lambda.grid;
-#' @param eps1 convergence limit for parameters distance at each iteraion ;
-#' @param eps2 convergence limit for penalized log-likelihood distance at each iteration ;
-#' @param pop.set1 Population parameters setting for initialisation ;
-#' @param pop.set2 Population parameters setting for algorithm iterations ;
-#' @param prune (default NULL) percentage in [0;1] for prunning.
-#' @param n (default floor(100**(1/length(theta$psi_pop))) number of points for gaussian quadrature ;
-#' @param ncores number of cores for parallelization (default NULL).
-#' @param print if TRUE, log are printed in console. Logs are allways saved in a summary file in the remix folder created for the job;
-#' @param digits digits to print, (default 3) ;
-#' @param trueValue a named vector of true value for parameters (for simulation purpose, if provided, the error is compute at each iteration).
-#' @param project the initial Monolix project;
-#' @param final.project the final Monolix project (by default adds "_upd" to the original project), every useful log is saved in the remix folder directly in the initial project directory.
-#' @param dynFUN Dynamic function ;
-#' @param y Initial condition of the model, conform to what is asked in dynFUN ;
-#' @param ObsModel.transfo list of 2 list of P,K transformation (need to include identity transformation), named with `S` and `R` : \itemize{\item  ObsModel.transfo$S correspond to the transformation used for direct observation model. For each \eqn{Y_p=h_p(S_p)} the order must be respected and the name indicated which dynamic from dynFUN is observed through this variables \eqn{Y_p}; \item ObsModel.transfo$R correspond to the transformation used for the latent process, as it is now, we only have one latent dynamic so necessarily \eqn{s_k} is applied to `R` but for each \eqn{Y_k} observed, transformation could be different so need to precise as many as in, in same order `alpha$alpha1` ; the name need be set to precise the dynamic from dynFUN to identify the output.}
-#' @param alpha named list of named vector "alpha0", "alpha1" (in good order), alpha1 mandatory even if 1. The name of alpha$alpha0 and alpha$alpha1 are the observation model names from the monolix project to which they are linked.
-# if alpha_0 vector empty -> all alpha_0 set to 0 ;
-# if some alpha_0 not define but not all, set NULL to the one missing
-#' @param selfInit If TRUE, the last SAEM done in `project`is used as initialisation for the building algorithm.
+#' @param project directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).
+#' @param final.project directory of the final Monolix project (default add "_upd" to the Monolix project).
+#' @param dynFUN function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \itemize{\item \code{y} a named vector with the initial condition. The names are the dynamics names.
+#' \item \code{parms} a named vector of parameter.
+#' \item \code{time} vector a timepoint.}
 #'
-#' @return list fo outputs of final project and through the iteration for every lambda on lambda.grid, and the model achieving the best BIC as the best built model.
+#' See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.
+#' @param y initial condition of the mechanism model, conform to what is asked in dynFUN.
+#' @param ObsModel.transfo list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be name \code{linkS} and \code{linkR}.
+#'
+#' Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{ObsModel.transfo$linkS}, as well as \code{ObsModel.transfo$R} (for latent process models) and \code{ObsModel.transfo$linkR}, must have the same length.
+#'
+#' \itemize{
+#'   \item \code{ObsModel.transfo$S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN}). The \code{linkS} vector specifies the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{ObsModel.transfo$S}.
+#'
+#'   \item \code{ObsModel.transfo$R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}. The \code{linkR} vector specifies the observation model names for each transformation, in the same order as in \code{ObsModel.transfo$R}.
+#' }
+#' @param alpha named list of named vector "alpha0", "alpha1" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
+#' @param lambda.grid grid of user-suuplied penalisation parameters for the lasso regularization (if NULL, the sequence is computed based on the data).
+#' @param alambda if \code{lambda.grid} is null, coefficients used to compute the grid (default to 0.05, see details).
+#' @param nlambda if \code{lambda.grid} is null, number of lambda parameter to test (default to 50).
+#' @param eps1 integer (>0) used to define the convergence criteria for the regression parameters.
+#' @param eps2 integer (>0) used to define the convergence criteria for the likelihood.
+#' @param selfInit logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).
+#' @param pop.set1 population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings()}}).
+#' @param pop.set2 population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings()}}).
+#' @param prune percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).
+#' @param n number of points for  gaussian quadrature (see \code{\link{gh.LL}}).
+#' @param ncores number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).
+#' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
+#' @param digits number of digits to print (default to 3).
+#' @param trueValue -for simulation purposes- named vector of true value for parameters.
+#' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
+#'
+#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid.
+#' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
 #' @export
 #'
 #' @examples
@@ -48,7 +60,7 @@
 #'
 #' y = c(S=5,AB=1000)
 #'
-#' res = cv.Remix(project = project,
+#' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,
 #'                y = y,
 #'                ObsModel.transfo = ObsModel.transfo,
@@ -59,13 +71,14 @@
 #'                nlambda=8,
 #'                eps2=1)
 #' }
-cv.Remix <- function(project = NULL,
+cv.remix <- function(project = NULL,
                      final.project = NULL,
                      dynFUN,
                      y,
                      ObsModel.transfo,
                      alpha,
                      lambda.grid=NULL,
+                     alambda = 0.05,
                      nlambda = 50,
                      eps1 = 10**(-2),
                      eps2 = 10**(-1),
@@ -247,10 +260,9 @@ cv.Remix <- function(project = NULL,
     lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
                             prune = prune, parallel=FALSE,verbose=FALSE)
 
-    lambda.grid = lambda_max*(0.05**((1:nlambda)/nlambda))
+    lambda.grid = lambda_max*(alambda**((1:nlambda)/nlambda))
     lambda.grid <- lambda.grid[lambda.grid!=0]
   }
-
 
   # ############### START CV ##########################
   # array = 1
@@ -274,7 +286,7 @@ cv.Remix <- function(project = NULL,
     Sys.sleep(0.1)
     writeLines(keep.lines,summary.file.new)
 
-    to.cat <- paste0(" Starting algorithm n°",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
+    to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
     Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
     Rsmlx:::print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
     to.cat <- paste0("       initialization...\n")
@@ -324,7 +336,7 @@ cv.Remix <- function(project = NULL,
 
     ##########################       ITERATION       ###########################
     while(!stop){
-      to.cat <- paste0("       starting iteration n°",iter," :\n")
+      to.cat <- paste0("       starting iteration n\uc2b0",iter," :\n")
       if(PRINT){cat(to.cat)}
       ############ START ITERATION   ###########
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
@@ -361,10 +373,9 @@ cv.Remix <- function(project = NULL,
         }
 
         res.out.error <- list("old.b" = a.ini[to.recalibrate],
-                              "old.rl" = LL0.pen,  # pénalisé   en l'ancien
-                              "old.ca" = critb,    # que les alpha1 ici
-                              "old.cb" = crit2)    # pénalisé aussi
-        # pas très important, là en cas de plantage, rien d'autres
+                              "old.rl" = LL0.pen,
+                              "old.ca" = critb,
+                              "old.cb" = crit2)
 
         sears <- searpas(vw = vw,
                          step = step,
