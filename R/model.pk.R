@@ -4,17 +4,17 @@
 #'
 #' @param t vector of time ;
 #' @param y initial condition, named vector of form c(C=C0) ;
-#' @param parms named vector of model parameter ; should contain either "Cl" and "V" or "ka".
+#' @param parms named vector of model parameter ; should contain either "\code{Cl}" and "\code{V}" or "\code{ka}".
 #'
 #' @return Matrix of time and observation of Concentration C.
 #' @export
-#' @seealso \code{\link{indParm}}
+#' @seealso \code{\link{indParm}}.
 #'
 #' @examples
-#' res <- PK(seq(0,30,1),c(C=100),parms=c(ka=1))
+#' res <- model.pk(seq(0,30,1),c(C=100),parms=c(ka=1))
 #'
 #' plot(res)
-PK <- function(t,y,parms){
+model.pk <- function(t,y,parms){
   if(!setequal(names(y),"C")){
     stop(paste0("Missing initial condition for ",setdiff(c("C"),names(y))," and ",setdiff(names(y),c("C"))," isn't in the model."))
   }

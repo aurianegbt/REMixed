@@ -14,7 +14,7 @@
 #'   \item{\code{parms} : named vector of model parameter ; should contain \code{phi_S},\code{delta_Ab},\code{delta_S}.}
 #' }}
 #'
-#' @seealso \code{\link{model.asin}}, \code{\link{getMLXdir}}.
+#' @seealso \code{\link{model.pasin}}, \code{\link{getMLXdir}}.
 #'
 #' @examples
 #' t = seq(0,300,1)
