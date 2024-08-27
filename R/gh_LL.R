@@ -50,6 +50,7 @@
 #' @export
 #'
 #' @examples
+#'\dontrun{
 #' project <- getMLXdir()
 #'
 #'
@@ -69,6 +70,7 @@
 #'             data = data)
 #'
 #' print(LL)
+#' }
 gh.LL <- function(
     dynFUN,
     y,
@@ -126,8 +128,8 @@ gh.LL <- function(
 
   ntasks <- N
   if(verbose){
-    pb <- utils::txtProgressBar(max = ntasks, style = 3)
-    progress <- function(n) utils::setTxtProgressBar(pb, n)
+    pb <- txtProgressBar(max = ntasks, style = 3)
+    progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
   }else{
     opts <- NULL
@@ -205,6 +207,8 @@ gh.LL.ind <- function(
     n = NULL,
     prune=NULL,
     onlyLL=FALSE){
+
+  mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
   if(is.null(data)){
     test <- sapply(c("mu_i","Omega_i","theta","alpha1","covariates_i","ParModel.transfo","ParModel.transfo.inv","Sobs_i","Robs_i","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
@@ -474,6 +478,8 @@ lambda.max.ind <- function(
     n = NULL,
     prune=NULL){
 
+  mu <- Omega <- Sobs <- Robs <- covariates <- NULL
+
   if(is.null(data)){
     test <- sapply(c("mu_i","Omega_i","theta","alpha1","covariates_i","ParModel.transfo","ParModel.transfo.inv","Sobs_i","Robs_i","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
     if(any(test))
@@ -673,8 +679,8 @@ lambda.max  <- function(
   i = 1
   if(verbose){
     ntasks <- N
-    pb <- utils::txtProgressBar(max = ntasks, style = 3)
-    progress <- function(n) utils::setTxtProgressBar(pb, n)
+    pb <- txtProgressBar(max = ntasks, style = 3)
+    progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
   }else{
     opts <- NULL
