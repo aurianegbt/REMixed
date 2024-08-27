@@ -42,9 +42,10 @@
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
 plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES to remove (id with name of variable )
+  iteration <- phase  <- finalPlot <-  NULL
   estimates = dplyr::filter(fit$iterOutputs$estimates,iteration!=0)
   if(!identical(paramToPlot,"all")){
-    estimates = dplyr::select(estimates,iteration, phase, all_of(paramToPlot))
+    estimates = dplyr::select(estimates,iteration, phase, dplyr::all_of(paramToPlot))
   }
 
   ## Repérer les changements d'itération, i.e. phase de 2 à 1 # "#e0e6c6","#cac2ba","#ffe591"
@@ -97,12 +98,12 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 
 #' Log-likelihood convergence.
 #'
-#' @param fit fit object of class remix, from \code{\link{Remix}} or a certain build from \code{\link{cv.Remix}} output.
+#' @param fit fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.
 #'
 #' @return Log-Likelihood values throughout the algorithm iteration.
 #' @export
 #'
-#' @seealso \code{\link{Remix}}, \code{\link{cv.Remix}}.
+#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
 #'
 #' @examples
 #' \dontrun{
@@ -136,6 +137,9 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
 plotConvergence <- function(fit){
+
+  iteration <- LLpen <- NULL
+
   LL.outputs <- sapply(fit$iterOutputs$LL,FUN=function(Liter){Liter$LL})
   LLpen.outputs <- unlist(fit$iterOutputs$LL.pen)
 

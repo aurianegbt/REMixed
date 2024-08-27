@@ -38,7 +38,7 @@ model.pasin <- function(t,y,parms){
     stop(paste0("Missing initial condition for ",malus," and ",bonus," isn't in the model."))
     }else if(length(bonus)!=0){
       stop(paste0(bonus," isn't dynamic of the model."))
-    }else if(length(minus) !=0){
+    }else if(length(malus) !=0){
       stop(paste0("Missing initial condition for ",malus))
     }
   }
