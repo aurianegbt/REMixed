@@ -277,255 +277,260 @@ cv.remix <- function(project = NULL,
   keep.lines <- readLines(summary.file)
 
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
-    prcheck(initial.project)
+    tryCatch({
 
-    lambda = rev(lambda.grid)[array]
-    PRINT <- print
-    print <- FALSE
+      prcheck(initial.project)
 
-    ptm.first <- ptm <- proc.time()
+      lambda = rev(lambda.grid)[array]
+      PRINT <- print
+      print <- FALSE
 
-    summary.file.new <- file.path(remix.dir, paste0("summary_",array,".txt"))
-    unlink(summary.file.new,force=TRUE)
-    Sys.sleep(0.1)
-    writeLines(keep.lines,summary.file.new)
+      ptm.first <- ptm <- proc.time()
 
-    to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
-    print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
-    print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
-    to.cat <- paste0("       initialization...\n")
-    if(PRINT){cat(to.cat)}
+      summary.file.new <- file.path(remix.dir, paste0("summary_",array,".txt"))
+      unlink(summary.file.new,force=TRUE)
+      Sys.sleep(0.1)
+      writeLines(keep.lines,summary.file.new)
 
-    if (is.null(final.project)){
-      final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))}
-    if (!grepl("\\.", final.project))
-      final.project <- paste0(final.project, ".mlxtran")
-    if (!grepl("\\.mlxtran", final.project))
-      stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
-           call. = FALSE)
-    lixoftConnectors::saveProject(final.project)
-
-    ########################## ESTIMATING FIRST LL  ###########################
-    to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
-    print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-    LL0 <- LL <-
-      gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
-            prune = prune, parallel = FALSE,verbose=TRUE)
-    LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=FALSE)
-    LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
-
-
-    to.cat <- paste0("             LL : ",round(LL$LL,digits=digits))
-    to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
-    print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-
-    suppressMessages({lixoftConnectors::loadProject(final.project)})
-
-    a.ini <- a.ini0 <- currentData$alpha1
-
-    ########################## SAVE OUTPUTS   ###########################
-
-    estimates.outputs <- lixoftConnectors::getChartsData("plotSaem")
-    LL.outputs <- list(LL0)
-    LLpen.outputs <- list(LL0.pen)
-    param.outputs <- param0
-    crit.outputs <- data.frame()
-
-
-    stop <- F
-    iter =  1
-    crit1 <- crit2 <- critb <- 1
-
-
-
-    ##########################       ITERATION       ###########################
-    while(!stop){
-      to.cat <- paste0("       starting iteration n\uc2b0",iter," :\n")
+      to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
+      print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+      print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
+      to.cat <- paste0("       initialization...\n")
       if(PRINT){cat(to.cat)}
-      ############ START ITERATION   ###########
-      to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
-      to.cat <- c(to.cat,dashed.line)
+
+      if (is.null(final.project)){
+        final.project <- paste0(remix.dir, paste0("/Build_",array,".mlxtran"))}
+      if (!grepl("\\.", final.project))
+        final.project <- paste0(final.project, ".mlxtran")
+      if (!grepl("\\.mlxtran", final.project))
+        stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
+             call. = FALSE)
+      lixoftConnectors::saveProject(final.project)
+
+      ########################## ESTIMATING FIRST LL  ###########################
+      to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
       print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-      to.cat <- c("                 ITERATION ",iter,"\n\n")
+      LL0 <- LL <-
+        gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
+              prune = prune, parallel = FALSE,verbose=TRUE)
+      LL0$ddLL <- LL$ddLL <- -inflate.H.Ariane(-LL0$ddLL,print=FALSE)
+      LL0.pen <- LL.pen <-  LL0$LL - lambda*sum(abs(currentData0$alpha1))
+
+
+      to.cat <- paste0("             LL : ",round(LL$LL,digits=digits))
+      to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
       print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-      ptm <- proc.time()
+
+      suppressMessages({lixoftConnectors::loadProject(final.project)})
+
+      a.ini <- a.ini0 <- currentData$alpha1
+
+      ########################## SAVE OUTPUTS   ###########################
+
+      estimates.outputs <- lixoftConnectors::getChartsData("plotSaem")
+      LL.outputs <- list(LL0)
+      LLpen.outputs <- list(LL0.pen)
+      param.outputs <- param0
+      crit.outputs <- data.frame()
 
 
-      to.cat <- paste0("        update of regulatization parameters...\n")
-      if(PRINT){cat(to.cat)}
-      ############ UPDATING ALPHA1   ###########
-      to.cat <- paste0("Computing taylor update for regularization parameters... \n")
-      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-      a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
+      stop <- F
+      iter =  1
+      crit1 <- crit2 <- critb <- 1
 
-      currentData$alpha1 <- a.final
-      LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
 
-      if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
 
-        th <- 1e-5
-        step <- log(1.5)
-        to.recalibrate = which(a.final!=0)
-        delta <-  a.final[to.recalibrate] - a.ini[to.recalibrate]
+      ##########################       ITERATION       ###########################
+      while(!stop){
+        to.cat <- paste0("       starting iteration n\uc2b0",iter," :\n")
+        if(PRINT){cat(to.cat)}
+        ############ START ITERATION   ###########
+        to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
+        to.cat <- c(to.cat,dashed.line)
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+        to.cat <- c("                 ITERATION ",iter,"\n\n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+        ptm <- proc.time()
 
-        maxt <- max(abs(delta))
 
-        if(maxt == 0){
-          vw <- th
-        }else{
-          vw <- th/maxt
+        to.cat <- paste0("        update of regulatization parameters...\n")
+        if(PRINT){cat(to.cat)}
+        ############ UPDATING ALPHA1   ###########
+        to.cat <- paste0("Computing taylor update for regularization parameters... \n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+        a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
+
+        currentData$alpha1 <- a.final
+        LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
+
+        if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
+
+          th <- 1e-5
+          step <- log(1.5)
+          to.recalibrate = which(a.final!=0)
+          delta <-  a.final[to.recalibrate] - a.ini[to.recalibrate]
+
+          maxt <- max(abs(delta))
+
+          if(maxt == 0){
+            vw <- th
+          }else{
+            vw <- th/maxt
+          }
+
+          res.out.error <- list("old.b" = a.ini[to.recalibrate],
+                                "old.rl" = LL0.pen,
+                                "old.ca" = critb,
+                                "old.cb" = crit2)
+
+          sears <- searpas(vw = vw,
+                           step = step,
+                           b = a.ini[to.recalibrate],
+                           delta = delta,
+                           funcpa = funcpa,
+                           res.out.error = res.out.error,
+                           dynFUN=dynFUN,
+                           y = y,
+                           data = currentData,
+                           n = n,
+                           prune = prune,
+                           stored = NULL,
+                           to.recalibrate=to.recalibrate,
+                           parallel = FALSE,
+                           lambda = lambda)
+
+          a.final <- currentData$alpha1[to.recalibrate]
         }
 
-        res.out.error <- list("old.b" = a.ini[to.recalibrate],
-                              "old.rl" = LL0.pen,
-                              "old.ca" = critb,
-                              "old.cb" = crit2)
+        to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
+        row.names(to.print) <- regParam.toprint
+        if(!is.null(trueValue)){
+          to.print <- cbind(to.print,
+                            TrueValue = signif(as.numeric(trueValue[regParam.toprint]),digits=digits),
+                            RelativeBias = round(as.numeric((a.final-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits),
+                            " " = ifelse(a.final==0, ifelse(trueValue[regParam.toprint]==0,"  \u2713","  \u2717"),
+                                         ifelse(trueValue[regParam.toprint]!=0,"  \u2713","  \u2717"))
+          )
 
-        sears <- searpas(vw = vw,
-                         step = step,
-                         b = a.ini[to.recalibrate],
-                         delta = delta,
-                         funcpa = funcpa,
-                         res.out.error = res.out.error,
-                         dynFUN=dynFUN,
-                         y = y,
-                         data = currentData,
-                         n = n,
-                         prune = prune,
-                         stored = NULL,
-                         to.recalibrate=to.recalibrate,
-                         parallel = FALSE,
-                         lambda = lambda)
+          to.print[is.nan(to.print$RelativeBias) | is.infinite(to.print$RelativeBias),"RelativeBias"] <- " "
 
-        a.final <- currentData$alpha1[to.recalibrate]
+          to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
+          to.print[a.final==0,"EstimatedValue"] <- "  "
+        }
+        to.printEND <- to.print
+        print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+
+        to.cat <- paste0("        update of population parameters...\n")
+        if(PRINT){cat(to.cat)}
+        ############ SAEM UPDATE   ###########
+        to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+        re <- saemUpdate(project = final.project, final.project = final.project,
+                         alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
+                         conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
+
+
+        estimates = re$SAEMiterations
+        for(k in 1:length(alpha$alpha1)){
+          cmd = paste0("estimates <- dplyr::mutate(estimates,",alpha$alpha1[k],"_pop =",a.final[k],")")
+          eval(parse(text=cmd))
+        }
+
+        to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
+        row.names(to.print) <- param.toprint
+        if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
+          sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
+          sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
+          to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
+        }
+        if(!is.null(trueValue)){
+          to.print <- cbind(to.print,
+                            TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific=TRUE),
+                            RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
+        }
+        print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+        to.printEND2 <- to.print
+
+        param <- re$param[-(which(names(re$param) %in% rm.param))]
+
+
+        ############ ESTIMATE PENALIZED   ###########
+        to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+        currentData <- readMLX(project = final.project,
+                               ObsModel.transfo = ObsModel.transfo,
+                               alpha = alpha)
+        LL <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE)
+        LL$ddLL <- -inflate.H.Ariane(-LL$ddLL,print=FALSE)
+        LL.pen <- LL$LL - lambda* sum(abs(a.final))
+
+        to.cat <- paste0("        LL :",round(LL$LL,digits=digits))
+        to.cat <- paste0(to.cat,"\n    LL.pen :",round(LL.pen,digits=digits),"\n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+
+        ############ UPDATE CRITERION  ###########
+        crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
+        critb = sum((a.ini0-a.final)**2)
+        crit2 = abs(LL0.pen-LL.pen)
+
+        estimates.outputs <- rbind(estimates.outputs,estimates[,colnames(estimates.outputs)])
+        LL.outputs <- append(LL.outputs,list(LL))
+        LLpen.outputs <- append(LLpen.outputs,LL.pen)
+        param.outputs <- rbind(param.outputs,param)
+
+        to.cat <- c("\n\n   Current parameter convergence criterion :",round(crit1,digits=digits),"\n")
+        to.cat <- c(to.cat,"  Current  ll pen  convergence criterion  :",round(crit2,digits=digits),"\n")
+        print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+
+        crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
+
+        if(crit1<eps1 && crit2 <eps2 ){
+          stop <- T
+        }
+
+        LL0 <- LL
+        LL0.pen <- LL.pen
+        param0 <- param
+        a.ini0 <- a.ini <-  a.final
+        iter = iter + 1
       }
+      N=length(currentData$mu)
 
-      to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
-      row.names(to.print) <- regParam.toprint
-      if(!is.null(trueValue)){
-        to.print <- cbind(to.print,
-                          TrueValue = signif(as.numeric(trueValue[regParam.toprint]),digits=digits),
-                          RelativeBias = round(as.numeric((a.final-trueValue[regParam.toprint])/trueValue[regParam.toprint]),digits=digits),
-                          " " = ifelse(a.final==0, ifelse(trueValue[regParam.toprint]==0,"  \u2713","  \u2717"),
-                                       ifelse(trueValue[regParam.toprint]!=0,"  \u2713","  \u2717"))
-        )
+      lixoftConnectors::saveProject(final.project)
 
-        to.print[is.nan(to.print$RelativeBias) | is.infinite(to.print$RelativeBias),"RelativeBias"] <- " "
+      results <- list(info = list(param.toprint=param.toprint,
+                                  regParam.toprint=regParam.toprint,
+                                  alpha=alpha),
+                      finalRes=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
+                                    param=param,
+                                    alpha=a.final,
+                                    iter=iter,
+                                    time=(proc.time()-ptm.first)["elapsed"],
+                                    BIC = -2*LL0$LL+log(N)*sum(a.final!=0)),
+                      iterOutputs=list(param=param.outputs,
+                                       LL=LL.outputs,
+                                       LL.pen = LLpen.outputs,
+                                       estimates=estimates.outputs,
+                                       criterion = crit.outputs))
 
-        to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
-        to.print[a.final==0,"EstimatedValue"] <- "  "
-      }
-      to.printEND <- to.print
-      print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+      Sys.sleep(0.1)
+      # progress(array)
 
-      to.cat <- paste0("        update of population parameters...\n")
-      if(PRINT){cat(to.cat)}
-      ############ SAEM UPDATE   ###########
-      to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
-      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-      re <- saemUpdate(project = final.project, final.project = final.project,
-                       alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
-                       conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
+      class(results) <- "remix"
 
+      to.cat <- "        DONE !\n"
+      to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n")
+      print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
-      estimates = re$SAEMiterations
-      for(k in 1:length(alpha$alpha1)){
-        cmd = paste0("estimates <- dplyr::mutate(estimates,",alpha$alpha1[k],"_pop =",a.final[k],")")
-        eval(parse(text=cmd))
-      }
+      to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
+      print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
+      print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
+      if(PRINT){cat("\n",dashed.line)}
 
-      to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
-      row.names(to.print) <- param.toprint
-      if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
-        sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-        sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
-        to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
-      }
-      if(!is.null(trueValue)){
-        to.print <- cbind(to.print,
-                          TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific=TRUE),
-                          RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
-      }
-      print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
-      to.printEND2 <- to.print
-
-      param <- re$param[-(which(names(re$param) %in% rm.param))]
-
-
-      ############ ESTIMATE PENALIZED   ###########
-      to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
-      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-      currentData <- readMLX(project = final.project,
-                             ObsModel.transfo = ObsModel.transfo,
-                             alpha = alpha)
-      LL <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE)
-      LL$ddLL <- -inflate.H.Ariane(-LL$ddLL,print=FALSE)
-      LL.pen <- LL$LL - lambda* sum(abs(a.final))
-
-      to.cat <- paste0("        LL :",round(LL$LL,digits=digits))
-      to.cat <- paste0(to.cat,"\n    LL.pen :",round(LL.pen,digits=digits),"\n")
-      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-
-      ############ UPDATE CRITERION  ###########
-      crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
-      critb = sum((a.ini0-a.final)**2)
-      crit2 = abs(LL0.pen-LL.pen)
-
-      estimates.outputs <- rbind(estimates.outputs,estimates[,colnames(estimates.outputs)])
-      LL.outputs <- append(LL.outputs,list(LL))
-      LLpen.outputs <- append(LLpen.outputs,LL.pen)
-      param.outputs <- rbind(param.outputs,param)
-
-      to.cat <- c("\n\n   Current parameter convergence criterion :",round(crit1,digits=digits),"\n")
-      to.cat <- c(to.cat,"  Current  ll pen  convergence criterion  :",round(crit2,digits=digits),"\n")
-      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
-
-      crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
-
-      if(crit1<eps1 && crit2 <eps2 ){
-        stop <- T
-      }
-
-      LL0 <- LL
-      LL0.pen <- LL.pen
-      param0 <- param
-      a.ini0 <- a.ini <-  a.final
-      iter = iter + 1
-    }
-    N=length(currentData$mu)
-
-    lixoftConnectors::saveProject(final.project)
-
-    results <- list(info = list(param.toprint=param.toprint,
-                                regParam.toprint=regParam.toprint,
-                                alpha=alpha),
-                    finalRes=list(LL=c(Likelihood=LL,PenLikelihood=LL.pen),
-                                  param=param,
-                                  alpha=a.final,
-                                  iter=iter,
-                                  time=(proc.time()-ptm.first)["elapsed"],
-                                  BIC = -2*LL0$LL+log(N)*sum(a.final!=0)),
-                    iterOutputs=list(param=param.outputs,
-                                     LL=LL.outputs,
-                                     LL.pen = LLpen.outputs,
-                                     estimates=estimates.outputs,
-                                     criterion = crit.outputs))
-
-    Sys.sleep(0.1)
-    # progress(array)
-
-    class(results) <- "remix"
-
-    to.cat <- "        DONE !\n"
-    to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n")
-    print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
-
-    to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
-    print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
-    print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
-    if(PRINT){cat("\n",dashed.line)}
-
-    return(results)
+      return(results)
+    },error=function(e){
+      message(paste0("Caught an error for lambda =",rev(lambda.grid)[array],":", e$message))
+      })
   })
 
   if(unlinkBuildProject)
