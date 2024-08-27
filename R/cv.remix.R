@@ -29,6 +29,7 @@
 #' @param lambda.grid grid of user-suuplied penalisation parameters for the lasso regularization (if NULL, the sequence is computed based on the data).
 #' @param alambda if \code{lambda.grid} is null, coefficients used to compute the grid (default to 0.05, see details).
 #' @param nlambda if \code{lambda.grid} is null, number of lambda parameter to test (default to 50).
+#' @param lambda_max if \code{lambda.grid} is null, maximum of the lambda grid to test (default is automatically computed, see details)
 #' @param eps1 integer (>0) used to define the convergence criteria for the regression parameters.
 #' @param eps2 integer (>0) used to define the convergence criteria for the likelihood.
 #' @param selfInit logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).
@@ -81,6 +82,7 @@ cv.remix <- function(project = NULL,
                      lambda.grid=NULL,
                      alambda = 0.05,
                      nlambda = 50,
+                     lambda_max = NULL,
                      eps1 = 10**(-2),
                      eps2 = 10**(-1),
                      selfInit = FALSE,
@@ -257,8 +259,10 @@ cv.remix <- function(project = NULL,
     readMLX(project = initial.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
   if(is.null(lambda.grid)){
-    lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
-                            prune = prune, parallel=FALSE,verbose=FALSE)
+    if(is.null(lambda_max)){
+      lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
+                              prune = prune, parallel=FALSE,verbose=FALSE)
+    }
 
     lambda.grid = lambda_max*(alambda**((1:nlambda)/nlambda))
     lambda.grid <- lambda.grid[lambda.grid!=0]
@@ -286,7 +290,7 @@ cv.remix <- function(project = NULL,
     Sys.sleep(0.1)
     writeLines(keep.lines,summary.file.new)
 
-    to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
+    to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
     print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
     print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
     to.cat <- paste0("       initialization...\n")
@@ -537,7 +541,7 @@ cv.remix <- function(project = NULL,
   }
 
   finalRES = list(info = cv.res[[1]]$info,
-                  lambda = lambda.grid,
+                  lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
                   LL = sapply(cv.res,FUN=function(f){f$finalRes$LL$Likelihood.LL}),
                   LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL$PenLikelihood}),
