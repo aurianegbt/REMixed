@@ -30,8 +30,19 @@ parms = c(phi_S = 611, delta_Ab = 0.03, delta_S=0.01)
 
 res <- dynFUN_demo(t,y,parms)
 
-plot(res[,"time"], log10(res[,"Ab"]),ylab="log10(Ab(t))",xlab="time (days)",main="Antibody titer over the time",type="l")
-plot(res[,"time"], res[,"S"],ylab="S(t)",xlab="time (days)",main="Antibody secreting cells quantity over time",type="l")
+plot(res[,"time"],
+     log10(res[,"Ab"]),
+     ylab="log10(Ab(t))",
+     xlab="time (days)",
+     main="Antibody titer over the time",
+     type="l")
+
+plot(res[,"time"],
+     res[,"S"],
+     ylab="S(t)",
+     xlab="time (days)",
+     main="Antibody secreting cells quantity over time",
+     type="l")
 
 }
 \references{

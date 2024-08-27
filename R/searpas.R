@@ -151,9 +151,9 @@ fim.searpas <- function(
     if(!is.null(ncores)){
       cluster <- snow::makeCluster(ncores)
     }else{
-      cluster <- snow::makeCluster(snow::detectCores())
+      cluster <- snow::makeCluster(parallel::detectCores())
     }
-    DoSNOW::registerDoSNOW(cluster)
+    doSNOW::registerDoSNOW(cluster)
   }
 
   N=length(mu)
@@ -223,6 +223,8 @@ fim.searpas.ind <- function(
     prune=NULL,
     to.recalibrate,
     stored=NULL){
+  mu <- Omega <- Sobs <- Robs <- covariates <- NULL
+
   if(is.null(data)){
     test <- sapply(c("mu_i","Omega_i","theta","alpha1","covariates_i","ParModel.transfo","ParModel.transfo.inv","Sobs_i","Robs_i","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
     if(any(test))

@@ -7,7 +7,7 @@
 plotConvergence(fit)
 }
 \arguments{
-\item{fit}{fit object of class remix, from \code{\link{Remix}} or a certain build from \code{\link{cv.Remix}} output.}
+\item{fit}{fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.}
 }
 \value{
 Log-Likelihood values throughout the algorithm iteration.
@@ -48,5 +48,5 @@ plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue
 }
 }
 \seealso{
-\code{\link{Remix}}, \code{\link{cv.Remix}}.
+\code{\link{remix}}, \code{\link{cv.remix}}.
 }

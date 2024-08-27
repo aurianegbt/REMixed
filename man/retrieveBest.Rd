@@ -7,10 +7,10 @@
 retrieveBest(fit)
 }
 \arguments{
-\item{fit}{output of \code{\link{cv.Remix}}.}
+\item{fit}{output of \code{\link{cv.remix}}.}
 }
 \value{
-outputs from \code{\link{Remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.Remix}}.
+outputs from \code{\link{remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.remix}}.
 }
 \description{
 Extracts the build minimizing the BIC over a grid of lambda.
@@ -49,5 +49,5 @@ plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue
 }
 }
 \seealso{
-\code{\link{cv.Remix}}, \code{\link{Remix}}.
+\code{\link{cv.remix}}, \code{\link{remix}}.
 }

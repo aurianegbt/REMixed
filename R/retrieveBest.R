@@ -3,11 +3,11 @@
 #' Extracts the build minimizing the BIC over a grid of lambda.
 #'
 #'
-#' @param fit output of \code{\link{cv.Remix}}.
+#' @param fit output of \code{\link{cv.remix}}.
 #'
-#' @return outputs from \code{\link{Remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.Remix}}.
+#' @return outputs from \code{\link{remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.remix}}.
 #' @export
-#' @seealso \code{\link{cv.Remix}}, \code{\link{Remix}}.
+#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}.
 #'
 #' @examples
 #' \dontrun{

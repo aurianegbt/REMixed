@@ -2,7 +2,7 @@
 % Please edit documentation in R/cv.remix.R
 \name{cv.remix}
 \alias{cv.remix}
-\title{REMix algorithm}
+\title{REMix algorithm over a grid of \eqn{\lambda}}
 \usage{
 cv.remix(
   project = NULL,
@@ -38,21 +38,21 @@ cv.remix(
 \item \code{parms} a named vector of parameter.
 \item \code{time} vector a timepoint.}
 
-See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.}
+See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
 
 \item{y}{initial condition of the mechanism model, conform to what is asked in dynFUN.}
 
-\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be name \code{linkS} and \code{linkR}.
+\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be named \code{linkS} and \code{linkR}.
 
-Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{ObsModel.transfo$linkS}, as well as \code{ObsModel.transfo$R} (for latent process models) and \code{ObsModel.transfo$linkR}, must have the same length.
+Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 
 \itemize{
-  \item \code{ObsModel.transfo$S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN}). The \code{linkS} vector specifies the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{ObsModel.transfo$S}.
+  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
 
-  \item \code{ObsModel.transfo$R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}. The \code{linkR} vector specifies the observation model names for each transformation, in the same order as in \code{ObsModel.transfo$R}.
+  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
 }}
 
-\item{alpha}{named list of named vector "alpha0", "alpha1" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).}
+\item{alpha}{named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).}
 
 \item{lambda.grid}{grid of user-suuplied penalisation parameters for the lasso regularization (if NULL, the sequence is computed based on the data).}
 
@@ -66,9 +66,9 @@ Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{Obs
 
 \item{selfInit}{logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).}
 
-\item{pop.set1}{population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings()}}).}
+\item{pop.set1}{population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings}}).}
 
-\item{pop.set2}{population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings()}}).}
+\item{pop.set2}{population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings}}).}
 
 \item{prune}{percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).}
 
