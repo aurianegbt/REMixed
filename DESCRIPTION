@@ -8,7 +8,7 @@ Description: This package propose the implementation of an algorithm in two step
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports: foreach, deSolve, doParallel, Rsmlx (== 2023.1.5), doSNOW, dplyr, fastGHQuad, ggplot2, lixoftConnectors, snow, stringr
+Imports: foreach, deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, lixoftConnectors, snow
 Depends : foreach
 RoxygenNote: 7.3.1
 Depends: 

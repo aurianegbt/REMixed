@@ -7,5 +7,11 @@
 
 ## usethis namespace: start
 #' @importFrom foreach %dopar%
+#' @importFrom stats setNames
+#' @importFrom stats quantile
+#' @importFrom utils modifyList
+#' @importFrom utils setTxtProgressBar
+#' @importFrom utils txtProgressBar
+#' @importFrom utils write.csv
 ## usethis namespace: end
 NULL
