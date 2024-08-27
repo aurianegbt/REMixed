@@ -63,9 +63,9 @@ readMLX <- function(project=NULL,
 
   suppressMessages({
     if (!is.null(project)){
-      project <- Rsmlx:::prcheck(project)$project
+      project <- prcheck(project)$project
     }else{
-      project <- Rsmlx:::mlx.getProjectSettings()$project
+      project <- lixoftConnectors::getProjectSettings()$project
     }
 
     lixoftConnectors::loadProject(project)
@@ -297,3 +297,87 @@ ok.omega <- function(variability,value.params){
   }
   return(TRUE)
 }
+
+prcheck <- function (project, f = NULL, settings = NULL, model = NULL,
+                     paramToUse = NULL, parameters = NULL, level = NULL, tests = NULL,
+                     nboot = NULL, method = NULL)
+{
+  RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data <- resMonolix <- NULL
+  if (identical(substr(project, 1, 9), "RsmlxDemo")) {
+    RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data <- resMonolix <- NULL
+    rm(RsmlxDemo1.project, RsmlxDemo2.project, warfarin.data,
+       resMonolix)
+    eval(parse(text = "data(RsmlxDemo)"))
+    tmp.dir <- tempdir()
+    write(RsmlxDemo1.project, file = file.path(tmp.dir,
+                                               "RsmlxDemo1.mlxtran"))
+    write(RsmlxDemo2.project, file = file.path(tmp.dir,
+                                               "RsmlxDemo2.mlxtran"))
+    write.csv(warfarin.data, file = file.path(tmp.dir, "warfarin_data.csv"),
+              quote = FALSE, row.names = FALSE)
+    project <- file.path(tmp.dir, project)
+    demo <- TRUE
+    if (!is.null(f)) {
+      if (f == "boot") {
+        if (is.null(settings))
+          res <- resMonolix$r1.boot
+        else if (!is.null(settings$N) & is.null(settings$covStrat))
+          res <- resMonolix$r2.boot
+        else res <- resMonolix$r3.boot
+      }
+      else if (f == "build") {
+        if (identical(model, "all") & identical(paramToUse,
+                                                "all"))
+          res <- resMonolix$r1.build
+        else if (identical(model, "all"))
+          res <- resMonolix$r2.build
+        else res <- resMonolix$r3.build
+      }
+      else if (f == "conf") {
+        if (method == "fim" & level == 0.9)
+          res <- resMonolix$r1.conf
+        else if (method == "fim" & level == 0.95)
+          res <- resMonolix$r2.conf
+        else if (method == "proflike")
+          res <- resMonolix$r3.conf
+        else res <- resMonolix$r4.conf
+      }
+      else if (f == "cov") {
+        if (identical(method, "COSSAC") & identical(paramToUse,
+                                                    "all"))
+          res <- resMonolix$r1.cov
+        else if (identical(method, "SCM"))
+          res <- resMonolix$r2.cov
+        else res <- resMonolix$r3.cov
+      }
+      else if (f == "test") {
+        if (length(tests) == 4)
+          res <- resMonolix$r1.test
+        else res <- resMonolix$r2.test
+      }
+      else if (f == "set")
+        res = "foo"
+    }
+  }
+  else {
+    if (grepl("2020", Rsmlx::initRsmlx()$version) | grepl("2019",
+                                                          Rsmlx::initRsmlx()$version))
+      stop("Rsmlx versions above 4.0 are compatible only with MonolixSuite >= 2021R1",
+           call. = FALSE)
+    if (!Rsmlx::initRsmlx()$status)
+      return()
+    if (!grepl("\\.", project))
+      project <- paste0(project, ".mlxtran")
+    if (!file.exists(project))
+      stop(paste0("Project '", project, "' does not exist"),
+           call. = FALSE)
+    lp <- lixoftConnectors::loadProject(project)
+    if (!lp)
+      stop(paste0("Could not load project '", project,
+                  "'"), call. = FALSE)
+    demo <- FALSE
+    res <- NULL
+  }
+  return(list(project = project, demo = demo, res = res))
+}
+
