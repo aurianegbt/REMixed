@@ -23,8 +23,19 @@
 #'
 #' res <- dynFUN_demo(t,y,parms)
 #'
-#' plot(res[,"time"], log10(res[,"Ab"]),ylab="log10(Ab(t))",xlab="time (days)",main="Antibody titer over the time",type="l")
-#' plot(res[,"time"], res[,"S"],ylab="S(t)",xlab="time (days)",main="Antibody secreting cells quantity over time",type="l")
+#' plot(res[,"time"],
+#'      log10(res[,"Ab"]),
+#'      ylab="log10(Ab(t))",
+#'      xlab="time (days)",
+#'      main="Antibody titer over the time",
+#'      type="l")
+#'
+#' plot(res[,"time"],
+#'      res[,"S"],
+#'      ylab="S(t)",
+#'      xlab="time (days)",
+#'      main="Antibody secreting cells quantity over time",
+#'      type="l")
 #'
 #' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
 "dynFUN_demo"
