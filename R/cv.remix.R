@@ -1,4 +1,4 @@
-#' REMix algorithm
+#' REMix algorithm over a grid of \eqn{\lambda}
 #'
 #' @description
 #' Regularization and Estimation in MIXed effects model, over a regularization path.
@@ -14,26 +14,26 @@
 #' \item \code{parms} a named vector of parameter.
 #' \item \code{time} vector a timepoint.}
 #'
-#' See \code{\link{dynFUN_demo}}, \code{\link{Clairon}}, \code{\link{Pasin}} or \code{\link{PK}} for examples.
+#' See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.
 #' @param y initial condition of the mechanism model, conform to what is asked in dynFUN.
-#' @param ObsModel.transfo list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be name \code{linkS} and \code{linkR}.
+#' @param ObsModel.transfo list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be named \code{linkS} and \code{linkR}.
 #'
-#' Both \code{ObsModel.transfo$S} (for the direct observation models) and \code{ObsModel.transfo$linkS}, as well as \code{ObsModel.transfo$R} (for latent process models) and \code{ObsModel.transfo$linkR}, must have the same length.
+#' Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 #'
 #' \itemize{
-#'   \item \code{ObsModel.transfo$S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN}). The \code{linkS} vector specifies the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{ObsModel.transfo$S}.
+#'   \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
 #'
-#'   \item \code{ObsModel.transfo$R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}. The \code{linkR} vector specifies the observation model names for each transformation, in the same order as in \code{ObsModel.transfo$R}.
+#'   \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
 #' }
-#' @param alpha named list of named vector "alpha0", "alpha1" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
+#' @param alpha named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
 #' @param lambda.grid grid of user-suuplied penalisation parameters for the lasso regularization (if NULL, the sequence is computed based on the data).
 #' @param alambda if \code{lambda.grid} is null, coefficients used to compute the grid (default to 0.05, see details).
 #' @param nlambda if \code{lambda.grid} is null, number of lambda parameter to test (default to 50).
 #' @param eps1 integer (>0) used to define the convergence criteria for the regression parameters.
 #' @param eps2 integer (>0) used to define the convergence criteria for the likelihood.
 #' @param selfInit logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).
-#' @param pop.set1 population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings()}}).
-#' @param pop.set2 population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings()}}).
+#' @param pop.set1 population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings}}).
+#' @param pop.set2 population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings}}).
 #' @param prune percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).
 #' @param n number of points for  gaussian quadrature (see \code{\link{gh.LL}}).
 #' @param parallel logical, if the computation should be done in parallel when possible (default TRUE).
@@ -94,6 +94,7 @@ cv.remix <- function(project = NULL,
                      digits=3,
                      trueValue = NULL,
                      unlinkBuildProject = TRUE){
+  method <- NULL
 
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
@@ -122,7 +123,7 @@ cv.remix <- function(project = NULL,
   check.proj(project,alpha)
 
   if(selfInit){
-    pop.set1 <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
+    pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
   }
 
   regParam.toprint = paste0(alpha$alpha1,"_pop")
@@ -130,13 +131,13 @@ cv.remix <- function(project = NULL,
     names(trueValue)[names(trueValue) %in% alpha$alpha1] <- paste0(
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
-  param.toprint = setdiff(dplyr::filter(Rsmlx:::mlx.getPopulationParameterInformation(),method!="FIXED")$name,regParam.toprint)
-  rm.param = setdiff(Rsmlx:::mlx.getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
+  param.toprint = setdiff(dplyr::filter(lixoftConnectors::getPopulationParameterInformation(),method!="FIXED")$name,regParam.toprint)
+  rm.param = setdiff(lixoftConnectors::getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
 
-  project.dir <- Rsmlx:::mlx.getProjectSettings()$directory
+  project.dir <- lixoftConnectors::getProjectSettings()$directory
   if (!dir.exists(project.dir))
     dir.create(project.dir)
-  remix.dir <- file.path(Rsmlx:::mlx.getProjectSettings()$directory,"remix")
+  remix.dir <- file.path(lixoftConnectors::getProjectSettings()$directory,"remix")
   Sys.sleep(0.1)
   if (!dir.exists(remix.dir))
     dir.create(remix.dir)
@@ -149,7 +150,7 @@ cv.remix <- function(project = NULL,
   ########################## FIRST ESTIMATION  ###########################
   to.cat <- paste0("\n", dashed.line, " Starting Regulatization and Estimation Algorithm\n")
   to.cat <- c(to.cat,"    \u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\u203E\n")
-  Rsmlx:::print_result(print,summary.file,to.cat,to.print=NULL)
+  print_result(print,summary.file,to.cat,to.print=NULL)
 
   initial.project <- paste0(remix.dir,"/",sub(".*/([^/]+)/([^/]+)\\.mlxtran", "\\2",project), "_init.mlxtran")
 
@@ -164,7 +165,7 @@ cv.remix <- function(project = NULL,
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
-    pop.set1 <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
+    pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
     pop.set1 <- modifyList(pop.set1, pset1[intersect(names(pset1),
                                                      names(pop.set1))])
   }
@@ -174,7 +175,7 @@ cv.remix <- function(project = NULL,
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
-  pop.set2 <- Rsmlx:::mlx.getPopulationParameterEstimationSettings()
+  pop.set2 <- lixoftConnectors::getPopulationParameterEstimationSettings()
   pop.set2 <- modifyList(pop.set2, pset2[intersect(names(pset2),
                                                    names(pop.set2))])
 
@@ -182,8 +183,8 @@ cv.remix <- function(project = NULL,
   check <- check.init(initial.project,pop.set1) # check if initialization step
   if(identical(check,FALSE)){                   # has been done according to
     suppressMessages({                          # the settings given
-      Rsmlx:::mlx.loadProject(project)
-      Rsmlx:::mlx.saveProject(initial.project)
+      lixoftConnectors::loadProject(project)
+      lixoftConnectors::saveProject(initial.project)
     })
     check <- check.init(initial.project,pop.set1)
   }
@@ -193,28 +194,28 @@ cv.remix <- function(project = NULL,
     to.cat <- c(to.cat,"Initialization using SAEM algorithm :\n")
     to.cat <- c(to.cat,"               -",pop.set1$nbexploratoryiterations,"exploratory iterations;\n")
     to.cat <- c(to.cat,"               -",pop.set1$nbsmoothingiterations,"smoothing iterations.\n\n")
-    Rsmlx:::print_result(print,summary.file,to.cat)
-    Rsmlx:::mlx.setPopulationParameterEstimationSettings(pop.set1)
+    print_result(print,summary.file,to.cat)
+    lixoftConnectors::setPopulationParameterEstimationSettings(pop.set1)
     to.cat <- "Estimation of the population parameters using the initial model ... \n"
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
-    Rsmlx:::mlx.runPopulationParameterEstimation()
+    lixoftConnectors::runPopulationParameterEstimation()
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    Rsmlx:::mlx.runConditionalDistributionSampling()
+    print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    lixoftConnectors::runConditionalDistributionSampling()
   }else if(!check$MCMC){
     to.cat <- "     - - - Running Initialization Step - - -\n\n"
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
-    Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    Rsmlx:::mlx.runConditionalDistributionSampling()
+    print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+    lixoftConnectors::runConditionalDistributionSampling()
   }
-  Rsmlx:::mlx.saveProject(initial.project)
+  lixoftConnectors::saveProject(initial.project)
 
 
   if(length(rm.param)==0){
-    param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()
+    param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()
   }else{
-    param0 <- param <- Rsmlx:::mlx.getEstimatedPopulationParameters()[-which(names(Rsmlx:::mlx.getEstimatedPopulationParameters())%in%rm.param)]
+    param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()[-which(names(lixoftConnectors::getEstimatedPopulationParameters())%in%rm.param)]
   }
 
   ########################## RENDER FIRST ESTIMATION  ###########################
@@ -222,8 +223,8 @@ cv.remix <- function(project = NULL,
 
   to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
   row.names(to.print) <- param.toprint
-  if(!identical(Rsmlx:::mlx.getEstimatedStandardErrors(),NULL)){
-    sd.est = Rsmlx:::mlx.getEstimatedStandardErrors()$stochasticApproximation
+  if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
+    sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
     sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
     to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(param0[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(param0[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
   }
@@ -232,7 +233,7 @@ cv.remix <- function(project = NULL,
                       TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific = TRUE),
                       RelativeBias = round((param0[param.toprint]-as.numeric(trueValue[param.toprint]))/as.numeric(trueValue[param.toprint]),digits=digits))
   }
-  Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
+  print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   to.cat <- "\n"
   to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = T)})[regParam.toprint])
@@ -247,11 +248,11 @@ cv.remix <- function(project = NULL,
     to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
     to.print[param0[regParam.toprint]==0,"EstimatedValue"] <- "  "
   }
-  Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
+  print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   ######################## Computing Regularization PATH   #########################
   to.cat <- "\nComputing regularization path ... \n"
-  Rsmlx:::print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+  print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
   currentData0 <- currentData <-
     readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
@@ -272,7 +273,7 @@ cv.remix <- function(project = NULL,
   keep.lines <- readLines(summary.file)
 
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
-    Rsmlx:::prcheck(initial.project)
+    prcheck(initial.project)
 
     lambda = rev(lambda.grid)[array]
     PRINT <- print
@@ -286,8 +287,8 @@ cv.remix <- function(project = NULL,
     writeLines(keep.lines,summary.file.new)
 
     to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda.grid[array],digits=digits),"...\n")
-    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
-    Rsmlx:::print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
+    print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+    print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
     to.cat <- paste0("       initialization...\n")
     if(PRINT){cat(to.cat)}
 
@@ -298,11 +299,11 @@ cv.remix <- function(project = NULL,
     if (!grepl("\\.mlxtran", final.project))
       stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
            call. = FALSE)
-    Rsmlx:::mlx.saveProject(final.project)
+    lixoftConnectors::saveProject(final.project)
 
     ########################## ESTIMATING FIRST LL  ###########################
     to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
-    Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+    print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
     LL0 <- LL <-
       gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
             prune = prune, parallel = FALSE,verbose=TRUE)
@@ -312,9 +313,9 @@ cv.remix <- function(project = NULL,
 
     to.cat <- paste0("             LL : ",round(LL$LL,digits=digits))
     to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
-    Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+    print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
-    suppressMessages({Rsmlx:::mlx.loadProject(final.project)})
+    suppressMessages({lixoftConnectors::loadProject(final.project)})
 
     a.ini <- a.ini0 <- currentData$alpha1
 
@@ -340,9 +341,9 @@ cv.remix <- function(project = NULL,
       ############ START ITERATION   ###########
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
       to.cat <- c(to.cat,dashed.line)
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       to.cat <- c("                 ITERATION ",iter,"\n\n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       ptm <- proc.time()
 
 
@@ -350,7 +351,7 @@ cv.remix <- function(project = NULL,
       if(PRINT){cat(to.cat)}
       ############ UPDATING ALPHA1   ###########
       to.cat <- paste0("Computing taylor update for regularization parameters... \n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
 
       currentData$alpha1 <- a.final
@@ -411,13 +412,13 @@ cv.remix <- function(project = NULL,
         to.print[a.final==0,"EstimatedValue"] <- "  "
       }
       to.printEND <- to.print
-      Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+      print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
 
       to.cat <- paste0("        update of population parameters...\n")
       if(PRINT){cat(to.cat)}
       ############ SAEM UPDATE   ###########
       to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       re <- saemUpdate(project = final.project, final.project = final.project,
                        alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
                        conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
@@ -431,8 +432,8 @@ cv.remix <- function(project = NULL,
 
       to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
       row.names(to.print) <- param.toprint
-      if(!identical(Rsmlx:::mlx.getEstimatedStandardErrors(),NULL)){
-        sd.est = Rsmlx:::mlx.getEstimatedStandardErrors()$stochasticApproximation
+      if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
+        sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
         sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
         to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
       }
@@ -441,7 +442,7 @@ cv.remix <- function(project = NULL,
                           TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific=TRUE),
                           RelativeBias = round(as.numeric((re$param[param.toprint]-trueValue[param.toprint])/trueValue[param.toprint]),digits=digits))
       }
-      Rsmlx:::print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
+      print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
       to.printEND2 <- to.print
 
       param <- re$param[-(which(names(re$param) %in% rm.param))]
@@ -449,7 +450,7 @@ cv.remix <- function(project = NULL,
 
       ############ ESTIMATE PENALIZED   ###########
       to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
       currentData <- readMLX(project = final.project,
                              ObsModel.transfo = ObsModel.transfo,
                              alpha = alpha)
@@ -459,7 +460,7 @@ cv.remix <- function(project = NULL,
 
       to.cat <- paste0("        LL :",round(LL$LL,digits=digits))
       to.cat <- paste0(to.cat,"\n    LL.pen :",round(LL.pen,digits=digits),"\n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
       ############ UPDATE CRITERION  ###########
       crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
@@ -473,7 +474,7 @@ cv.remix <- function(project = NULL,
 
       to.cat <- c("\n\n   Current parameter convergence criterion :",round(crit1,digits=digits),"\n")
       to.cat <- c(to.cat,"  Current  ll pen  convergence criterion  :",round(crit2,digits=digits),"\n")
-      Rsmlx:::print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+      print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
       crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
 
@@ -489,7 +490,7 @@ cv.remix <- function(project = NULL,
     }
     N=length(currentData$mu)
 
-    Rsmlx:::mlx.saveProject(final.project)
+    lixoftConnectors::saveProject(final.project)
 
     results <- list(info = list(param.toprint=param.toprint,
                                 regParam.toprint=regParam.toprint,
@@ -499,7 +500,7 @@ cv.remix <- function(project = NULL,
                                   alpha=a.final,
                                   iter=iter,
                                   time=(proc.time()-ptm.first)["elapsed"],
-                                  BIC = -2*LL0.pen+log(N)*sum(a.final!=0)),
+                                  BIC = -2*LL0+log(N)*sum(a.final!=0)),
                     iterOutputs=list(param=param.outputs,
                                      LL=LL.outputs,
                                      LL.pen = LLpen.outputs,
@@ -513,11 +514,11 @@ cv.remix <- function(project = NULL,
 
     to.cat <- "        DONE !\n"
     to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n")
-    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+    print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
     to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
-    Rsmlx:::print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
-    Rsmlx:::print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
+    print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
+    print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
     if(PRINT){cat("\n",dashed.short)}
 
     return(results)
