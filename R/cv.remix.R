@@ -254,7 +254,7 @@ cv.remix <- function(project = NULL,
   to.cat <- "\nComputing regularization path ... \n"
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
   currentData0 <- currentData <-
-    readMLX(project = final.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
+    readMLX(project = initial.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
   if(is.null(lambda.grid)){
     lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
@@ -500,7 +500,7 @@ cv.remix <- function(project = NULL,
                                   alpha=a.final,
                                   iter=iter,
                                   time=(proc.time()-ptm.first)["elapsed"],
-                                  BIC = -2*LL0+log(N)*sum(a.final!=0)),
+                                  BIC = -2*LL0$LL+log(N)*sum(a.final!=0)),
                     iterOutputs=list(param=param.outputs,
                                      LL=LL.outputs,
                                      LL.pen = LLpen.outputs,
@@ -519,7 +519,7 @@ cv.remix <- function(project = NULL,
     to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
     print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
     print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
-    if(PRINT){cat("\n",dashed.short)}
+    if(PRINT){cat("\n",dashed.line)}
 
     return(results)
   })
