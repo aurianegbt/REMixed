@@ -14,6 +14,7 @@ cv.remix(
   lambda.grid = NULL,
   alambda = 0.05,
   nlambda = 50,
+  lambda_max = NULL,
   eps1 = 10^(-2),
   eps2 = 10^(-1),
   selfInit = FALSE,
@@ -59,6 +60,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{alambda}{if \code{lambda.grid} is null, coefficients used to compute the grid (default to 0.05, see details).}
 
 \item{nlambda}{if \code{lambda.grid} is null, number of lambda parameter to test (default to 50).}
+
+\item{lambda_max}{if \code{lambda.grid} is null, maximum of the lambda grid to test (default is automatically computed, see details)}
 
 \item{eps1}{integer (>0) used to define the convergence criteria for the regression parameters.}
 
