@@ -169,7 +169,8 @@ plotConvergence <- function(fit){
 #' Calibration plot.
 #'
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
-#' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside")
+#' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside").
+#' @param trueValue (for simulation purpose) named vector containing the true value of regularization parameter.
 #'
 #' @return Calibration plot, over the lambda.grid.
 #' @export
@@ -202,6 +203,8 @@ plotConvergence <- function(fit){
 #'                eps2=1)
 #'
 #' plotCalibration(res)
+#'
+#' plotBIC(res)
 #' }
 plotCalibration <- function(fit,legend.position = "none",trueValue=NULL){
   if(!inherits(fit,"cvRemix")){
@@ -253,4 +256,58 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL){
   }
 }
 
+#' BIC plot.
+#'
+#' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
+#'
+#' @return BIC trhoughout the lambda.grid.
+#' @export
+#'
+#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
+#'
+#' @examples
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#'
+#' res = cv.remix(project = project,
+#'                dynFUN = dynFUN_demo,
+#'                y = y,
+#'                ObsModel.transfo = ObsModel.transfo,
+#'                alpha = alpha,
+#'                selfInit = TRUE,
+#'                eps1=10**(-2),
+#'                ncores=8,
+#'                nlambda=8,
+#'                eps2=1)
+#'
+#' plotCalibration(res)
+#'
+#' plotBIC(res)
+#' }
+plotBIC <- function(fit){  if(!inherits(fit,"cvRemix")){
+  stop("Class of fit must be cvRemix")
+}
+
+  df <- data.frame(BIC = fit$BIC,lambda=fit$lambda)
+
+
+  ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=BIC)) +
+    ggplot2::geom_line(color="slateblue") + #ggplot2::geom_point(color="slateblue4") +
+    ggplot2::ggtitle('BIC throughout the grid of \u03bb') +
+    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = element_text(size=20,color="red4"))+
+    ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
+    ggplot2::geom_segment(y = df[which.min(df$BIC),"BIC"],yend = df[which.min(df$BIC),"BIC"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
+    ggplot2::geom_point(y = df[which.min(df$BIC),"BIC"],x = df[which.min(df$BIC),"lambda"],col="indianred4",size=2) +
+    ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$BIC),"lambda"],digits=2)), x= df[which.min(df$BIC),"lambda"],y = df[which.min(df$BIC),"BIC"],hjust=-0.1,vjust=-0.2,color="indianred4",size=4)
+}
 

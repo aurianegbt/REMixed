@@ -34,7 +34,7 @@ alpha=list(alpha0=NULL,
 y = c(S=5,Ab=1000)
 lambda = 1440
 
-res = Remix(project = project,
+res = remix(project = project,
             dynFUN = dynFUN_demo,
             y = y,
             ObsModel.transfo = ObsModel.transfo,
