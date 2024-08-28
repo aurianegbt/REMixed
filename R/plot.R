@@ -25,7 +25,7 @@
 #' y = c(S=5,Ab=1000)
 #' lambda = 1440
 #'
-#' res = Remix(project = project,
+#' res = remix(project = project,
 #'             dynFUN = dynFUN_demo,
 #'             y = y,
 #'             ObsModel.transfo = ObsModel.transfo,
@@ -42,6 +42,9 @@
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
 plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES to remove (id with name of variable )
+  if(!inherits(fit,"remix")){
+    stop("Class of fit must be remix")
+  }
   iteration <- phase  <- finalPlot <-  NULL
   estimates = dplyr::filter(fit$iterOutputs$estimates,iteration!=0)
   if(!identical(paramToPlot,"all")){
@@ -93,7 +96,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 
   eval(parse(text=cmd))
 
-  return(finalPlot)
+  finalPlot
 }
 
 #' Log-likelihood convergence.
@@ -120,7 +123,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
-#' res = Remix(project = project,
+#' res = remix(project = project,
 #'             dynFUN = dynFUN,
 #'             y = y,
 #'             ObsModel.transfo = ObsModel.transfo,
@@ -137,6 +140,10 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
 plotConvergence <- function(fit){
+  if(!inherits(fit,"remix")){
+    stop("Class of fit must be remix")
+  }
+
 
   iteration <- LLpen <- NULL
 
@@ -150,12 +157,100 @@ plotConvergence <- function(fit){
   dfToPlot <- data.frame(iteration = 1:length(LL.outputs),LL=LL.outputs,LLpen=LLpen.outputs)
 
 
-  plotUp <-
-    ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LLpen))+
-      ggplot2::geom_line()+
-      ggplot2::geom_point() +
-      ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
-      ggplot2::ylab("Penalised log-likelihood")
-
-  return(invisible(plotUp))
+  ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LLpen))+
+    ggplot2::geom_line()+
+    ggplot2::geom_point() +
+    ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
+    ggplot2::ylab("Penalised log-likelihood")
 }
+
+
+
+#' Calibration plot.
+#'
+#' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
+#' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside")
+#'
+#' @return Calibration plot, over the lambda.grid.
+#' @export
+#'
+#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
+#'
+#' @examples
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' y = c(S=5,AB=1000)
+#'
+#' res = cv.remix(project = project,
+#'                dynFUN = dynFUN_demo,
+#'                y = y,
+#'                ObsModel.transfo = ObsModel.transfo,
+#'                alpha = alpha,
+#'                selfInit = TRUE,
+#'                eps1=10**(-2),
+#'                ncores=8,
+#'                nlambda=8,
+#'                eps2=1)
+#'
+#' plotCalibration(res)
+#' }
+plotCalibration <- function(fit,legend.position = "none",trueValue=NULL){
+  if(!inherits(fit,"cvRemix")){
+    stop("Class of fit must be cvRemix")
+  }
+
+  null <- rep(0,length(fit$info$alpha$alpha1))
+  null[as.logical(trueValue[fit$info$alpha$alpha1]!=0)] <- 1:sum(trueValue[fit$info$alpha$alpha1]!=0)
+
+  df <- data.frame()
+
+  for(i in 1:length(fit$lambda)){
+    df <- rbind(df,data.frame(parameter = fit$info$alpha$alpha1,
+                              value = fit$res[[i]]$alpha[names( fit$info$alpha$alpha1)],
+                              lambda = fit$lambda[[i]],
+                              BIC = fit$BIC[[i]],
+                              LLpen = fit$res[[i]]$LL$PenLikelihood,
+                              LL = fit$res[[i]]$LL$Likelihood.LL))
+
+  }
+
+
+  ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
+    ggplot2::theme(legend.position = legend.position) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
+
+  if(!is.null(trueValue)){
+    trueValueDF <- data.frame(parameter=fit$info$alpha$alpha1[as.logical(trueValue[fit$info$alpha$alpha1]!=0)],
+                              y=as.numeric(trueValue[fit$info$alpha$alpha1[as.logical(trueValue[fit$info$alpha$alpha1]!=0)]]),
+                              yend=as.numeric(trueValue[fit$info$alpha$alpha1[as.logical(trueValue[fit$info$alpha$alpha1]!=0)]]),
+                              null=1:sum(trueValue[fit$info$alpha$alpha1]!=0))
+
+    df <- cbind(df,null = rep(null,length(fit$lambda)))
+
+    ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=as.factor(null),group=parameter)) +
+      ggplot2::theme(legend.position = legend.position) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
+    geom_segment(data=trueValueDF,mapping=aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf)
+  }else{
+    ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
+      ggplot2::theme(legend.position = legend.position) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
+  }
+}
+
+
