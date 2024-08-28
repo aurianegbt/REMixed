@@ -43,7 +43,7 @@
 #' }
 retrieveBest <- function(fit){
   if(!inherits(fit,"cvRemix")){
-    stop("")
+    stop("Class of fit must be cvRemix")
   }
 
   argmin.id = which.min(fit$BIC)
