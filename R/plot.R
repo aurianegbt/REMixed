@@ -308,6 +308,6 @@ plotBIC <- function(fit){  if(!inherits(fit,"cvRemix")){
     ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
     ggplot2::geom_segment(y = df[which.min(df$BIC),"BIC"],yend = df[which.min(df$BIC),"BIC"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
     ggplot2::geom_point(y = df[which.min(df$BIC),"BIC"],x = df[which.min(df$BIC),"lambda"],col="indianred4",size=2) +
-    ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$BIC),"lambda"],digits=2)), x= df[which.min(df$BIC),"lambda"],y = df[which.min(df$BIC),"BIC"],hjust=-0.1,vjust=-0.2,color="indianred4",size=4)
+    ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$BIC),"lambda"],digits=2),"\nBIC.min = ",round(df[which.min(df$BIC),"BIC"],digits=2)), x= df[which.min(df$BIC),"lambda"],y = df[which.min(df$BIC),"BIC"],hjust=-0.1,vjust=-0.2,color="indianred4",size=4)
 }
 
