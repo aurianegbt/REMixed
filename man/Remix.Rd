@@ -17,13 +17,15 @@ remix(
   selfInit = FALSE,
   pop.set1 = NULL,
   pop.set2 = NULL,
+  pop.set3 = NULL,
   prune = NULL,
   n = NULL,
   parallel = TRUE,
   ncores = NULL,
   print = TRUE,
   digits = 3,
-  trueValue = NULL
+  trueValue = NULL,
+  finalSAEM = FALSE
 )
 }
 \arguments{
@@ -63,6 +65,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{pop.set2}{population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings}}).}
 
+\item{pop.set3}{population parameters setting for final estimation (see \code{\link{setPopulationParameterEstimationSettings}}).}
+
 \item{prune}{percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).}
 
 \item{n}{number of points for  gaussian quadrature (see \code{\link{gh.LL}}).}
@@ -76,6 +80,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{digits}{number of digits to print (default to 3).}
 
 \item{trueValue}{-for simulation purposes- named vector of true value for parameters.}
+
+\item{finalSAEM}{logical, if a final SAEM should be launch with respect to the final selected set.}
 }
 \value{
 a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (regulatization and population parameter names, alpha names and value of lambda used) ;\item \code{finalRes} containing loglikelihood value \code{LL}, population parameters \code{param} and regularization parameters \code{a.final} values, number of iterations \code{iter} and \code{time} needed, the \code{BIC} of the model built ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{iter.outputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}

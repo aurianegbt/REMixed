@@ -27,7 +27,8 @@ cv.remix(
   print = TRUE,
   digits = 3,
   trueValue = NULL,
-  unlinkBuildProject = TRUE
+  unlinkBuildProject = TRUE,
+  finalEstimation = FALSE
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{trueValue}{-for simulation purposes- named vector of true value for parameters.}
 
 \item{unlinkBuildProject}{logical, if the build project of each lambda should be deleted.}
+
+\item{finalSAEM}{logical, if a final SAEM should be launch with respect to the final selected set (can be time consumming).}
 }
 \value{
 a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
