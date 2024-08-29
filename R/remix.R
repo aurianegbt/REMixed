@@ -37,6 +37,7 @@
 #' @param parallel logical, if the computation should be done in parallel when possible (default TRUE).
 #' @param ncores number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
+#' @param verbose logical, if progress bar should be printed when possible.
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
 #' @param finalSAEM logical, if a final SAEM should be launch with respect to the final selected set.
@@ -94,6 +95,7 @@ remix <- function(project = NULL,
                   parallel=TRUE,
                   ncores = NULL,
                   print = TRUE,
+                  verbose=FALSE,
                   digits=3,
                   trueValue = NULL,
                   finalSAEM =FALSE){
@@ -242,6 +244,7 @@ remix <- function(project = NULL,
     sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
     to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(param0[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(param0[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
   }
+
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,
                       TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific = TRUE),
@@ -315,7 +318,7 @@ remix <- function(project = NULL,
     a.final <- setNames(taylorUpdate(alpha = currentData$alpha1,lambda = lambda, dLL = LL0$dLL, ddLL = LL0$ddLL),names(currentData$alpha1))
 
     currentData$alpha1 <- a.final
-    LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL=TRUE) - lambda * sum(abs(a.final))
+    LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL=TRUE,verbose=verbose) - lambda * sum(abs(a.final))
 
 
     if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
@@ -418,7 +421,7 @@ remix <- function(project = NULL,
     currentData0 <- currentData <- readMLX(project = final.project,
                            ObsModel.transfo = ObsModel.transfo,
                            alpha = alpha)
-    LL <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE)
+    LL <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,verbose=verbose)
     LL$ddLL <- -inflate.H.Ariane(-LL$ddLL,print=FALSE)
     LL.pen <- LL$LL - lambda* sum(abs(a.final))
 
@@ -475,7 +478,7 @@ remix <- function(project = NULL,
     currentData0 <- currentData <- readMLX(project = final.project,
                                            ObsModel.transfo = ObsModel.transfo,
                                            alpha = alpha)
-    LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL = TRUE)
+    LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,verbose = verbose,onlyLL = TRUE)
 
     estimatesfinal = re$SAEMiterations
     for(k in 1:length(alpha$alpha1)){

@@ -23,6 +23,7 @@ remix(
   parallel = TRUE,
   ncores = NULL,
   print = TRUE,
+  verbose = FALSE,
   digits = 3,
   trueValue = NULL,
   finalSAEM = FALSE
@@ -76,6 +77,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{ncores}{number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).}
 
 \item{print}{logical, if the results and algotihm steps should be displayed in the console (default to TRUE).}
+
+\item{verbose}{logical, if progress bar should be printed when possible.}
 
 \item{digits}{number of digits to print (default to 3).}
 

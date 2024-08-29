@@ -278,6 +278,7 @@ cv.remix <- function(project = NULL,
 
   keep.lines <- readLines(summary.file)
 
+
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     tryCatch({
 
@@ -294,7 +295,7 @@ cv.remix <- function(project = NULL,
       Sys.sleep(0.1)
       writeLines(keep.lines,summary.file.new)
 
-      to.cat <- paste0(" Starting algorithm n\uc2b0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
+      to.cat <- paste0(" Starting algorithm n\u00B0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
       print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
       print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
       to.cat <- paste0("       initialization...\n")
@@ -344,7 +345,7 @@ cv.remix <- function(project = NULL,
 
       ##########################       ITERATION       ###########################
       while(!stop){
-        to.cat <- paste0("       starting iteration n\uc2b0",iter," :\n")
+        to.cat <- paste0("       starting iteration n\u00B0",iter," :\n")
         if(PRINT){cat(to.cat)}
         ############ START ITERATION   ###########
         to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
@@ -453,7 +454,11 @@ cv.remix <- function(project = NULL,
         print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
         to.printEND2 <- to.print
 
-        param <- re$param[-(which(names(re$param) %in% rm.param))]
+        if(length(rm.param)==0){
+          param <- re$param
+        }else{
+          param <- re$param[-(which(names(re$param) %in% rm.param))]
+        }
 
 
         ############ ESTIMATE PENALIZED   ###########
@@ -552,19 +557,13 @@ cv.remix <- function(project = NULL,
                             TrueValue = format(signif(as.numeric(trueValue[paramtoPrint.FINAL]),digits=digits),scientific=TRUE),
                             RelativeBias = round(as.numeric((re$param[paramtoPrint.FINAL]-trueValue[paramtoPrint.FINAL])/trueValue[paramtoPrint.FINAL]),digits=digits))
         }
-        print_result(print, summary.file, to.cat = NULL, to.print = to.print)
+        # print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
         if(length(rm.param)==0){
           paramfinal <- re$param
         }else{
           paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
-
         }
-
-        to.cat <- "\n - - - <  CRITERION  > - - -     \n"
-        to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-        to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits),"\n")
-        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
         ############ outputs  ###########
       }else{
@@ -598,12 +597,18 @@ cv.remix <- function(project = NULL,
       class(results) <- "remix"
 
       to.cat <- "        DONE !\n"
-      to.cat <- paste0(to.cat,"BIC = ",results$finalRes$BIC,"\n")
-      print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+      to.cat <- "\n - - - <  CRITERION  > - - -     \n"
+      to.cat <- paste0(to.cat,"        LL : ",round(results$finalRes$LL,digits=digits))
+      to.cat <- paste0(to.cat,"\n       BIC :  ",round(results$finalRes$BIC,digits=digits),"\n")
+      print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
       to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
-      print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
-      print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
+      if(finalSAEM){
+        print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.print)
+      }else{
+        print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
+        print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
+      }
       if(PRINT){cat("\n",dashed.line)}
 
       return(results)
