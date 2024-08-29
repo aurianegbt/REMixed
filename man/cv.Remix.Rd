@@ -28,7 +28,7 @@ cv.remix(
   digits = 3,
   trueValue = NULL,
   unlinkBuildProject = TRUE,
-  finalEstimation = FALSE
+  finalSAEM = FALSE
 )
 }
 \arguments{

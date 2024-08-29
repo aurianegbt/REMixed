@@ -97,7 +97,7 @@ cv.remix <- function(project = NULL,
                      digits=3,
                      trueValue = NULL,
                      unlinkBuildProject = TRUE,
-                     finalEstimation = FALSE){
+                     finalSAEM = FALSE){
   method <- NULL
 
   ptm.first <- ptm <- proc.time()
@@ -366,7 +366,7 @@ cv.remix <- function(project = NULL,
         LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
 
         if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
-
+          print('[CALIBRATION]')
           th <- 1e-5
           step <- log(1.5)
           to.recalibrate = which(a.final!=0)
@@ -511,7 +511,7 @@ cv.remix <- function(project = NULL,
                          alpha = alpha, a.final = a.final,iter = iter ,
                          pop.set = pop.set2, pop.setFinal = pop.set3,
                          conditionalDistributionSampling = TRUE,
-                         StandardErrors = TRUE, finalEstimation = TRUE )
+                         StandardErrors = TRUE, finalSAEM = TRUE )
 
         ############ ESTIMATE PENALIZED   ###########
         to.cat <- paste0("\nEstimating log-likelihood... \n")
@@ -579,7 +579,7 @@ cv.remix <- function(project = NULL,
                                   regParam.toprint=regParam.toprint,
                                   alpha=alpha,
                                   lambda=lambda,
-                                  finalEstimation = finalEstimation),
+                                  finalSAEM = finalSAEM),
                       finalRes=list(LL=LLfinal,
                                     param=paramfinal,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],

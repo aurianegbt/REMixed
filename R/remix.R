@@ -467,7 +467,7 @@ remix <- function(project = NULL,
                      alpha = alpha, a.final = a.final,iter = iter ,
                      pop.set = pop.set2, pop.setFinal = pop.set3,
                      conditionalDistributionSampling = TRUE,
-                     StandardErrors = TRUE, finalEstimation = TRUE )
+                     StandardErrors = TRUE, finalSAEM = TRUE )
 
     ############ ESTIMATE PENALIZED   ###########
     to.cat <- paste0("\nEstimating log-likelihood... \n")
@@ -535,7 +535,7 @@ remix <- function(project = NULL,
                               regParam.toprint=regParam.toprint,
                               alpha=alpha,
                               lambda=lambda,
-                              finalEstimation = finalEstimation),
+                              finalSAEM = finalSAEM),
                   finalRes=list(LL=LLfinal,
                                 param=paramfinal,
                                 alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
@@ -681,7 +681,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
                        pop.setFinal = NULL,
                        conditionalDistributionSampling = FALSE,
                        StandardErrors = FALSE,
-                       finalEstimation = FALSE){
+                       finalSAEM = FALSE){
 
   suppressMessages({
     if (!is.null(project)){
@@ -703,7 +703,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
     stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
          call. = FALSE)
 
-  if(finalEstimation){
+  if(finalSAEM){
     pset <- list(nbsmoothingiterations=200,nbexploratoryiterations=500,
                  simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
     if(!is.null(pop.setFinal))
@@ -723,7 +723,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
 
 
   lixoftConnectors::setInitialEstimatesToLastEstimates(fixedEffectsOnly = FALSE)
-  if(finalEstimation){
+  if(finalSAEM){
     for(k in 1:length(alpha$alpha1)){
       if(a.final[k]==0){
         eval(parse(text=paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[k],"_pop=list(initialValue=0,method='FIXED'))")))
