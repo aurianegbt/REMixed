@@ -145,19 +145,15 @@ plotConvergence <- function(fit){
   }
 
 
-  iteration <- LLpen <- NULL
+  iteration <-  NULL
 
   LL.outputs <- sapply(fit$iterOutputs$LL,FUN=function(Liter){Liter$LL})
-  LLpen.outputs <- unlist(fit$iterOutputs$LL.pen)
+  LL.pen <- sapply(fit$iterOutputs$LL,FUN=function(Liter){as.numeric(Liter$LL.pen)})
 
-  if(length(LL.outputs) != length(LLpen.outputs)){
-    stop("Different number of outputs for log-likelihood and penalised log-likelihood.")
-  }
-
-  dfToPlot <- data.frame(iteration = 1:length(LL.outputs),LL=LL.outputs,LLpen=LLpen.outputs)
+  dfToPlot <- data.frame(iteration = 1:length(LL.outputs),LL=LL.outputs,LL.pen = LL.pen)
 
 
-  ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LLpen))+
+  ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LL.pen))+
     ggplot2::geom_line()+
     ggplot2::geom_point() +
     ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
@@ -217,21 +213,13 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL){
   df <- data.frame()
 
   for(i in 1:length(fit$lambda)){
-    df <- rbind(df,data.frame(parameter = fit$info$alpha$alpha1,
-                              value = fit$res[[i]]$alpha[names( fit$info$alpha$alpha1)],
+    df <- rbind(df,data.frame(parameter = unname(fit$info$alpha$alpha1),
+                              value = fit$res[[i]]$alpha,
                               lambda = fit$lambda[[i]],
                               BIC = fit$BIC[[i]],
-                              LLpen = fit$res[[i]]$LL$PenLikelihood,
-                              LL = fit$res[[i]]$LL$Likelihood.LL))
+                              LL = fit$res[[i]]$LL))
 
   }
-
-
-  ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
-    ggplot2::theme(legend.position = legend.position) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
-    ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
 
   if(!is.null(trueValue)){
     trueValueDF <- data.frame(parameter=fit$info$alpha$alpha1[as.logical(trueValue[fit$info$alpha$alpha1]!=0)],
@@ -246,7 +234,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL){
       ggplot2::geom_line() +
       ggplot2::geom_point() +
       ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
-    geom_segment(data=trueValueDF,mapping=aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf)
+    ggplot2::geom_segment(data=trueValueDF,mapping=ggplot2::aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf)
   }else{
     ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
       ggplot2::theme(legend.position = legend.position) +
@@ -304,7 +292,7 @@ plotBIC <- function(fit){  if(!inherits(fit,"cvRemix")){
   ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=BIC)) +
     ggplot2::geom_line(color="slateblue") + #ggplot2::geom_point(color="slateblue4") +
     ggplot2::ggtitle('BIC throughout the grid of \u03bb') +
-    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = element_text(size=20,color="red4"))+
+    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = ggplot2::element_text(size=20,color="red4"))+
     ggplot2::geom_segment(x = df[which.min(df$BIC),"lambda"],xend = df[which.min(df$BIC),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
     ggplot2::geom_segment(y = df[which.min(df$BIC),"BIC"],yend = df[which.min(df$BIC),"BIC"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
     ggplot2::geom_point(y = df[which.min(df$BIC),"BIC"],x = df[which.min(df$BIC),"lambda"],col="indianred4",size=2) +

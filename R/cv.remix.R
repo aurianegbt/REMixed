@@ -632,10 +632,20 @@ cv.remix <- function(project = NULL,
   finalRES = list(info = cv.res[[1]]$info,
                   lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
-                  LL = sapply(cv.res,FUN=function(f){f$finalRes$LL$Likelihood.LL}),
-                  LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL$PenLikelihood}),
+                  LL = sapply(cv.res,FUN=function(f){f$finalRes$LL}),
+                  LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL - f$info$lambda*sum(abs(as.numeric(f$finalRes$alpha)))}),
                   res = lapply(cv.res,FUN=function(f){f$finalRes}),
                   outputs = lapply(cv.res,FUN=function(f){f$iterOutputs}))
+
+  failed <- which(sapply(finalRES$res,is.null))
+  if(length(failed)!=0){
+    finalRES$lambda <- finalRES$lambda[-failed]
+    finalRES$BIC <- finalRES$BIC[-failed]
+    finalRES$LL <- finalRES$LL[-failed]
+    finalRES$LL.pen <- finalRES$LL.pen[-failed]
+    finalRES$res<- finalRES$res[-failed]
+    finalRES$outputs<- finalRES$outputs[-failed]
+  }
 
   class(finalRES) <- "cvRemix"
   return(finalRES)
