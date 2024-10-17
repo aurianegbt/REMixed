@@ -523,6 +523,7 @@ remix <- function(project = NULL,
     to.cat <- "\n - - - <  CRITERION  > - - -     \n"
     to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
     to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits),"\n")
+    to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     ############ outputs  ###########
@@ -544,7 +545,8 @@ remix <- function(project = NULL,
                                 alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                 iter=iter,
                                 time=(proc.time()-ptm.first)["elapsed"],
-                                BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)),
+                                BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
+                                eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)))),
                   iterOutputs=list(param=param.outputs,
                                    LL=LL.outputs,
                                    LL.pen = LLpen.outputs,
@@ -711,17 +713,17 @@ saemUpdate <- function(project = NULL,final.project=NULL,
                  simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
     if(!is.null(pop.setFinal))
       pset <-  modifyList(pset, pop.setFinal[intersect(names(pop.setFinal),
-                                                    names(pset))])
+                                                       names(pset))])
     pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
     pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
   }else{
     pset <- list(nbsmoothingiterations=50,nbexploratoryiterations=50,
-               simulatedannealing=F, smoothingautostop=F,exploratoryautostop=F)
+                 simulatedannealing=F, smoothingautostop=F,exploratoryautostop=F)
     if(!is.null(pop.set))
       pset <-  modifyList(pset, pop.set[intersect(names(pop.set),
-                                                       names(pset))])
-  pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
-  pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
+                                                  names(pset))])
+    pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
+    pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
   }
 
 
