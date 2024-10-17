@@ -43,7 +43,6 @@
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
 #' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
-#' @param finalSAEM logical, if a final SAEM should be launch with respect to the final selected set (can be time consumming).
 #'
 #' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 #' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
@@ -81,7 +80,7 @@ cv.remix <- function(project = NULL,
                      ObsModel.transfo,
                      alpha,
                      lambda.grid=NULL,
-                     alambda = 0.05,
+                     alambda = 0.001,
                      nlambda = 50,
                      lambda_max = NULL,
                      eps1 = 10**(-2),
@@ -96,8 +95,7 @@ cv.remix <- function(project = NULL,
                      print = TRUE,
                      digits=3,
                      trueValue = NULL,
-                     unlinkBuildProject = TRUE,
-                     finalSAEM = FALSE){
+                     unlinkBuildProject = TRUE){
   method <- NULL
 
   ptm.first <- ptm <- proc.time()
@@ -260,13 +258,16 @@ cv.remix <- function(project = NULL,
   currentData0 <- currentData <-
     readMLX(project = initial.project,ObsModel.transfo = ObsModel.transfo,alpha = alpha)
 
+
   if(is.null(lambda.grid)){
     if(is.null(lambda_max)){
       lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
                               prune = prune, parallel=FALSE,verbose=FALSE)
     }
 
+
     lambda.grid = lambda_max*(alambda**((1:nlambda)/nlambda))
+
     lambda.grid <- lambda.grid[lambda.grid!=0]
   }
 
@@ -281,7 +282,6 @@ cv.remix <- function(project = NULL,
 
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     tryCatch({
-
       prcheck(initial.project)
 
       lambda = rev(lambda.grid)[array]
@@ -295,7 +295,7 @@ cv.remix <- function(project = NULL,
       Sys.sleep(0.1)
       writeLines(keep.lines,summary.file.new)
 
-      to.cat <- paste0(" Starting algorithm n\u00B0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
+      to.cat <- paste0("\n\n Starting algorithm n\u00B0",array,"/",ntasks," with lambda = ",round(lambda,digits=digits),"...\n")
       print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
       print_result(FALSE, summary.file.new, to.cat = to.cat, to.print = NULL)
       to.cat <- paste0("       initialization...\n")
@@ -501,90 +501,22 @@ cv.remix <- function(project = NULL,
         a.ini0 <- a.ini <-  a.final
         iter = iter + 1
       }
-      if(finalSAEM){
-        to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
-        to.cat <- c(to.cat,dashed.line)
-        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-        to.cat <- c("                 FINAL ITERATION \n\n")
-        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-        ptm <- proc.time()
+      LLfinal <- LL$LL
+      paramfinal <- param
 
-
-        to.cat <- paste0("\nComputing final SAEM... \n")
-        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-        re <- saemUpdate(project = final.project, final.project = final.project,
-                         alpha = alpha, a.final = a.final,iter = iter ,
-                         pop.set = pop.set2, pop.setFinal = pop.set3,
-                         conditionalDistributionSampling = TRUE,
-                         StandardErrors = TRUE, finalSAEM = TRUE )
-
-        ############ ESTIMATE PENALIZED   ###########
-        to.cat <- paste0("\nEstimating log-likelihood... \n")
-        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-        currentData0 <- currentData <- readMLX(project = final.project,
-                                               ObsModel.transfo = ObsModel.transfo,
-                                               alpha = alpha)
-        LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL = TRUE)
-
-        estimatesfinal = re$SAEMiterations
-        for(k in 1:length(alpha$alpha1)){
-          if(a.final[k]==0){
-            cmd = paste0("estimatesfinal <- dplyr::mutate(estimatesfinal,",alpha$alpha1[k],"_pop =",a.final[k],")")
-            eval(parse(text=cmd))
-          }
-        }
-
-        ################### RENDER FINAL ESTIMATION #########################
-
-        to.cat <- "\n      - - - <  FINAL PARAMETERS  > - - -     \n\n"
-        print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
-
-
-        sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-        paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
-        sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
-
-
-        to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[paramtoPrint.FINAL])
-        row.names(to.print) <- paramtoPrint.FINAL
-        if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
-          sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-          sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
-          to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[paramtoPrint.FINAL]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[paramtoPrint.FINAL]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
-        }
-        if(!is.null(trueValue)){
-          to.print <- cbind(to.print,
-                            TrueValue = format(signif(as.numeric(trueValue[paramtoPrint.FINAL]),digits=digits),scientific=TRUE),
-                            RelativeBias = round(as.numeric((re$param[paramtoPrint.FINAL]-trueValue[paramtoPrint.FINAL])/trueValue[paramtoPrint.FINAL]),digits=digits))
-        }
-        # print_result(print, summary.file, to.cat = NULL, to.print = to.print)
-
-        if(length(rm.param)==0){
-          paramfinal <- re$param
-        }else{
-          paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
-        }
-
-        ############ outputs  ###########
-      }else{
-        LLfinal <- LL$LL
-        paramfinal <- param
-
-      }
-
-      lixoftConnectors::saveProject(final.project)
+      # lixoftConnectors::saveProject(final.project)
 
       results <- list(info = list(param.toprint=param.toprint,
                                   regParam.toprint=regParam.toprint,
                                   alpha=alpha,
-                                  lambda=lambda,
-                                  finalSAEM = finalSAEM),
+                                  lambda=lambda),
                       finalRes=list(LL=LLfinal,
                                     param=paramfinal,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
-                                    BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)),
+                                    BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
+                                    eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)))),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,
                                        LL.pen = LLpen.outputs,
@@ -597,23 +529,20 @@ cv.remix <- function(project = NULL,
       class(results) <- "remix"
 
       to.cat <- "        DONE !\n"
-      to.cat <- "\n - - - <  CRITERION  > - - -     \n"
+      to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
       to.cat <- paste0(to.cat,"        LL : ",round(results$finalRes$LL,digits=digits))
       to.cat <- paste0(to.cat,"\n       BIC :  ",round(results$finalRes$BIC,digits=digits),"\n")
-      print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      to.cat <- paste0(to.cat,"\n      eBIC :  ",round(results$finalRes$eBIC,digits=digits),"\n")
+      print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
       to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
-      if(finalSAEM){
-        print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.print)
-      }else{
         print_result(PRINT, summary.file, to.cat = to.cat, to.print = to.printEND)
         print_result(PRINT, summary.file, to.cat = NULL, to.print = to.printEND2)
-      }
       if(PRINT){cat("\n",dashed.line)}
 
       return(results)
     },error=function(e){
-      message(paste0("Caught an error for lambda =",rev(lambda.grid)[array]," :\n\t>", e$message))
+      message(paste0("Caught an error for lambda =",rev(lambda.grid)[array]," :\n\t>\t ", e$message))
       })
   })
 
@@ -632,6 +561,7 @@ cv.remix <- function(project = NULL,
   finalRES = list(info = cv.res[[1]]$info,
                   lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
+                  eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),
                   LL = sapply(cv.res,FUN=function(f){f$finalRes$LL}),
                   LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL - f$info$lambda*sum(abs(as.numeric(f$finalRes$alpha)))}),
                   res = lapply(cv.res,FUN=function(f){f$finalRes}),
@@ -641,6 +571,7 @@ cv.remix <- function(project = NULL,
   if(length(failed)!=0){
     finalRES$lambda <- finalRES$lambda[-failed]
     finalRES$BIC <- finalRES$BIC[-failed]
+    finalRES$eBIC <- finalRES$eBIC[-failed]
     finalRES$LL <- finalRES$LL[-failed]
     finalRES$LL.pen <- finalRES$LL.pen[-failed]
     finalRES$res<- finalRES$res[-failed]
