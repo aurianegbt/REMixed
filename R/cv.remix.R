@@ -558,7 +558,7 @@ cv.remix <- function(project = NULL,
     snow::stopCluster(cluster)
   }
 
-  finalRES = list(info = cv.res[[1]]$info,
+  finalRES = list(info = cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","finalSAEM")],
                   lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
                   eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),

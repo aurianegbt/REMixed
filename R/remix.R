@@ -297,7 +297,6 @@ remix <- function(project = NULL,
   param.outputs <- param0
   crit.outputs <- data.frame()
 
-
   stop <- F
   iter =  1
   crit1 <- crit2 <- critb <- 1
@@ -455,6 +454,7 @@ remix <- function(project = NULL,
     a.ini0 <- a.ini <- a.final
     iter = iter + 1
   }
+
   if(finalSAEM){
     to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
     to.cat <- c(to.cat,dashed.line)
