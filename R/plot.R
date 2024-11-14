@@ -247,7 +247,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 
 #' BIC plot.
 #'
-#' @param fit fit object of class cvRemix, from \code{\link{cv.remix}};s
+#' @param fit fit object of class cvRemix, from \code{\link{cv.remix}};
 #' @param criterion which criterion among "BIC" and "eBIC" to take into account.
 #'
 #' @return BIC trhoughout the lambda.grid.
