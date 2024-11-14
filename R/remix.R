@@ -41,6 +41,9 @@
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
 #' @param finalSAEM logical, if a final SAEM should be launch with respect to the final selected set.
+#' @param test if Wald test should be computed at the end of the iteration.
+#' @param p.max maximum value to each for wald test p.value (default 0.05).
+#' @param max.iter maximum number of iterations (default 20).
 #'
 #' @seealso \code{\link{cv.remix}}.
 #' @return a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (regulatization and population parameter names, alpha names and value of lambda used) ;\item \code{finalRes} containing loglikelihood value \code{LL}, population parameters \code{param} and regularization parameters \code{a.final} values, number of iterations \code{iter} and \code{time} needed, the \code{BIC} of the model built ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{iter.outputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
@@ -98,11 +101,12 @@ remix <- function(project = NULL,
                   verbose=FALSE,
                   digits=3,
                   trueValue = NULL,
-                  finalSAEM =FALSE){
+                  finalSAEM =FALSE,
+                  test=FALSE,
+                  max.iter = 20,
+                  p.max=0.05){
 
   method <- NULL
-
-
 
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"
@@ -302,7 +306,8 @@ remix <- function(project = NULL,
   crit1 <- crit2 <- critb <- 1
 
   ##########################       ITERATION       ###########################
-  while(!stop){
+  while(!stop & iter<=max.iter){
+    iter <- iter + 1
     ############ START ITERATION   ###########
     to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
     to.cat <- c(to.cat,dashed.line)
@@ -473,7 +478,7 @@ remix <- function(project = NULL,
                      StandardErrors = TRUE, finalSAEM = TRUE )
 
     ############ ESTIMATE PENALIZED   ###########
-    to.cat <- paste0("\nEstimating log-likelihood... \n")
+    to.cat <- paste0("Estimating log-likelihood... \n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
     currentData0 <- currentData <- readMLX(project = final.project,
                                            ObsModel.transfo = ObsModel.transfo,
@@ -494,35 +499,138 @@ remix <- function(project = NULL,
     print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
 
 
-    sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-    paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
-    sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
+    sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation[,-3]
+    sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
+    # paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
+    # sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
 
 
-    to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[paramtoPrint.FINAL])
-    row.names(to.print) <- paramtoPrint.FINAL
-    if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
-      sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-      sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
-      to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[paramtoPrint.FINAL]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[paramtoPrint.FINAL]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
-    }
+    to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)}))
+
+    sd.est <- merge(data.frame(parameter=names(re$param),EstimatedValue=unname(re$param)),sd.est,by="parameter")
+    sd.est <- cbind(sd.est,CI_95=sapply(1:nrow(sd.est),FUN=function(i){ifelse(!is.na(sd.est$se[i]),paste0("[",format(signif(sd.est$EstimatedValue[i]-1.96*sd.est$se[i],digits=digits),scientific=TRUE),";",format(signif(sd.est$EstimatedValue[i]+1.96*sd.est$se[i],digits=digits),scientific=TRUE),"]")," ")}))
+    rownames(sd.est) <- sd.est$parameter
+    sd.est <- sd.est[rownames(to.print),-1]
+
+    to.print <- dplyr::mutate(dplyr::mutate(sd.est,EstimatedValue = sapply(sd.est$EstimatedValue,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})),se=sapply(sd.est$se,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)}))
+    to.print$se[to.print$se=="NA"] <- " "
+
     if(!is.null(trueValue)){
       to.print <- cbind(to.print,
-                        TrueValue = format(signif(as.numeric(trueValue[paramtoPrint.FINAL]),digits=digits),scientific=TRUE),
-                        RelativeBias = round(as.numeric((re$param[paramtoPrint.FINAL]-trueValue[paramtoPrint.FINAL])/trueValue[paramtoPrint.FINAL]),digits=digits))
+                        TrueValue = format(signif(as.numeric(trueValue[rownames(to.print)]),digits=digits),scientific=TRUE),
+                        RelativeBias = round(as.numeric((re$param[rownames(to.print)]-trueValue[rownames(to.print)])/trueValue[rownames(to.print)]),digits=digits))
     }
-    print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
     if(length(rm.param)==0){
       paramfinal <- re$param
     }else{
       paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
+    }
+    print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
+    if(test){
+      to.cat <- "\nComputing Wald test (with null hypothesis alpha1=0)...\n"
+      print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+
+      ST <- lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
+      ST <- merge(ST[ST$parameter %in% regParam.toprint,,drop=FALSE],data.frame(parameter=ST$parameter,ES=re$param[ST$parameter]),by="parameter")
+
+      ST <- dplyr::mutate(ST,stat.test=abs(ST$ES/ST$se))
+      ST <- dplyr::mutate(ST,p.value=2*(1-pnorm(stat.test)))
+      ST <- dplyr::mutate(ST," "=ifelse(p.value<=p.max,paste0("<",p.max)," "))
+
+      if(!is.null(trueValue)){
+        aux.print <- dplyr::mutate(merge(data.frame(parameter=rownames(to.print),dplyr::select(to.print,-RelativeBias)),ST[,c("parameter","stat.test","p.value"," ")],by="parameter",all.x = TRUE),stat.test=round(stat.test,digits=digits))
+      }else{
+        aux.print <- dplyr::mutate(dplyr::mutate(merge(data.frame(parameter=rownames(to.print),to.print),ST[,c("parameter","stat.test","p.value"," ")],by="parameter",all.x = TRUE),stat.test=round(stat.test,digits=digits)),p.value=round(p.value,digits=digits))
+      }
+      aux.print[is.na(aux.print$stat.test),"stat.test"] <- " "
+      aux.print[is.na(aux.print$p.value),"p.value"] <- " "
+      aux.print[is.na(aux.print$` `)," "] <- " "
+      rownames(aux.print) <- aux.print$parameter
+      aux.print <- dplyr::select(aux.print,-parameter)
+
+      to.print <- aux.print[rownames(to.print),]
+      to.print <- to.print[regParam.toprint,-2]
+      print_result(print, summary.file, to.cat = NULL, to.print = to.print)
+
+      if(any(ST$p.value>p.max)){
+        a.final[names(alpha$alpha1[which(alpha$alpha1 %in% stringr::str_remove_all(ST[ST$p.value>p.max,"parameter"],"_pop"))])] <- 0
+        to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
+        to.cat <- c(to.cat,dashed.line)
+        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+        to.cat <- c("                 (re)FINAL ITERATION \n\n")
+        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+        ptm <- proc.time()
+
+
+        to.cat <- paste0("\nComputing final SAEM... \n")
+        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+        re <- saemUpdate(project = final.project, final.project = final.project,
+                         alpha = alpha, a.final = a.final,iter = iter ,
+                         pop.set = pop.set2, pop.setFinal = pop.set3,
+                         conditionalDistributionSampling = TRUE,
+                         StandardErrors = TRUE, finalSAEM = TRUE)
+
+        ############ ESTIMATE PENALIZED   ###########
+        to.cat <- paste0("Estimating log-likelihood... \n")
+        print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+        currentData0 <- currentData <- readMLX(project = final.project,
+                                               ObsModel.transfo = ObsModel.transfo,
+                                               alpha = alpha)
+        LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,verbose = verbose,onlyLL = TRUE)
+
+        estimatesfinal = re$SAEMiterations
+        for(k in 1:length(alpha$alpha1)){
+          if(a.final[k]==0){
+            cmd = paste0("estimatesfinal <- dplyr::mutate(estimatesfinal,",alpha$alpha1[k],"_pop =",a.final[k],")")
+            eval(parse(text=cmd))
+          }
+        }
+
+        ################### RENDER FINAL ESTIMATION #########################
+
+        to.cat <- "\n      - - - <  FINAL PARAMETERS  > - - -     \n\n"
+        print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
+
+
+        sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation[,-3]
+        sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
+        # paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
+        # sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
+
+
+        to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)}))
+
+        sd.est <- merge(data.frame(parameter=names(re$param),EstimatedValue=unname(re$param)),sd.est,by="parameter")
+        sd.est <- cbind(sd.est,CI_95=sapply(1:nrow(sd.est),FUN=function(i){ifelse(!is.na(sd.est$se[i]),paste0("[",format(signif(sd.est$EstimatedValue[i]-1.96*sd.est$se[i],digits=digits),scientific=TRUE),";",format(signif(sd.est$EstimatedValue[i]+1.96*sd.est$se[i],digits=digits),scientific=TRUE),"]")," ")}))
+        rownames(sd.est) <- sd.est$parameter
+        sd.est <- sd.est[rownames(to.print),-1]
+
+        to.print <- dplyr::mutate(dplyr::mutate(sd.est,EstimatedValue = sapply(sd.est$EstimatedValue,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})),se=sapply(sd.est$se,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)}))
+        to.print$se[to.print$se=="NA"] <- " "
+
+        if(!is.null(trueValue)){
+          to.print <- cbind(to.print,
+                            TrueValue = format(signif(as.numeric(trueValue[rownames(to.print)]),digits=digits),scientific=TRUE),
+                            RelativeBias = round(as.numeric((re$param[rownames(to.print)]-trueValue[rownames(to.print)])/trueValue[rownames(to.print)]),digits=digits))
+        }
+
+        if(length(rm.param)==0){
+          paramfinal <- re$param
+        }else{
+          paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
+        }
+        print_result(print, summary.file, to.cat = NULL, to.print = to.print)
+      }
+    }else{
+      print_result(print, summary.file, to.cat = NULL, to.print = to.print)
     }
 
-    to.cat <- "\n - - - <  CRITERION  > - - -     \n"
+
+    to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
     to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits),"\n")
+    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
     to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
@@ -546,7 +654,8 @@ remix <- function(project = NULL,
                                 iter=iter,
                                 time=(proc.time()-ptm.first)["elapsed"],
                                 BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
-                                eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)))),
+                                eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
+                                standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
                   iterOutputs=list(param=param.outputs,
                                    LL=LL.outputs,
                                    LL.pen = LLpen.outputs,

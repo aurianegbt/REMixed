@@ -26,7 +26,10 @@ remix(
   verbose = FALSE,
   digits = 3,
   trueValue = NULL,
-  finalSAEM = FALSE
+  finalSAEM = FALSE,
+  test = FALSE,
+  max.iter = 20,
+  p.max = 0.05
 )
 }
 \arguments{
@@ -85,6 +88,12 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{trueValue}{-for simulation purposes- named vector of true value for parameters.}
 
 \item{finalSAEM}{logical, if a final SAEM should be launch with respect to the final selected set.}
+
+\item{test}{if Wald test should be computed at the end of the iteration.}
+
+\item{max.iter}{maximum number of iterations (default 20).}
+
+\item{p.max}{maximum value to each for wald test p.value (default 0.05).}
 }
 \value{
 a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (regulatization and population parameter names, alpha names and value of lambda used) ;\item \code{finalRes} containing loglikelihood value \code{LL}, population parameters \code{param} and regularization parameters \code{a.final} values, number of iterations \code{iter} and \code{time} needed, the \code{BIC} of the model built ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{iter.outputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}

@@ -12,7 +12,7 @@ cv.remix(
   ObsModel.transfo,
   alpha,
   lambda.grid = NULL,
-  alambda = 0.05,
+  alambda = 0.001,
   nlambda = 50,
   lambda_max = NULL,
   eps1 = 10^(-2),
@@ -28,7 +28,7 @@ cv.remix(
   digits = 3,
   trueValue = NULL,
   unlinkBuildProject = TRUE,
-  finalSAEM = FALSE
+  max.iter = 20
 )
 }
 \arguments{
@@ -90,7 +90,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{unlinkBuildProject}{logical, if the build project of each lambda should be deleted.}
 
-\item{finalSAEM}{logical, if a final SAEM should be launch with respect to the final selected set (can be time consumming).}
+\item{max.iter}{maximum number of iteration (default 20).}
 }
 \value{
 a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
