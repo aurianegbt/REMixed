@@ -43,6 +43,7 @@
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
 #' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
+#' @param max.iter maximum number of iteration (default 20).
 #'
 #' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 #' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
@@ -95,7 +96,8 @@ cv.remix <- function(project = NULL,
                      print = TRUE,
                      digits=3,
                      trueValue = NULL,
-                     unlinkBuildProject = TRUE){
+                     unlinkBuildProject = TRUE,
+                     max.iter=20){
   method <- NULL
 
   ptm.first <- ptm <- proc.time()
@@ -344,7 +346,8 @@ cv.remix <- function(project = NULL,
 
 
       ##########################       ITERATION       ###########################
-      while(!stop){
+      while(!stop & iter <=max.iter){
+        iter <- iter + 1
         to.cat <- paste0("       starting iteration n\u00B0",iter," :\n")
         if(PRINT){cat(to.cat)}
         ############ START ITERATION   ###########
@@ -516,7 +519,8 @@ cv.remix <- function(project = NULL,
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
                                     BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
-                                    eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)))),
+                                    eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
+                                    tandardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,
                                        LL.pen = LLpen.outputs,
