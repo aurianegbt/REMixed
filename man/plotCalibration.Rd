@@ -4,7 +4,12 @@
 \alias{plotCalibration}
 \title{Calibration plot.}
 \usage{
-plotCalibration(fit, legend.position = "none", trueValue = NULL)
+plotCalibration(
+  fit,
+  legend.position = "none",
+  trueValue = NULL,
+  criterion = "BIC"
+)
 }
 \arguments{
 \item{fit}{fit object of class cvRemix, from \code{\link{cv.remix}}.}
@@ -12,6 +17,8 @@ plotCalibration(fit, legend.position = "none", trueValue = NULL)
 \item{legend.position}{(default NULL)     the default position of legends ("none", "left", "right", "bottom", "top", "inside").}
 
 \item{trueValue}{(for simulation purpose) named vector containing the true value of regularization parameter.}
+
+\item{criterion}{which criterion among "BIC" and "eBIC" to take into account ;}
 }
 \value{
 Calibration plot, over the lambda.grid.

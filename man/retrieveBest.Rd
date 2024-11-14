@@ -4,10 +4,12 @@
 \alias{retrieveBest}
 \title{Remix results}
 \usage{
-retrieveBest(fit)
+retrieveBest(fit, criterion = "BIC")
 }
 \arguments{
-\item{fit}{output of \code{\link{cv.remix}}.}
+\item{fit}{output of \code{\link{cv.remix}};}
+
+\item{criterion}{which criterion among "BIC" and "eBIC" to take into account.}
 }
 \value{
 outputs from \code{\link{remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.remix}}.

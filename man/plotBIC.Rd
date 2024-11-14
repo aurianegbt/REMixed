@@ -4,10 +4,12 @@
 \alias{plotBIC}
 \title{BIC plot.}
 \usage{
-plotBIC(fit)
+plotBIC(fit, criterion = "BIC")
 }
 \arguments{
-\item{fit}{fit object of class cvRemix, from \code{\link{cv.remix}}.}
+\item{fit}{fit object of class cvRemix, from \code{\link{cv.remix}};}
+
+\item{criterion}{which criterion among "BIC" and "eBIC" to take into account.}
 }
 \value{
 BIC trhoughout the lambda.grid.

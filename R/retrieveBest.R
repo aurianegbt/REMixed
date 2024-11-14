@@ -3,7 +3,8 @@
 #' Extracts the build minimizing the BIC over a grid of lambda.
 #'
 #'
-#' @param fit output of \code{\link{cv.remix}}.
+#' @param fit output of \code{\link{cv.remix}};
+#' @param criterion which criterion among "BIC" and "eBIC" to take into account.
 #'
 #' @return outputs from \code{\link{remix}} algorithm achieving the best BIC among those computed by \code{\link{cv.remix}}.
 #' @export
@@ -41,12 +42,12 @@
 #'
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
-retrieveBest <- function(fit){
+retrieveBest <- function(fit,criterion="BIC"){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
 
-  argmin.id = which.min(fit$BIC)
+  argmin.id = which.min(fit[[criterion]])
 
   results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id])),
                  finalRes = fit$res[[argmin.id]],
