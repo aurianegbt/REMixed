@@ -27,7 +27,7 @@ remix(
   digits = 3,
   trueValue = NULL,
   finalSAEM = FALSE,
-  test = FALSE,
+  test = TRUE,
   max.iter = 20,
   p.max = 0.05
 )
