@@ -102,7 +102,7 @@ remix <- function(project = NULL,
                   digits=3,
                   trueValue = NULL,
                   finalSAEM =FALSE,
-                  test=FALSE,
+                  test=TRUE,
                   max.iter = 20,
                   p.max=0.05){
 
@@ -477,6 +477,8 @@ remix <- function(project = NULL,
                      conditionalDistributionSampling = TRUE,
                      StandardErrors = TRUE, finalSAEM = TRUE )
 
+    saemFinal <- re
+
     ############ ESTIMATE PENALIZED   ###########
     to.cat <- paste0("Estimating log-likelihood... \n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
@@ -499,7 +501,7 @@ remix <- function(project = NULL,
     print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
 
 
-    sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation[,-3]
+    sd.est = re$standardErrors$stochasticApproximation[,-3]
     sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
     # paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
     # sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
@@ -647,7 +649,9 @@ remix <- function(project = NULL,
                               regParam.toprint=regParam.toprint,
                               alpha=alpha,
                               lambda=lambda,
-                              finalSAEM = finalSAEM),
+                              finalSAEM = finalSAEM,
+                              test=test,
+                              p.max=p.max),
                   finalRes=list(LL=LLfinal,
                                 param=paramfinal,
                                 alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
@@ -655,7 +659,8 @@ remix <- function(project = NULL,
                                 time=(proc.time()-ptm.first)["elapsed"],
                                 BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
                                 eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
-                                standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
+                                standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
+                                saemBeforeTest=if(test){saemFinal}else{NULL}),
                   iterOutputs=list(param=param.outputs,
                                    LL=LL.outputs,
                                    LL.pen = LLpen.outputs,
@@ -864,7 +869,8 @@ saemUpdate <- function(project = NULL,final.project=NULL,
   lixoftConnectors::saveProject(final.project)
 
   re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
-            param = lixoftConnectors::getEstimatedPopulationParameters())
+            param = lixoftConnectors::getEstimatedPopulationParameters(),
+            standardErrors=lixoftConnectors::getEstimatedStandardErrors())
   return(re)
 }
 
