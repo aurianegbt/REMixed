@@ -136,6 +136,8 @@ gh.LL <- function(
   }
 
 
+
+
   res = foreach::foreach(i = 1:N,.packages = "REMix",.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
@@ -154,6 +156,7 @@ gh.LL <- function(
                     Serr = Serr,
                     Rerr = Rerr,
                     ObsModel.transfo = ObsModel.transfo,
+                    ind = i,
                     n = n,
                     prune = prune,
                     onlyLL = onlyLL)
@@ -284,11 +287,12 @@ gh.LL.ind <- function(
   }),paste0("eta_",1:nd))
 
   # Compute marginal latent density for each individual and value of RE
-  R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+  R.margDensity <- setNames(lapply(1:nd,FUN=function(ei){
     dyn.ei = dyn[[paste0("eta_",ei)]]
 
+    # .Machine$double.xmin
 
-    res = prod(sapply(1:R.sz,FUN=function(k){
+    little_marg = sapply(1:R.sz,FUN=function(k){
       yGk = ObsModel.transfo$linkR[k]
       sig = Rerr[[yGk]]
       tki = Robs_i[[yGk]]$time
@@ -300,10 +304,23 @@ gh.LL.ind <- function(
       Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
       prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
-    }))
+    })
+
+    if(any(little_marg==0)){
+      stop("Error in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
+    }
+
+    decomp_marg = lapply(little_marg,decomp)
+
+    decomp_intermediaire = decomp(prod(sapply(decomp_marg,FUN=function(decomp){decomp["mantissa"]})))
+
+    mantissa_res = decomp_intermediaire["mantissa"]
+    exponent_res = sum(sapply(decomp_marg,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+    return(c(exponent_res,mantissa_res))
   }),paste0("eta_",1:nd))
 
-  # Compute marginal density for each individual and value of RE
+ # Compute marginal density for each individual and value of RE
   if(S.sz!=0){
     S.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
       eta_i = split(mh.parm$Points,1:nd)[[ei]]
@@ -327,15 +344,34 @@ gh.LL.ind <- function(
     }),paste0("eta_",1:nd))
   }
 
+
+
   # Compute individual log-Likelihood
-  Li = sum(mh.parm$Weights*R.margDensity*S.margDensity)
-  LLi = log(Li)
+  Li.aux = lapply(1:nd,function(ei){
+    decomp_intermediaire = decomp(mh.parm$Weights[[ei]]*R.margDensity[[ei]][["mantissa"]]*S.margDensity[[ei]])
+
+    mantissa_res = decomp_intermediaire["mantissa"]
+    exponent_res = R.margDensity[[ei]][["exponent"]] + decomp_intermediaire["exponent"]
+
+    return(c(exponent_res,mantissa_res))
+  })
+  max_exponent <- max(sapply(Li.aux, function(x) x[["exponent"]]))
+  decomp.aux <- decomp(sum(sapply(Li.aux,function(li){
+    return(li[["mantissa"]]*10**(li[["exponent"]] - max_exponent))
+  })))
+
+  Li = c(exponent=(max_exponent+decomp.aux[["exponent"]]),mantissa=decomp.aux[["mantissa"]])
+    # sum(mh.parm$Weights*R.margDensity*S.margDensity)
+  invLi.aux = decomp(1/Li[["mantissa"]])
+  invLi = c(exponent=-Li[["exponent"]]+invLi.aux[["exponent"]],mantissa=invLi.aux[["mantissa"]])
+  # ln(p*10**o)=ln(p)+ln(10**o)=ln(p)+o*ln(10)
+  LLi = log(Li[["mantissa"]])+Li[["exponent"]]*log(10)
 
   if(!onlyLL){
     # Compute  gradient of individual log-Likelihood
     # dim.alpha = length(alpha1) # = K = length(Robs_i )
     dfact = lapply(1:R.sz,FUN=function(k){
-      setNames(sapply(1:nd,FUN=function(ei){
+      f = setNames(sapply(1:nd,FUN=function(ei){
         dyn.ei = dyn[[paste0("eta_",ei)]]
         yGk = ObsModel.transfo$linkR[k]
         sig = Rerr[[yGk]]
@@ -352,7 +388,23 @@ gh.LL.ind <- function(
     })
 
     dLLi = sapply(dfact,FUN=function(f){
-      return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+      res.aux <- lapply(1:nd,function(ei){
+        decomp_intermediaire = decomp(mh.parm$Weights[[ei]]*f[[ei]]*R.margDensity[[ei]][["mantissa"]]*S.margDensity[[ei]])
+
+        mantissa_res = decomp_intermediaire["mantissa"]
+        exponent_res = R.margDensity[[ei]][["exponent"]] + decomp_intermediaire["exponent"]
+
+        return(c(exponent_res,mantissa_res))
+      })
+      max_exponent <- max(sapply(res.aux, function(x) x[["exponent"]]))
+      decomp.aux <- decomp(sum(sapply(res.aux,function(ri){
+        return(ri[["mantissa"]]*10**(ri[["exponent"]] - max_exponent))
+      })))
+
+      aux =c(exponent=(max_exponent+decomp.aux[["exponent"]]),mantissa=decomp.aux[["mantissa"]])
+
+     return(invLi[["mantissa"]]*aux[["mantissa"]]*10**(invLi[["exponent"]]+aux[["exponent"]]))
+       # 1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
     })
 
     # Compute hessienne of individual log-Likelihood
@@ -378,8 +430,25 @@ gh.LL.ind <- function(
     })
 
     diag(ddLLi) = sapply(ddfact,FUN=function(f){
-      return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+      res.aux <- lapply(1:nd,function(ei){
+        decomp_intermediaire = decomp(mh.parm$Weights[[ei]]*f[[ei]]*R.margDensity[[ei]][["mantissa"]]*S.margDensity[[ei]])
+
+        mantissa_res = decomp_intermediaire["mantissa"]
+        exponent_res = R.margDensity[[ei]][["exponent"]] + decomp_intermediaire["exponent"]
+
+        return(c(exponent_res,mantissa_res))
+      })
+      max_exponent <- max(sapply(res.aux, function(x) x[["exponent"]]))
+      decomp.aux <- decomp(sum(sapply(res.aux,function(ri){
+        return(ri[["mantissa"]]*10**(ri[["exponent"]] - max_exponent))
+      })))
+
+      aux =c(exponent=(max_exponent+decomp.aux[["exponent"]]),mantissa=decomp.aux[["mantissa"]])
+
+      return(invLi[["mantissa"]]*aux[["mantissa"]]*10**(invLi[["exponent"]]+aux[["exponent"]]))
+      # return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
     })-(dLLi)**2
+
 
     # non diagonal term
     for(k1 in 1:R.sz){
@@ -405,14 +474,30 @@ gh.LL.ind <- function(
             }))
           }),paste0("eta_",1:nd))
 
-          ddLLi[k1,k2] <- ddLLi[k2,k1] <- 1/Li*sum(mh.parm$Weights*ddfact*R.margDensity*S.margDensity)-prod(dLLi[c(k1,k2)])
+          # ddLLi[k1,k2] <- ddLLi[k2,k1] <- 1/Li*sum(mh.parm$Weights*ddfact*R.margDensity*S.margDensity)-prod(dLLi[c(k1,k2)])
+          res.aux <- lapply(1:nd,function(ei){
+            decomp_intermediaire = decomp(mh.parm$Weights[[ei]]*ddfact[[ei]]*R.margDensity[[ei]][["mantissa"]]*S.margDensity[[ei]])
+
+            mantissa_res = decomp_intermediaire["mantissa"]
+            exponent_res = R.margDensity[[ei]][["exponent"]] + decomp_intermediaire["exponent"]
+
+            return(c(exponent_res,mantissa_res))
+          })
+          max_exponent <- max(sapply(res.aux, function(x) x[["exponent"]]))
+          decomp.aux <- decomp(sum(sapply(res.aux,function(ri){
+            return(ri[["mantissa"]]*10**(ri[["exponent"]] - max_exponent))
+          })))
+
+          aux =c(exponent=(max_exponent+decomp.aux[["exponent"]]),mantissa=decomp.aux[["mantissa"]])
+
+          ddLLi[k1,k2] <- ddLLi[k2,k1] <- (invLi[["mantissa"]]*aux[["mantissa"]]*10**(invLi[["exponent"]]+aux[["exponent"]])) - prod(dLLi[c(k1,k2)])
         }
       }
     }
   }else{
     dLLi <- ddLLi <- NULL
   }
-  return(list(Li=Li,LLi=LLi,dLLi=dLLi,ddLLi=ddLLi))
+  return(list(Li=Li[["mantissa"]]*10**(Li[["exponent"]]),LLi=LLi,dLLi=dLLi,ddLLi=ddLLi))
 }
 
 
@@ -714,3 +799,245 @@ lambda.max  <- function(
     snow::stopCluster(cluster)
   return(max(Reduce("+",res)))
 }
+
+decomp <- function(x){
+  exponent_x <- floor(log10(abs(x))) # Exponent
+  exponent_lim <- abs(floor(log10(.Machine$double.xmin)))
+
+  if(abs(exponent_x)>exponent_lim){
+    mantissa_x <- x*10**(-sign(exponent_x)*(exponent_lim-1))
+    mantissa_x <- mantissa_x*10**(-(exponent_x+(exponent_lim-1)))
+  }else{
+    mantissa_x <- x*10**(-exponent_x)
+  }
+
+  return(c(exponent=exponent_x,mantissa=mantissa_x))
+}
+#
+# gh.LL.ind_OLD <- function(
+#     dynFUN,
+#     y,
+#     mu_i=NULL,
+#     Omega_i=NULL,
+#     theta=NULL,
+#     alpha1=NULL,
+#     covariates_i=NULL,
+#     ParModel.transfo=NULL,
+#     ParModel.transfo.inv=NULL,
+#     Sobs_i=NULL,
+#     Robs_i=NULL,
+#     Serr=NULL,
+#     Rerr=NULL,
+#     ObsModel.transfo=NULL,
+#     data=NULL,
+#     ind = NULL,
+#     n = NULL,
+#     prune=NULL,
+#     onlyLL=FALSE){
+#
+#   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
+#
+#   if(is.null(data)){
+#     test <- sapply(c("mu_i","Omega_i","theta","alpha1","covariates_i","ParModel.transfo","ParModel.transfo.inv","Sobs_i","Robs_i","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
+#     if(any(test))
+#       stop("Please provide all necessary arguments.")
+#   }else{
+#     if((is.null(mu_i) || is.null(Omega_i)) & !all(c("mu","Omega") %in% names(data))){
+#       stop("Please provide mu and Omega if these are missing from data.")
+#     }
+#     argsNONind = c("theta","alpha1","ParModel.transfo","ParModel.transfo.inv","Serr","Rerr","ObsModel.transfo")
+#     for(d in 1:length(argsNONind)){
+#       test <- eval(parse(text=paste0("is.null(",argsNONind[d],")")))
+#       if(test){
+#         eval(parse(text=paste0(argsNONind[d],"<- data[[argsNONind[d]]]")))
+#       }
+#     }
+#     argsInd = c("mu","Omega","Robs","Sobs","covariates")
+#     for(d in 1:length(argsInd)){
+#       test <- eval(parse(text=paste0("is.null(",paste0(argsInd[d],"_i"),")")))
+#       if(test){
+#         eval(parse(text=paste0(argsInd[d],"<- data[[argsInd[d]]]")))
+#
+#       }
+#     }
+#     if((is.null(mu_i) || is.null(Omega_i) || is.null(Robs_i) || is.null(Sobs_i) || is.null(covariates_i)) & is.null(ind)){
+#       stop("Please provide individual information (mu_i,Omega_i,Sobs_i,Robs_i,covariates_i), or the individual id ind.")
+#     }
+#     if(is.null(mu_i)){
+#       mu_i = mu[[ind]]
+#     }
+#     if(is.null(Omega_i)){
+#       Omega_i = Omega[[ind]]
+#     }
+#     if(is.null(Sobs_i)){
+#       Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==ind,]})
+#     }
+#     if(is.null(Robs_i)){
+#       Robs_i = lapply(Robs,FUN=function(R){R[R$id==ind,]})
+#     }
+#     if(is.null(covariates_i)){
+#       covariates_i = covariates[ind,,drop=F]
+#     }
+#   }
+#
+#   if(is.null(n)){
+#     n <- floor(100**(1/length(theta$psi_pop)))
+#   }
+#
+#   dm = length(mu_i)
+#
+#   if(dm!=1){
+#     mh.parm <- amgauss.hermite(n,mu=mu_i,Omega=Omega_i,prune=prune)
+#     detsq.omega = prod(theta$omega)
+#     root.omega = diag(1/theta$omega**2)
+#   }else{
+#     mh.parm <- agauss.hermite(n,mu = mu_i,sd=sqrt(as.numeric(Omega_i)))
+#     detsq.omega = as.numeric(theta$omega)
+#     root.omega = 1/as.numeric(theta$omega)**2
+#   }
+#
+#   nd = length(mh.parm$Weights)
+#   R.sz = length(Rerr)
+#   S.sz = length(Serr)
+#   all.tobs = sort(union(unlist(lapply(Robs_i,FUN=function(x){x$time})),unlist(lapply(Sobs_i,FUN=function(x){x$time}))))
+#
+#   # Need to compute, for each eta_i x individual i, the dynamics of the model
+#   # eta_i = split(mh.parm$Points,1:nd)[[1]]
+#   dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
+#     PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
+#     dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
+#
+#     return(dyn_eta_i)
+#   }),paste0("eta_",1:nd))
+#
+#   # Compute marginal latent density for each individual and value of RE
+#   R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+#     dyn.ei = dyn[[paste0("eta_",ei)]]
+#
+#
+#     res = prod(sapply(1:R.sz,FUN=function(k){
+#       yGk = ObsModel.transfo$linkR[k]
+#       sig = Rerr[[yGk]]
+#       tki = Robs_i[[yGk]]$time
+#       Zki = Robs_i[[yGk]][,yGk]
+#
+#       a0 = theta$alpha0[[yGk]]
+#       a1 = alpha1[[yGk]]
+#       trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
+#       Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+#
+#       prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
+#     }))
+#   }),paste0("eta_",1:nd))
+#
+#   # Compute marginal density for each individual and value of RE
+#   if(S.sz!=0){
+#     S.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+#       eta_i = split(mh.parm$Points,1:nd)[[ei]]
+#       dyn.ei = dyn[[paste0("eta_",ei)]]
+#
+#       res = prod(sapply(1:S.sz,FUN=function(p){
+#         Yp = ObsModel.transfo$linkS[p]
+#         sig = Serr[[Yp]]
+#         tpi = Sobs_i[[Yp]]$time
+#         Ypi = Sobs_i[[Yp]][,Yp]
+#
+#         trs = ObsModel.transfo$S[which(ObsModel.transfo$linkS==Yp)]
+#         Spi = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tpi,names(trs)])
+#
+#         prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Ypi-Spi)/sig)**2))
+#       }))*(1/((2*pi)**(dm/2)*detsq.omega)*exp(-1/2*eta_i%*%root.omega%*%eta_i))
+#     }),paste0("eta_",1:nd))
+#   }else{
+#     S.margDensity = setNames(sapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
+#       (1/((2*pi)**(dm/2)*detsq.omega)*exp(-1/2*eta_i%*%root.omega%*%eta_i))
+#     }),paste0("eta_",1:nd))
+#   }
+#
+#   # Compute individual log-Likelihood
+#   Li = sum(mh.parm$Weights*R.margDensity*S.margDensity)
+#   LLi = log(Li)
+#
+#   if(!onlyLL){
+#     # Compute  gradient of individual log-Likelihood
+#     # dim.alpha = length(alpha1) # = K = length(Robs_i )
+#     dfact = lapply(1:R.sz,FUN=function(k){
+#       setNames(sapply(1:nd,FUN=function(ei){
+#         dyn.ei = dyn[[paste0("eta_",ei)]]
+#         yGk = ObsModel.transfo$linkR[k]
+#         sig = Rerr[[yGk]]
+#         tki = Robs_i[[yGk]]$time
+#         Zki = Robs_i[[yGk]][,yGk]
+#
+#         a0 = theta$alpha0[[yGk]]
+#         a1 = alpha1[[yGk]]
+#         trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
+#         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+#
+#         return(1/(sig**2)*(sum(Rki*(Zki-a0-a1*Rki))))
+#       }),paste0("eta_",1:nd))
+#     })
+#
+#     dLLi = sapply(dfact,FUN=function(f){
+#       return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+#     })
+#
+#     # Compute hessienne of individual log-Likelihood
+#     ddLLi = matrix(0,ncol=R.sz,nrow=R.sz)
+#     # diagonal term
+#     ddfact = lapply(1:R.sz,FUN=function(k){
+#       setNames(sapply(1:nd,FUN=function(ei){
+#         dyn.ei = dyn[[paste0("eta_",ei)]]
+#         yGk = ObsModel.transfo$linkR[k]
+#         sig = Rerr[[yGk]]
+#         tki = Robs_i[[yGk]]$time
+#         Zki = Robs_i[[yGk]][,yGk]
+#
+#         a0 = theta$alpha0[[yGk]]
+#         a1 = alpha1[[yGk]]
+#         trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
+#         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+#
+#         return(
+#           (1/(sig**2)*(sum(Rki*(Zki-a0-a1*Rki))))**2 - 1/(sig**2)*(sum(Rki**2))
+#         )
+#       }),paste0("eta_",1:nd))
+#     })
+#
+#     diag(ddLLi) = sapply(ddfact,FUN=function(f){
+#       return(1/Li*sum(mh.parm$Weights*f*R.margDensity*S.margDensity))
+#     })-(dLLi)**2
+#
+#     # non diagonal term
+#     for(k1 in 1:R.sz){
+#       for(k2 in 1:R.sz){
+#         if(k1<k2){
+#           ddfact = setNames(sapply(1:nd,FUN=function(ei){
+#             dyn.ei = dyn[[paste0("eta_",ei)]]
+#             prod(sapply(c(k1,k2),FUN=function(k){
+#               yGk = ObsModel.transfo$linkR[k]
+#
+#               sig = Rerr[[yGk]]
+#               tki = Robs_i[[yGk]]$time
+#               Zki = Robs_i[[yGk]][,yGk]
+#
+#               a0 = theta$alpha0[[yGk]]
+#               a1 = alpha1[[yGk]]
+#               trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
+#               Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+#
+#               return(
+#                 1/sig**2*(sum(Rki*(Zki-a0-a1*Rki)))
+#               )
+#             }))
+#           }),paste0("eta_",1:nd))
+#
+#           ddLLi[k1,k2] <- ddLLi[k2,k1] <- 1/Li*sum(mh.parm$Weights*ddfact*R.margDensity*S.margDensity)-prod(dLLi[c(k1,k2)])
+#         }
+#       }
+#     }
+#   }else{
+#     dLLi <- ddLLi <- NULL
+#   }
+#   return(list(Li=Li,LLi=LLi,dLLi=dLLi,ddLLi=ddLLi))
+# }
