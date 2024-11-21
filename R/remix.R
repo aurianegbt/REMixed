@@ -434,7 +434,7 @@ remix <- function(project = NULL,
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     ############ UPDATE CRITERION  ###########
-    crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
+    crit1 = sum(((param0 - param)**2/(param**2+1)))
     critb = sum((a.ini0-a.final)**2)
     crit2 = abs(LL0.pen-LL.pen)
 

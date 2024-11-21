@@ -281,7 +281,6 @@ cv.remix <- function(project = NULL,
 
   keep.lines <- readLines(summary.file)
 
-
   cv.res <- lapply(1:length(lambda.grid),FUN=function(array){
     tryCatch({
       prcheck(initial.project)
@@ -315,6 +314,7 @@ cv.remix <- function(project = NULL,
       ########################## ESTIMATING FIRST LL  ###########################
       to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
       print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+
       LL0 <- LL <-
         gh.LL(dynFUN = dynFUN,y = y, data = currentData0, n = n,
               prune = prune, parallel = FALSE,verbose=TRUE)
@@ -479,7 +479,7 @@ cv.remix <- function(project = NULL,
         print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
         ############ UPDATE CRITERION  ###########
-        crit1 = sum(((param0 - param)/ifelse(param0==0,1,param0))**2)
+        crit1 = sum(((param0 - param)**2/(param**2+1)))
         critb = sum((a.ini0-a.final)**2)
         crit2 = abs(LL0.pen-LL.pen)
 
