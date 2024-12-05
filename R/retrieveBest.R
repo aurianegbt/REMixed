@@ -46,10 +46,9 @@ retrieveBest <- function(fit,criterion="BIC"){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
-
   argmin.id = which.min(fit[[criterion]])
 
-  results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id]),list(test=FALSE,p.max=0.05)),
+  results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id],test=FALSE,p.max=0.05)),
                  finalRes = append(fit$res[[argmin.id]],list(saemBeforeTest=NULL)),
                  iterOutputs = fit$outputs[[argmin.id]])
   class(results) <- "remix"
