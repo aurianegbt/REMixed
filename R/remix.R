@@ -457,7 +457,6 @@ remix <- function(project = NULL,
     LL0.pen <- LL.pen
     param0 <- param
     a.ini0 <- a.ini <- a.final
-    iter = iter + 1
   }
 
   if(finalSAEM){
