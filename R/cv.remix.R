@@ -97,7 +97,7 @@ cv.remix <- function(project = NULL,
                      digits=3,
                      trueValue = NULL,
                      unlinkBuildProject = TRUE,
-                     max.iter=20){
+                     max.iter=+Inf){
   method <- NULL
 
   ptm.first <- ptm <- proc.time()
