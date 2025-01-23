@@ -28,7 +28,7 @@ remix(
   trueValue = NULL,
   finalSAEM = FALSE,
   test = TRUE,
-  max.iter = 20,
+  max.iter = +Inf,
   p.max = 0.05
 )
 }
@@ -96,7 +96,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{p.max}{maximum value to each for wald test p.value (default 0.05).}
 }
 \value{
-a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (regulatization and population parameter names, alpha names and value of lambda used) ;\item \code{finalRes} containing loglikelihood value \code{LL}, population parameters \code{param} and regularization parameters \code{a.final} values, number of iterations \code{iter} and \code{time} needed, the \code{BIC} of the model built ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{iter.outputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
+a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (project path, regulatization and population parameter names, alpha names, value of lambda used, if final SAEM and test has been computed, parameters p.max and \eqn{N}) ;\item \code{finalRes} containing loglikelihood \code{LL} and penalized loglikelihood \code{LL.pen} values, final population parameters \code{param} and final regularization parameters \code{alpha} values, number of iterations \code{iter} and \code{time} needed , if computed, the estimated standard errors \code{standardError} and if test computed, the final results before test \code{saemBeforeTest} ; \item\code{iterOutputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
 }
 \description{
 Regularization and Estimation in MIXed effects model.
@@ -108,7 +108,7 @@ See \code{\link{REMix-package}} for details on the model.
 \dontrun{
 project <- getMLXdir()
 
-ObsModel.transfo = list(S=list(AB=log10),
+ObsModel.transfo = list(S=list(Ab=log10),
                         linkS="yAB",
                         R=rep(list(S=function(x){x}),5),
                         linkR = paste0("yG",1:5))
@@ -116,10 +116,10 @@ ObsModel.transfo = list(S=list(AB=log10),
 alpha=list(alpha0=NULL,
            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 
-y = c(S=5,AB=1000)
+y = c(S=5,Ab=1000)
 lambda = 1440
 
-res = Remix(project = project,
+res = remix(project = project,
             dynFUN = dynFUN_demo,
             y = y,
             ObsModel.transfo = ObsModel.transfo,

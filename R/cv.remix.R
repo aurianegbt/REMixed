@@ -45,7 +45,7 @@
 #' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
 #' @param max.iter maximum number of iteration (default 20).
 #'
-#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
+#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} information about the parameters ; \item{\code{project}} the project path if not unlinked ; \item{\code{lambda}} the grid of \eqn{\lambda} ; \item \code{BIC, eBIC} the vector of BIC/eBIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 #' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
 #' @export
 #'
@@ -53,7 +53,7 @@
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(AB=log10),
+#' ObsModel.transfo = list(S=list(Ab=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -61,7 +61,7 @@
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,AB=1000)
+#' y = c(S=5,Ab=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,
@@ -266,10 +266,7 @@ cv.remix <- function(project = NULL,
       lambda_max = lambda.max(dynFUN = dynFUN,y = y, data = currentData0, n = n,
                               prune = prune, parallel=FALSE,verbose=FALSE)
     }
-
-
     lambda.grid = lambda_max*(alambda**((1:nlambda)/nlambda))
-
     lambda.grid <- lambda.grid[lambda.grid!=0]
   }
 
@@ -508,18 +505,21 @@ cv.remix <- function(project = NULL,
 
       # lixoftConnectors::saveProject(final.project)
 
-      results <- list(info = list(param.toprint=param.toprint,
+      results <- list(info = list(project = paste0(remix.dir, paste0("/Build_",array,".mlxtran")),
+                                  param.toprint=param.toprint,
                                   regParam.toprint=regParam.toprint,
                                   alpha=alpha,
-                                  lambda=lambda),
+                                  lambda=lambda,
+                                  N=length(currentData$mu)),
                       finalRes=list(LL=LLfinal,
+                                    LL.pen = LL.pen,
                                     param=paramfinal,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
                                     BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
                                     eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
-                                    tandardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
+                                    standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,
                                        LL.pen = LLpen.outputs,
@@ -528,8 +528,6 @@ cv.remix <- function(project = NULL,
 
       Sys.sleep(0.1)
       # progress(array)
-
-      class(results) <- "remix"
 
       to.cat <- "        DONE !\n"
       to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
@@ -561,7 +559,7 @@ cv.remix <- function(project = NULL,
     snow::stopCluster(cluster)
   }
 
-  finalRES = list(info = cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","finalSAEM")],
+  finalRES = list(info = append(cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","N")],list(project=if(unlinkBuildProject){initial.project}else{sapply(cv.res,FUN=function(f){f$info$project})})),
                   lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
                   eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),

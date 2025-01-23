@@ -28,7 +28,7 @@ cv.remix(
   digits = 3,
   trueValue = NULL,
   unlinkBuildProject = TRUE,
-  max.iter = 20
+  max.iter = +Inf
 )
 }
 \arguments{
@@ -93,7 +93,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{max.iter}{maximum number of iteration (default 20).}
 }
 \value{
-a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} informations about the parameters ; \item{\code{lambda}} the grid of \eqn{\lambda} ;\item \code{BIC} the vector of BIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
+a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} information about the parameters ; \item{\code{project}} the project path if not unlinked ; \item{\code{lambda}} the grid of \eqn{\lambda} ; \item \code{BIC, eBIC} the vector of BIC/eBIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 }
 \description{
 Regularization and Estimation in MIXed effects model, over a regularization path.
@@ -107,7 +107,7 @@ For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
 \dontrun{
 project <- getMLXdir()
 
-ObsModel.transfo = list(S=list(AB=log10),
+ObsModel.transfo = list(S=list(Ab=log10),
                         linkS="yAB",
                         R=rep(list(S=function(x){x}),5),
                         linkR = paste0("yG",1:5))
@@ -115,7 +115,7 @@ ObsModel.transfo = list(S=list(AB=log10),
 alpha=list(alpha0=NULL,
            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 
-y = c(S=5,AB=1000)
+y = c(S=5,Ab=1000)
 
 res = cv.remix(project = project,
                dynFUN = dynFUN_demo,

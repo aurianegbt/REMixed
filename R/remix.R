@@ -46,14 +46,14 @@
 #' @param max.iter maximum number of iterations (default 20).
 #'
 #' @seealso \code{\link{cv.remix}}.
-#' @return a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (regulatization and population parameter names, alpha names and value of lambda used) ;\item \code{finalRes} containing loglikelihood value \code{LL}, population parameters \code{param} and regularization parameters \code{a.final} values, number of iterations \code{iter} and \code{time} needed, the \code{BIC} of the model built ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{iter.outputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
+#' @return a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (project path, regulatization and population parameter names, alpha names, value of lambda used, if final SAEM and test has been computed, parameters p.max and \eqn{N}) ;\item \code{finalRes} containing loglikelihood \code{LL} and penalized loglikelihood \code{LL.pen} values, final population parameters \code{param} and final regularization parameters \code{alpha} values, number of iterations \code{iter} and \code{time} needed , if computed, the estimated standard errors \code{standardError} and if test computed, the final results before test \code{saemBeforeTest} ; \item\code{iterOutputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(AB=log10),
+#' ObsModel.transfo = list(S=list(Ab=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -61,10 +61,10 @@
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,AB=1000)
+#' y = c(S=5,Ab=1000)
 #' lambda = 1440
 #'
-#' res = Remix(project = project,
+#' res = remix(project = project,
 #'             dynFUN = dynFUN_demo,
 #'             y = y,
 #'             ObsModel.transfo = ObsModel.transfo,
@@ -103,7 +103,7 @@ remix <- function(project = NULL,
                   trueValue = NULL,
                   finalSAEM =FALSE,
                   test=TRUE,
-                  max.iter = 20,
+                  max.iter =+Inf,
                   p.max=0.05){
 
   method <- NULL
@@ -501,7 +501,9 @@ remix <- function(project = NULL,
 
 
     sd.est = re$standardErrors$stochasticApproximation[,-3]
-    sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
+    if(length(setdiff(names(re$param),sd.est$parameter))!=0){
+      sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
+    }
     # paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
     # sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
 
@@ -644,22 +646,23 @@ remix <- function(project = NULL,
 
   lixoftConnectors::saveProject(final.project)
 
-  results <- list(info = list(param.toprint=param.toprint,
+  results <- list(info = list(project=final.project,
+                              param.toprint=param.toprint,
                               regParam.toprint=regParam.toprint,
                               alpha=alpha,
                               lambda=lambda,
                               finalSAEM = finalSAEM,
-                              test=test,
-                              p.max=p.max),
+                              test=if(finalSAEM){test}else{FALSE},
+                              p.max=if(finalSAEM && test){p.max}else{NULL},
+                              N=length(currentData$mu)),
                   finalRes=list(LL=LLfinal,
+                                LL.pen = LL.pen,
                                 param=paramfinal,
                                 alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                 iter=iter,
                                 time=(proc.time()-ptm.first)["elapsed"],
-                                BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
-                                eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
                                 standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
-                                saemBeforeTest=if(test){saemFinal}else{NULL}),
+                                saemBeforeTest=if(finalSAEM && test){saemFinal}else{NULL}),
                   iterOutputs=list(param=param.outputs,
                                    LL=LL.outputs,
                                    LL.pen = LLpen.outputs,
