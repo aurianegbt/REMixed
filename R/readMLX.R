@@ -183,7 +183,7 @@ readMLX <- function(project=NULL,
     if(ParModel[[i]]=="normal"){
       ParModel.transfo[[i]] <-  function(x){x}
       ParModel.transfo.inv[[i]] <- function(x){x}
-    }else if(ParModel[[i]]=="logNormal" || ParModel[[i]]=="lornormal"){
+    }else if(ParModel[[i]]=="logNormal" || ParModel[[i]]=="lognormal"){
       ParModel.transfo[[i]] <- log
       ParModel.transfo.inv[[i]] <- exp
     }else if(ParModel[[i]]=="logitNormal"){
