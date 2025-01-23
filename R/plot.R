@@ -45,6 +45,9 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
   if(!inherits(fit,"remix")){
     stop("Class of fit must be remix")
   }
+  if(paramToPlot=="all"){
+    paramToPlot <- fit$info$param.toprint
+  }
   iteration <- phase  <- finalPlot <-  NULL
   estimates = dplyr::filter(fit$iterOutputs$estimates,iteration!=0)
   if(!identical(paramToPlot,"all")){
@@ -147,8 +150,11 @@ plotConvergence <- function(fit){
 
   iteration <-  NULL
 
+  niter = fit$finalRes$iter
   LL.outputs <- sapply(fit$iterOutputs$LL,FUN=function(Liter){Liter$LL})
-  LL.pen <- sapply(fit$iterOutputs$LL,FUN=function(Liter){as.numeric(Liter$LL.pen)})
+  LL.pen <- sapply(1:niter,FUN=function(i){
+    LL.outputs[i] - fit$info$lambda*sum(fit$iterOutputs$param[i,fit$info$regParam.toprint]!=0)
+  })
 
   dfToPlot <- data.frame(iteration = 1:length(LL.outputs),LL=LL.outputs,LL.pen = LL.pen)
 
@@ -167,7 +173,7 @@ plotConvergence <- function(fit){
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
 #' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside").
 #' @param trueValue (for simulation purpose) named vector containing the true value of regularization parameter.
-#' @param criterion which criterion among "BIC" and "eBIC" to take into account ;
+#' @param criterion function ; which criterion among 'BIC', 'eBIC', 'AIC', 'AICc', or function of cvRemix object to take into account ;
 #'
 #' @return Calibration plot, over the lambda.grid.
 #' @export
@@ -203,7 +209,7 @@ plotConvergence <- function(fit){
 #'
 #' plotBIC(res)
 #' }
-plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion="BIC"){
+plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BIC){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
@@ -217,7 +223,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
     df <- rbind(df,data.frame(parameter = unname(fit$info$alpha$alpha1),
                               value = fit$res[[i]]$alpha,
                               lambda = fit$lambda[[i]],
-                              criterion = fit[[criterion]][[i]],
+                              criterion = criterion(extract(fit,i)),
                               LL = fit$res[[i]]$LL))
 
   }
@@ -284,9 +290,10 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 #'
 #' plotBIC(res)
 #' }
-plotBIC <- function(fit,criterion="BIC"){  if(!inherits(fit,"cvRemix")){
+plotBIC <- function(fit,criterion="BIC"){
+  if(!inherits(fit,"cvRemix")){
   stop("Class of fit must be cvRemix")
-}
+  }
 
   df <- data.frame(criterion = fit[[criterion]],lambda=fit$lambda)
 
