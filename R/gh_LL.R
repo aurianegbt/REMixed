@@ -277,6 +277,8 @@ gh.LL.ind <- function(
   S.sz = length(Serr)
   all.tobs = sort(union(unlist(lapply(Robs_i,FUN=function(x){x$time})),unlist(lapply(Sobs_i,FUN=function(x){x$time}))))
 
+
+
   # Need to compute, for each eta_i x individual i, the dynamics of the model
   # eta_i = split(mh.parm$Points,1:nd)[[1]]
   dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
@@ -563,6 +565,8 @@ lambda.max.ind <- function(
     n = NULL,
     prune=NULL){
 
+
+
   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
   if(is.null(data)){
@@ -759,6 +763,7 @@ lambda.max  <- function(
     }
 
   N=length(mu)
+
 
 
   i = 1
