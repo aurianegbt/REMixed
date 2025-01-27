@@ -296,6 +296,13 @@ remix <- function(project = NULL,
   ########################## SAVE OUTPUTS   ###########################
 
   estimates.outputs <- lixoftConnectors::getChartsData("plotSaem")
+  for(k in 1:length(alpha$alpha1)){
+    if(!(paste0(alpha$alpha1[k],"_pop") %in% colnames(estimates.outputs))){
+      cmd = paste0("estimates.outputs <- dplyr::mutate(estimates.outputs,",alpha$alpha1[k],"_pop =",a.ini[k],")")
+      eval(parse(text=cmd))
+    }
+  }
+
   LL.outputs <- list(LL0)
   LLpen.outputs <- list(LL0.pen)
   param.outputs <- param0
