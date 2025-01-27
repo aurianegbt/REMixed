@@ -241,13 +241,17 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
       ggplot2::geom_line() +
       ggplot2::geom_point() +
       ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
-    ggplot2::geom_segment(data=trueValueDF,mapping=ggplot2::aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf)
+    ggplot2::geom_segment(data=trueValueDF,mapping=ggplot2::aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf) +
+      ggplot2::xlab("\u03bb")+
+      ggplot2::ylab("\u03b1")
   }else{
     ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
       ggplot2::theme(legend.position = legend.position) +
       ggplot2::geom_line() +
       ggplot2::geom_point() +
-      ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
+      ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
+      ggplot2::xlab("\u03bb")+
+      ggplot2::ylab("\u03b1")
   }
 }
 
