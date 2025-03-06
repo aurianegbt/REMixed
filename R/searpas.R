@@ -165,7 +165,7 @@ fim.searpas <- function(
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
-  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = "fim.searpas.ind",.options.snow=opts)%dopar%{
+  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = "fim.searpas.ind")%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
