@@ -74,6 +74,14 @@ computeFinalTest <- function(remix.output,
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
 
+  if(parallel){
+    if(is.null(ncores)){
+      ncores = parallel::detectCores()
+    }
+    cluster <- snow::makeCluster(ncores)
+    doSNOW::registerDoSNOW(cluster)
+  }
+
   ### Start initialization of project
   check.proj(remix.output$info$project,remix.output$info$alpha)
 
@@ -85,7 +93,6 @@ computeFinalTest <- function(remix.output,
 
   regParam.toprint = remix.output$info$regParam.toprint
   param.toprint = remix.output$info$param.toprint
-  rm.param = setdiff(lixoftConnectors::getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
   alpha = remix.output$info$alpha
 
   project.dir <- lixoftConnectors::getProjectSettings()$directory
@@ -126,35 +133,48 @@ computeFinalTest <- function(remix.output,
   pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
   pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
 
+  browser()
 
   ## RENDER INITIAL PARAMETER
   param0 <- param <- remix.output$finalRes$param
   to.cat <- paste0("\nComputing final SAEM... \n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
-  populationParameters <- data.frame(name=names(param),initialValue=unname(param),method="MLE")
-  populationParameters[populationParameters$name %in% unname(paste0(remix.output$info$alpha$alpha1,"_pop")) & populationParameters$initialValue==0,"method"] <- "FIXED"
+  currentData <- readMLX(project = final.project,
+                            ObsModel.transfo = ObsModel.transfo,
+                            alpha = alpha)
 
-  lixoftConnectors::setPopulationParameterInformation(populationParameters)
-  lixoftConnectors::setPopulationParameterEstimationSettings(pop.set)
-  lixoftConnectors::saveProject(final.project)
-  lixoftConnectors::runPopulationParameterEstimation()
-  lixoftConnectors::runConditionalDistributionSampling()
-  lixoftConnectors::runStandardErrorEstimation()
-  lixoftConnectors::saveProject(final.project)
 
-  re <- saemfinal <- list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
-            param = lixoftConnectors::getEstimatedPopulationParameters(),
-            standardErrors=lixoftConnectors::getEstimatedStandardErrors())
+  re <- saemUpdate(project = final.project, final.project = final.project,
+                   currentData=currentData,
+                   alpha = alpha, a.final = currentData$alpha1,iter = remix.output$finalRes$iter ,
+                   pop.set = pop.set, pop.setFinal = pop.set,
+                   conditionalDistributionSampling = TRUE,
+                   StandardErrors = TRUE, finalSAEM = TRUE )
+
+  saemFinal <- re
 
   to.cat <- paste0("Estimating log-likelihood... \n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-  currentData0 <- currentData <- readMLX(project = final.project,
-                                         ObsModel.transfo = ObsModel.transfo,
-                                         alpha = alpha)
-  LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = parallel,verbose = print,onlyLL = TRUE)
+  currentData <- readMLX(project = final.project,
+                         ObsModel.transfo = ObsModel.transfo,
+                         alpha = alpha)
 
-  populationParameters <- data.frame(name=names(re$param),initialValue=unname(re$param),method="MLE")
+  LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,verbose = print,onlyLL = TRUE)
+
+  estimatesfinal = re$SAEMiterations
+  if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimatesfinal)[-c(1,2,3)]))!=0){
+    for(p in setdiff(union(param.toprint,regParam.toprint),colnames(estimatesfinal)[-c(1,2,3)])){
+      estimates <- cbind(estimatesfinal,new=re$param[[p]])
+      colnames(estimatesfinal)[ncol(estimatesfinal)] <- p
+    }
+  }
+
+
+  to.cat <- "\n      - - - <  FINAL PARAMETERS  > - - -     \n\n"
+  print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
+
+
 
   sd.est = re$standardErrors$stochasticApproximation[,-3]
   if(length(setdiff(names(re$param),sd.est$parameter))!=0){
@@ -177,18 +197,9 @@ computeFinalTest <- function(remix.output,
                       RelativeBias = round(as.numeric((re$param[rownames(to.print)]-trueValue[rownames(to.print)])/trueValue[rownames(to.print)]),digits=digits))
   }
 
-  if(length(rm.param)==0){
-    paramfinal <- re$param
-  }else{
-    paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
-  }
-  print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
-  to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
-  to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-  to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
-  to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
-  print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+  paramfinal <- re$param
+  print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
   if(test){
     to.cat <- "\nComputing Wald test (with null hypothesis alpha1=0)...\n"
@@ -216,35 +227,42 @@ computeFinalTest <- function(remix.output,
     to.print <- to.print[regParam.toprint,-2]
     print_result(print, summary.file, to.cat = NULL, to.print = to.print)
 
-
     if(any(ST$p.value>p.max)){
-      populationParameters[populationParameters$name %in% ST[ST$p.value>p.max,"parameter"],"initialValue"]=0
-      populationParameters[populationParameters$name %in% unname(paste0(remix.output$info$alpha$alpha1,"_pop")) & populationParameters$initialValue==0,"method"] <- "FIXED"
+      a.final[names(alpha$alpha1[which(alpha$alpha1 %in% stringr::str_remove_all(ST[ST$p.value>p.max,"parameter"],"_pop"))])] <- 0
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
-      to.cat <- c(" Setting parameters to 0...\n")
+      to.cat <- c(to.cat,dashed.line)
       print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-      to.cat <- paste0("(re)Computing final SAEM... \n")
+      to.cat <- c("                 (re)FINAL ITERATION \n\n")
       print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      ptm <- proc.time()
 
-      lixoftConnectors::setPopulationParameterInformation(populationParameters)
-      lixoftConnectors::setPopulationParameterEstimationSettings(pop.set)
-      lixoftConnectors::saveProject(final.project)
-      lixoftConnectors::runPopulationParameterEstimation()
-      lixoftConnectors::runConditionalDistributionSampling()
-      lixoftConnectors::runStandardErrorEstimation()
-      lixoftConnectors::saveProject(final.project)
 
-      re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
-                param = lixoftConnectors::getEstimatedPopulationParameters(),
-                standardErrors=lixoftConnectors::getEstimatedStandardErrors())
+      to.cat <- paste0("\nComputing final SAEM... \n")
+      print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
+      re <- saemUpdate(project = final.project, final.project = final.project,
+                       currentData=currentData,
+                       alpha = alpha, a.final = a.final,iter = remix.output$finalRes$iter ,
+                       pop.set = pop.set, pop.setFinal = pop.set,
+                       conditionalDistributionSampling = TRUE,
+                       StandardErrors = TRUE, finalSAEM = TRUE)
 
+      ############ ESTIMATE PENALIZED   ###########
       to.cat <- paste0("Estimating log-likelihood... \n")
       print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
       currentData0 <- currentData <- readMLX(project = final.project,
                                              ObsModel.transfo = ObsModel.transfo,
                                              alpha = alpha)
+      LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,verbose = verbose,onlyLL = TRUE)
 
-      LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n=n, prune=prune,  parallel = parallel ,ncores = ncores,verbose = print,onlyLL = TRUE)
+      estimatesfinal = re$SAEMiterations
+      if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimatesfinal)[-c(1,2,3)]))!=0){
+        for(p in setdiff(union(param.toprint,regParam.toprint),colnames(estimatesfinal)[-c(1,2,3)])){
+          estimates <- cbind(estimatesfinal,new=re$param[[p]])
+          colnames(estimatesfinal)[ncol(estimatesfinal)] <- p
+        }
+      }
+
+      ################### RENDER FINAL ESTIMATION #########################
 
       to.cat <- "\n      - - - <  FINAL PARAMETERS  > - - -     \n\n"
       print_result(print,summary.file, to.cat = to.cat,to.print=NULL)
@@ -252,6 +270,9 @@ computeFinalTest <- function(remix.output,
 
       sd.est = re$standardErrors$stochasticApproximation[,-3]
       sd.est <- rbind(sd.est, data.frame(parameter=setdiff(names(re$param),sd.est$parameter),se=NA))
+      # paramtoPrint.FINAL = sd.est$parameter[sd.est$parameter %in% union(regParam.toprint,param.toprint)]
+      # sd.est = sd.est[sd.est$parameter %in% paramtoPrint.FINAL,"se"]
+
 
       to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)}))
 
@@ -269,11 +290,7 @@ computeFinalTest <- function(remix.output,
                           RelativeBias = round(as.numeric((re$param[rownames(to.print)]-trueValue[rownames(to.print)])/trueValue[rownames(to.print)]),digits=digits))
       }
 
-      if(length(rm.param)==0){
-        paramfinal <- re$param
-      }else{
-        paramfinal <- re$param[-(which(names(re$param) %in% rm.param))]
-      }
+      paramfinal <- re$param
       print_result(print, summary.file, to.cat = NULL, to.print = to.print)
     }
   }else{
@@ -304,7 +321,7 @@ computeFinalTest <- function(remix.output,
                                 iter=remix.output$finalRes$iter,
                                 time=remix.output$finalRes$time+(proc.time()-ptm.first)["elapsed"],
                                 standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
-                                saemBeforeTest=if(test){saemfinal}else{NULL}),
+                                saemBeforeTest=if(test){saemFinal}else{NULL}),
                   iterOutputs=list(param=remix.output$iterOutputs$param,
                                    LL=remix.output$iterOutputs$LL,
                                    LL.pen = remix.output$iterOutputs$LL.pen,
