@@ -5,7 +5,6 @@
 #'
 #' @details
 #' See \code{\link{REMix-package}} for details on the model.
-#' The grid of \eqn{\lambda}, \eqn{\Lambda}, is by default \deqn{\lambda_l = \lambda_{max}\times \alpha_{\lambda}^{\frac{l}{N_{\lambda}}},   \forall l\leq N_{\lambda}} with \eqn{\lambda_{max}=\max{\partial_{\alpha_1}LL(\theta,\alpha_1)}|_{\alpha_1=\mathbf 0}}. The arguments \code{nlambda} control the number of points on the grid (default to 50), and the user can provide a custom \eqn{\alpha_{\lambda}} (default to 0.05).
 #' For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
 #'
 #' @param project directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).
@@ -135,8 +134,7 @@ cv.remix <- function(project = NULL,
     names(trueValue)[names(trueValue) %in% alpha$alpha1] <- paste0(
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
-  param.toprint = setdiff(dplyr::filter(lixoftConnectors::getPopulationParameterInformation(),method!="FIXED")$name,regParam.toprint)
-  rm.param = setdiff(lixoftConnectors::getPopulationParameterInformation()$name,union(param.toprint,regParam.toprint))
+  param.toprint = setdiff(lixoftConnectors::getPopulationParameterInformation()$name,regParam.toprint)
 
   project.dir <- lixoftConnectors::getProjectSettings()$directory
   if (!dir.exists(project.dir))
@@ -215,23 +213,14 @@ cv.remix <- function(project = NULL,
   }
   lixoftConnectors::saveProject(initial.project)
 
-
-  if(length(rm.param)==0){
-    param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()
-  }else{
-    param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()[-which(names(lixoftConnectors::getEstimatedPopulationParameters())%in%rm.param)]
-  }
+  param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()
 
   ########################## RENDER FIRST ESTIMATION  ###########################
   to.cat <- "\n      - - - <  INITIAL PARAMETERS  > - - -     \n\n"
 
   to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
   row.names(to.print) <- param.toprint
-  if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
-    sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
-    sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
-    to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(param0[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(param0[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
-  }
+
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,
                       TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific = TRUE),
@@ -271,10 +260,7 @@ cv.remix <- function(project = NULL,
   }
 
   # ############### START CV ##########################
-  # array = 1
   ntasks <- length(lambda.grid)
-  # pb <- utils::txtProgressBar(max = ntasks, style = 3)
-  # progress <- function(n) utils::setTxtProgressBar(pb, n)
 
   keep.lines <- readLines(summary.file)
 
@@ -330,17 +316,20 @@ cv.remix <- function(project = NULL,
       ########################## SAVE OUTPUTS   ###########################
 
       estimates.outputs <- lixoftConnectors::getChartsData("plotSaem")
+      if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimates.outputs)[-c(1,2,3)]))!=0){
+        for(p in setdiff(union(param.toprint,regParam.toprint),colnames(estimates.outputs)[-c(1,2,3)])){
+          estimates.outputs <- cbind(estimates.outputs,new=param[[p]])
+          colnames(estimates.outputs)[ncol(estimates.outputs)] <- p
+        }
+      }
       LL.outputs <- list(LL0)
       LLpen.outputs <- list(LL0.pen)
       param.outputs <- param0
       crit.outputs <- data.frame()
 
-
       stop <- F
-      iter =  1
+      iter =  0
       crit1 <- crit2 <- critb <- 1
-
-
 
       ##########################       ITERATION       ###########################
       while(!stop & iter <=max.iter){
@@ -367,8 +356,10 @@ cv.remix <- function(project = NULL,
         LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
 
         if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
-          print('[CALIBRATION]')
-          th <- 1e-5
+          to.cat("\t/!\ [RECALIBRATION] /!\\n")
+          print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+          print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+          th <- 1
           step <- log(1.5)
           to.recalibrate = which(a.final!=0)
           delta <-  a.final[to.recalibrate] - a.ini[to.recalibrate]
@@ -402,7 +393,11 @@ cv.remix <- function(project = NULL,
                            parallel = FALSE,
                            lambda = lambda)
 
-          a.final <- currentData$alpha1[to.recalibrate]
+          a.final[to.recalibrate] <- a.ini[to.recalibrate] + delta*sears$vw
+
+          currentData$alpha1 <- a.final
+
+          LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL=TRUE,verbose=FALSE) - lambda * sum(abs(a.final))
         }
 
         to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
@@ -429,14 +424,17 @@ cv.remix <- function(project = NULL,
         to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
         print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
         re <- saemUpdate(project = final.project, final.project = final.project,
+                         currentData = currentData,
                          alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
                          conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
 
 
         estimates = re$SAEMiterations
-        for(k in 1:length(alpha$alpha1)){
-          cmd = paste0("estimates <- dplyr::mutate(estimates,",alpha$alpha1[k],"_pop =",a.final[k],")")
-          eval(parse(text=cmd))
+        if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimates)[-c(1,2,3)]))!=0){
+          for(p in setdiff(union(param.toprint,regParam.toprint),colnames(estimates)[-c(1,2,3)])){
+            estimates <- cbind(estimates,new=re$param[[p]])
+            colnames(estimates)[ncol(estimates)] <- p
+          }
         }
 
         to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
@@ -454,11 +452,7 @@ cv.remix <- function(project = NULL,
         print_result(print, summary.file.new, to.cat = NULL, to.print = to.print)
         to.printEND2 <- to.print
 
-        if(length(rm.param)==0){
-          param <- re$param
-        }else{
-          param <- re$param[-(which(names(re$param) %in% rm.param))]
-        }
+        param <- re$param
 
 
         ############ ESTIMATE PENALIZED   ###########

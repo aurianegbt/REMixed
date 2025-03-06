@@ -100,7 +100,6 @@ Regularization and Estimation in MIXed effects model, over a regularization path
 }
 \details{
 See \code{\link{REMix-package}} for details on the model.
-The grid of \eqn{\lambda}, \eqn{\Lambda}, is by default \deqn{\lambda_l = \lambda_{max}\times \alpha_{\lambda}^{\frac{l}{N_{\lambda}}},   \forall l\leq N_{\lambda}} with \eqn{\lambda_{max}=\max{\partial_{\alpha_1}LL(\theta,\alpha_1)}|_{\alpha_1=\mathbf 0}}. The arguments \code{nlambda} control the number of points on the grid (default to 50), and the user can provide a custom \eqn{\alpha_{\lambda}} (default to 0.05).
 For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
 }
 \examples{
