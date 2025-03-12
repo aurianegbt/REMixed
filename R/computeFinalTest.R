@@ -215,17 +215,19 @@ computeFinalTest <- function(remix.output,
   lixoftConnectors::saveProject(final.project)
 
   se = lixoftConnectors::getEstimatedStandardErrors()
-  if(!is.null(alpha$alpha0)){
-    se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                        data.frame(parameter = paste0(unname(alpha$alpha0[names(which(a.final==0))]),"_pop"),
-                                                   se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]}),
-                                                   rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
-  }
-  se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                      data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
-                                                 se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
-                                                 rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
+  if(any(a.final==0)){
+    if(!is.null(alpha$alpha0)){
+      se$stochasticApproximation <- rbind(se$stochasticApproximation,
+                                          data.frame(parameter = paste0(unname(alpha$alpha0[names(which(a.final==0))]),"_pop"),
+                                                     se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]}),
+                                                     rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
+    }
 
+    se$stochasticApproximation <- rbind(se$stochasticApproximation,
+                                        data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                                   se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
+                                                   rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
+  }
 
   re <- saemfinal <- list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
                           param = lixoftConnectors::getEstimatedPopulationParameters(),
@@ -328,16 +330,18 @@ computeFinalTest <- function(remix.output,
       a.final = setNames(lixoftConnectors::getEstimatedPopulationParameters()[paste0(alpha$alpha1,"_pop")],names(alpha$alpha1))
 
       se = lixoftConnectors::getEstimatedStandardErrors()
-      if(!is.null(alpha$alpha0)){
+      if(any(a.final==0)){
+        if(!is.null(alpha$alpha0)){
+          se$stochasticApproximation <- rbind(se$stochasticApproximation,
+                                              data.frame(parameter = paste0(unname(alpha$alpha0[names(which(a.final==0))]),"_pop"),
+                                                         se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]}),
+                                                         rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
+        }
         se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                            data.frame(parameter = paste0(unname(alpha$alpha0[names(which(a.final==0))]),"_pop"),
-                                                       se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]}),
-                                                       rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
+                                            data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                                       se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
+                                                       rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
       }
-      se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                          data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
-                                                     se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
-                                                     rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
 
       re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
                 param = lixoftConnectors::getEstimatedPopulationParameters(),
