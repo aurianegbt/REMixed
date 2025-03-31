@@ -45,7 +45,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
   if(!inherits(fit,"remix")){
     stop("Class of fit must be remix")
   }
-  if(paramToPlot=="all"){
+  if(identical(paramToPlot,"all")){
     paramToPlot <- fit$info$param.toprint
   }
   iteration <- phase  <- finalPlot <-  NULL
