@@ -174,6 +174,7 @@ plotConvergence <- function(fit){
 #' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside").
 #' @param trueValue (for simulation purpose) named vector containing the true value of regularization parameter.
 #' @param criterion function ; which criterion among 'BIC', 'eBIC', 'AIC', 'AICc', or function of cvRemix object to take into account ;
+#' @param dismin logical ; if minimizers of information criterion should be display.
 #'
 #' @return Calibration plot, over the lambda.grid.
 #' @export
@@ -209,7 +210,7 @@ plotConvergence <- function(fit){
 #'
 #' plotBIC(res)
 #' }
-plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BIC){
+plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BIC,dismin=TRUE){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
@@ -236,29 +237,39 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 
     df <- cbind(df,null = rep(null,length(fit$lambda)))
 
-    ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=as.factor(null),group=parameter)) +
+    p <-
+      ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=as.factor(null),group=parameter)) +
       ggplot2::theme(legend.position = legend.position) +
       ggplot2::geom_line() +
-      ggplot2::geom_point() +
-      ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
+      ggplot2::geom_point()  +
     ggplot2::geom_segment(data=trueValueDF,mapping=ggplot2::aes(color=factor(null),group=parameter,y=y,yend=yend),x=-Inf,xend=+Inf) +
       ggplot2::xlab("\u03bb")+
       ggplot2::ylab("\u03b1")
+    if(dismin){
+      p <- p +
+        ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
+    }
   }else{
-    ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
+    p <-
+      ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
       ggplot2::theme(legend.position = legend.position) +
       ggplot2::geom_line() +
-      ggplot2::geom_point() +
-      ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1) +
+      ggplot2::geom_point()  +
       ggplot2::xlab("\u03bb")+
       ggplot2::ylab("\u03b1")
+    if(dismin){
+      p <- p +
+        ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=1)
+    }
   }
+  return(p)
 }
 
 #' BIC plot.
 #'
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}};
-#' @param criterion which criterion among "BIC" and "eBIC" to take into account.
+#' @param criterion which criterion among "BIC" and "eBIC" to take into account ;
+#' @param dismin logical ; if minimizers of information criterion should be display.
 #'
 #' @return BIC trhoughout the lambda.grid.
 #' @export
@@ -294,21 +305,26 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 #'
 #' plotBIC(res)
 #' }
-plotBIC <- function(fit,criterion="BIC"){
+plotBIC <- function(fit,criterion=BIC,dismin=TRUE){
   if(!inherits(fit,"cvRemix")){
   stop("Class of fit must be cvRemix")
   }
 
-  df <- data.frame(criterion = fit[[criterion]],lambda=fit$lambda)
+  df <- data.frame(criterion = sapply(1:length(fit$lambda),FUN=function(i){criterion(extract(fit,i))}),lambda=fit$lambda)
 
 
+  p <-
   ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=criterion)) +
-    ggplot2::geom_line(color="slateblue") + #ggplot2::geom_point(color="slateblue4") +
-    ggplot2::ggtitle(paste0(criterion,' throughout the grid of \u03bb')) +
-    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = ggplot2::element_text(size=20,color="red4"))+
-    ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
-    ggplot2::geom_segment(y = df[which.min(df$criterion),"criterion"],yend = df[which.min(df$criterion),"criterion"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
-    ggplot2::geom_point(y = df[which.min(df$criterion),"criterion"],x = df[which.min(df$criterion),"lambda"],col="indianred4",size=2) +
-    ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$criterion),"lambda"],digits=2),"\n",criterion,".min = ",round(df[which.min(df$criterion),"criterion"],digits=2)), x= df[which.min(df$criterion),"criterion"],y = df[which.min(df$criterion),"criterion"],hjust=-0.1,vjust=-0.2,color="indianred4",size=4)
+    ggplot2::geom_line(color="slateblue") + ggplot2::geom_point(color="slateblue4",size=1,shape=3) +
+    ggplot2::ggtitle(paste0('Criterion throughout the grid of \u03bb')) +
+    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = ggplot2::element_text(size=20,color="red4"))
+  if(dismin){
+    p <- p +
+      ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
+      ggplot2::geom_segment(y = df[which.min(df$criterion),"criterion"],yend = df[which.min(df$criterion),"criterion"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
+      ggplot2::geom_point(y = df[which.min(df$criterion),"criterion"],x = df[which.min(df$criterion),"lambda"],col="indianred4",size=2)+
+      ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$criterion),"lambda"],digits=2),"\n",criterion,".min = ",round(df[which.min(df$criterion),"criterion"],digits=2)), x= df[which.max(df$lambda),"lambda"],y = df[which.min(df$criterion),"criterion"],hjust=1,vjust=-0.2,color="indianred4",size=4)
+  }
+  return(p)
 }
 

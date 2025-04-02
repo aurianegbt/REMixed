@@ -8,7 +8,8 @@ plotCalibration(
   fit,
   legend.position = "none",
   trueValue = NULL,
-  criterion = BIC
+  criterion = BIC,
+  dismin = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ plotCalibration(
 \item{trueValue}{(for simulation purpose) named vector containing the true value of regularization parameter.}
 
 \item{criterion}{function ; which criterion among 'BIC', 'eBIC', 'AIC', 'AICc', or function of cvRemix object to take into account ;}
+
+\item{dismin}{logical ; if minimizers of information criterion should be display.}
 }
 \value{
 Calibration plot, over the lambda.grid.

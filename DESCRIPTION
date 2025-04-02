@@ -2,7 +2,7 @@ Package: REMix
 Type: Package
 Title: Regularization & estimation in MIXed effect model
 Version: 0.1.0
-Author: Auriane Gabaut 
+Author: Auriane Gabaut, Ariane Bercu, Mélanie Prague, Cécile Proust-Lima
 Maintainer: Auriane Gabaut <auriane.gabaut@inria.fr>
 Description: This package propose the implementation of an algorithm in two steps to estimate parameters of a model whose latent dynamics are inferred through latent processes, jointly regularized.
 License: GPL (>= 3)
@@ -13,3 +13,7 @@ Depends : foreach
 RoxygenNote: 7.3.2
 Depends: 
     R (>= 2.10)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

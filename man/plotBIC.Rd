@@ -4,12 +4,14 @@
 \alias{plotBIC}
 \title{BIC plot.}
 \usage{
-plotBIC(fit, criterion = "BIC")
+plotBIC(fit, criterion = BIC, dismin = TRUE)
 }
 \arguments{
 \item{fit}{fit object of class cvRemix, from \code{\link{cv.remix}};}
 
-\item{criterion}{which criterion among "BIC" and "eBIC" to take into account.}
+\item{criterion}{which criterion among "BIC" and "eBIC" to take into account ;}
+
+\item{dismin}{logical ; if minimizers of information criterion should be display.}
 }
 \value{
 BIC trhoughout the lambda.grid.
