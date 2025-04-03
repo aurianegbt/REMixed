@@ -124,6 +124,15 @@ cv.remix <- function(project = NULL,
 
   ################ START INITIALIZATION OF PROJECT REMIXed ################
   check.proj(project,alpha)
+  g = lixoftConnectors::getObservationInformation()
+  gy <- data.frame()
+  for(var in g$name){
+    gy <- rbind(gy,dplyr::rename(g[[var]],"obsid"=var))
+  }
+  N <- length(unique(gy[["id"]]))
+  ntot <- nrow(gy)
+
+
 
   if(selfInit){
     pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
@@ -504,15 +513,16 @@ cv.remix <- function(project = NULL,
                                   regParam.toprint=regParam.toprint,
                                   alpha=alpha,
                                   lambda=lambda,
-                                  N=length(currentData$mu)),
+                                  N=length(currentData$mu),
+                                  ntot=ntot),
                       finalRes=list(LL=LLfinal,
                                     LL.pen = LL.pen,
                                     param=paramfinal,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
-                                    BIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
-                                    eBIC = -2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
+                                    BIC = -2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
+                                    eBIC = -2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
                                     standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,
@@ -553,7 +563,7 @@ cv.remix <- function(project = NULL,
     snow::stopCluster(cluster)
   }
 
-  finalRES = list(info = append(cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","N")],list(project=if(unlinkBuildProject){initial.project}else{sapply(cv.res,FUN=function(f){f$info$project})})),
+  finalRES = list(info = append(cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","N","ntot")],list(project=if(unlinkBuildProject){initial.project}else{sapply(cv.res,FUN=function(f){f$info$project})})),
                   lambda = rev(lambda.grid),
                   BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
                   eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),
