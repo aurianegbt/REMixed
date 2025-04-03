@@ -35,7 +35,7 @@
 #' BIC(res)
 #' }
 BIC.remix <- function(x){
-  return(-2*x$finalRes$LL+log(x$info$N)*sum(x$finalRes$alpha!=0))
+  return(-2*x$finalRes$LL+log(x$info$ntot)*sum(x$finalRes$alpha!=0))
 }
 
 #' AIC for remix object
@@ -158,7 +158,7 @@ eBIC <- function(x, ...) {
 #' eBIC(res)
 #' }
 eBIC.remix <- function(x,gamma=1){
-  return(-2*x$finalRes$LL+log(x$info$N)*sum(x$finalRes$alpha!=0)+2*gamma*log(choose(length(x$finalRes$alpha),sum(x$finalRes$alpha!=0))))
+  return(-2*x$finalRes$LL+log(x$info$ntot)*sum(x$finalRes$alpha!=0)+2*gamma*log(choose(length(x$finalRes$alpha),sum(x$finalRes$alpha!=0))))
 }
 
 #' AICc
@@ -241,7 +241,7 @@ AICc <- function(x, ...) {
 #' }
 AICc.remix <- function(x){
   k=sum(x$finalRes$alpha!=0)
-  return(-2*x$finalRes$LL+2*k+2*(k*(k+1))/(x$info$N-k-1))
+  return(-2*x$finalRes$LL+2*k+2*(k*(k+1))/(x$info$ntot-k-1))
 }
 
 
@@ -284,7 +284,7 @@ AICc.remix <- function(x){
 #' BIC(res)
 #' }
 BIC.cvRemix <- function(x){
-  return(-2*x$LL+log(x$info$N)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))
+  return(-2*x$LL+log(x$info$ntot)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))
 }
 
 #' AIC for cvRemix object
@@ -366,7 +366,7 @@ AIC.cvRemix <- function(x){
 #' eBIC(res)
 #' }
 eBIC.cvRemix <- function(x,gamma=1){
-  return(-2*x$LL+log(x$info$N)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)})+2*gamma*log(choose(length(x$info$alpha$alpha1),sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))))
+  return(-2*x$LL+log(x$info$ntot)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)})+2*gamma*log(choose(length(x$info$alpha$alpha1),sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))))
 }
 
 #' AICc for cvRemix object
@@ -408,6 +408,6 @@ eBIC.cvRemix <- function(x,gamma=1){
 #' }
 AICc.cvRemix <- function(x){
   k=sapply(x$res,FUN=function(x){sum(x$alpha!=0)})
-  return(-2*x$LL+2*k+2*(k*(k+1))/(x$info$N-k-1))
+  return(-2*x$LL+2*k+2*(k*(k+1))/(x$info$ntot-k-1))
 }
 

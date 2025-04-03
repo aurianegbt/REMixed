@@ -132,6 +132,13 @@ remix <- function(project = NULL,
 
   ################ START INITIALIZATION OF PROJECT REMIXed ################
   check.proj(project,alpha)
+  g = lixoftConnectors::getObservationInformation()
+  gy <- data.frame()
+  for(var in g$name){
+    gy <- rbind(gy,dplyr::rename(g[[var]],"obsid"=var))
+  }
+  N <- length(unique(gy[["id"]]))
+  ntot <- nrow(gy)
 
   if(selfInit){
     pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
@@ -631,8 +638,8 @@ remix <- function(project = NULL,
 
     to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
     to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
-    to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(length(currentData$mu))*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
+    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
+    to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     ############ outputs  ###########
@@ -652,7 +659,8 @@ remix <- function(project = NULL,
                               finalSAEM = finalSAEM,
                               test=if(finalSAEM){test}else{FALSE},
                               p.max=if(finalSAEM && test){p.max}else{NULL},
-                              N=length(currentData$mu)),
+                              N=length(currentData$mu),
+                              ntot = ntot),
                   finalRes=list(LL=LLfinal,
                                 LL.pen = LL.pen,
                                 param=paramfinal,

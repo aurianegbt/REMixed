@@ -48,7 +48,7 @@ retrieveBest <- function(fit,criterion=BIC){
   }
   argmin.id = which.min(criterion(fit))
 
-  results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[argmin.id]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N")],
+  results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[argmin.id]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
                  finalRes = append(fit$res[[argmin.id]],list(saemBeforeTest=NULL)),
                  iterOutputs = fit$outputs[[argmin.id]])
   class(results) <- "remix"
@@ -108,7 +108,7 @@ extract <- function(fit,n){
     stop(paste0("n must be between 1 and ",lenth(fit$lambda)))
   }
 
-  results = list(info = append(fit$info,list(lambda=fit$lambda[n],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[n]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N")],
+  results = list(info = append(fit$info,list(lambda=fit$lambda[n],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[n]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
                  finalRes = append(fit$res[[n]],list(saemBeforeTest=NULL)),
                  iterOutputs = fit$outputs[[n]])
   class(results) <- "remix"
