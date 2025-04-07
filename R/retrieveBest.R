@@ -49,7 +49,7 @@ retrieveBest <- function(fit,criterion=BICc){
   argmin.id = which.min(criterion(fit))
 
   results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[argmin.id]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
-                 finalRes = append(fit$res[[argmin.id]]),
+                 finalRes = fit$res[[argmin.id]],
                  iterOutputs = fit$outputs[[argmin.id]])
   class(results) <- "remix"
   return(results)
@@ -109,7 +109,7 @@ extract <- function(fit,n){
   }
 
   results = list(info = append(fit$info,list(lambda=fit$lambda[n],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[n]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
-                 finalRes = append(fit$res[[n]]),
+                 finalRes = fit$res[[n]],
                  iterOutputs = fit$outputs[[n]])
   class(results) <- "remix"
   return(results)
