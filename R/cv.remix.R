@@ -143,7 +143,7 @@ cv.remix <- function(project = NULL,
     names(trueValue)[names(trueValue) %in% alpha$alpha1] <- paste0(
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
-  param.toprint = setdiff(lixoftConnectors::getPopulationParameterInformation()$name,regParam.toprint)
+  param.toprint = setdiff(union(lixoftConnectors::getPopulationParameterInformation()$name[which(lixoftConnectors::getPopulationParameterInformation()$method=="MLE")],union(paste0(alpha$alpha0,"_pop"),sapply(names(alpha$alpha0),FUN=function(yG){lixoftConnectors::getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
 
   project.dir <- lixoftConnectors::getProjectSettings()$directory
   if (!dir.exists(project.dir))
