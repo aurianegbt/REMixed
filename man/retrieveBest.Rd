@@ -4,12 +4,12 @@
 \alias{retrieveBest}
 \title{Remix results}
 \usage{
-retrieveBest(fit, criterion = BIC)
+retrieveBest(fit, criterion = BICc)
 }
 \arguments{
 \item{fit}{output of \code{\link{cv.remix}};}
 
-\item{criterion}{which criterion function to take into account. Default is the function 'BIC", but one can use 'eBIC', 'AIC', 'AICc' or any function depending on a `cvRemix` object.}
+\item{criterion}{which criterion function to take into account. Default is the function 'BICc", but one can use 'BIC', 'AIC', 'eBIC' or any function depending on a `cvRemix` object.}
 }
 \value{
 outputs from \code{\link{remix}} algorithm achieving the best IC among those computed by \code{\link{cv.remix}}.
@@ -51,5 +51,5 @@ plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue
 }
 }
 \seealso{
-\code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{AICc.cvRemix}}.
+\code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
 }

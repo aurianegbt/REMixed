@@ -70,7 +70,7 @@ res = cv.remix(project = project,
                nlambda=8,
                eps2=1)
 
-res_with_test = computeFinalTest(retrieveBest(res0,criterion=BIC),
+res_with_test = computeFinalTest(retrieveBest(res0,criterion=BICc),
                                  dynFUN_demo,
                                  y,
                                  ObsModel.transfo)

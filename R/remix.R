@@ -638,8 +638,8 @@ remix <- function(project = NULL,
 
     to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
     to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
-    to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
+    to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(N)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+length(param.toprint)),digits=digits))
+    to.cat <- paste0(to.cat,"\n      BICc :  ",round(-2*LLfinal+log(ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0) + PFPR(param.toprint)$PF)+log(N)*PFPR(param.toprint)$PR,digits=digits),"\n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
     ############ outputs  ###########
@@ -966,4 +966,18 @@ print_result <- function (print, summary.file, to.cat = NULL, to.print = NULL)
     if (!is.null(to.print))
       print(to.print)
   }
+}
+
+PFPR <- function(param.toprint){
+
+  omega = param.toprint[stringr::str_detect(param.toprint,"omega_")]
+  corr = param.toprint[stringr::str_detect(param.toprint,"corr_")]
+  beta = param.toprint[stringr::str_detect(param.toprint,"beta_") & sub("^[^_]*_(.*)_[^_]*$", "\\1", param.toprint) %in% stringr::str_remove_all(omega,"omega_")]
+
+  REP = Reduce(union,list(omega,corr,beta))
+  FEP = setdiff(param.toprint,REP) # avec les alpha1 en moins car compté à part
+
+  PF = length(FEP)
+  PR = length(REP)
+  return(list(PF=PF,PR=PR))
 }

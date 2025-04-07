@@ -7,13 +7,15 @@
 \method{BIC}{cvRemix}(x)
 }
 \arguments{
-\item{x}{output of \code{\link{remix}}.}
+\item{x}{output of \code{\link{cv.remix}}.}
 }
 \value{
 BIC across the grid.
 }
 \description{
-Computes bayesian information criterion from the output of \code{\link{cv.rremix}}.
+Computes bayesian information criterion from the output of \code{\link{cv.rremix}} as
+\deqn{BIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+\log(N)P}
+where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 }
 \examples{
 \dontrun{
@@ -42,4 +44,7 @@ res = cv.remix(project = project,
 
 BIC(res)
 }
+}
+\references{
+Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
 }

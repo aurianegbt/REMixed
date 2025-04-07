@@ -44,7 +44,7 @@
 #' @param unlinkBuildProject logical, if the build project of each lambda should be deleted.
 #' @param max.iter maximum number of iteration (default 20).
 #'
-#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} information about the parameters ; \item{\code{project}} the project path if not unlinked ; \item{\code{lambda}} the grid of \eqn{\lambda} ; \item \code{BIC, eBIC} the vector of BIC/eBIC for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
+#' @return a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} information about the parameters ; \item{\code{project}} the project path if not unlinked ; \item{\code{lambda}} the grid of \eqn{\lambda} ; \item \code{BIC, BICc} the vector of BIC/BICc for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
 #' @seealso \code{\link{remix}}, \code{\link{retrieveBest}}.
 #' @export
 #'
@@ -521,9 +521,10 @@ cv.remix <- function(project = NULL,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
-                                    BIC = -2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),
-                                    eBIC = -2*LLfinal+log(ntot)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),
-                                    standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation),
+                                    BIC = -2*LLfinal+log(N)*(length(param.toprint)+sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)),
+                                    BICc = -2*LLfinal+log(ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(param.toprint)$PF)+log(N)*PFPR(param.toprint)$PR,
+                                    standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
+                                    saemBeforeTest = NULL),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,
                                        LL.pen = LLpen.outputs,
@@ -537,7 +538,7 @@ cv.remix <- function(project = NULL,
       to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
       to.cat <- paste0(to.cat,"        LL : ",round(results$finalRes$LL,digits=digits))
       to.cat <- paste0(to.cat,"\n       BIC :  ",round(results$finalRes$BIC,digits=digits),"\n")
-      to.cat <- paste0(to.cat,"\n      eBIC :  ",round(results$finalRes$eBIC,digits=digits),"\n")
+      to.cat <- paste0(to.cat,"\n      BICc :  ",round(results$finalRes$BICc,digits=digits),"\n")
       print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
       to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
@@ -565,18 +566,18 @@ cv.remix <- function(project = NULL,
 
   finalRES = list(info = append(cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","N","ntot")],list(project=if(unlinkBuildProject){initial.project}else{sapply(cv.res,FUN=function(f){f$info$project})})),
                   lambda = rev(lambda.grid),
-                  BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
-                  eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),
+                  # BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
+                  # eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),
                   LL = sapply(cv.res,FUN=function(f){f$finalRes$LL}),
                   LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL - f$info$lambda*sum(abs(as.numeric(f$finalRes$alpha)))}),
-                  res = lapply(cv.res,FUN=function(f){f$finalRes}),
+                  res = lapply(cv.res,FUN=function(f){f$finalRes[-which(names(f$finaleRes)%in% c("BIC","BICc"))]}),
                   outputs = lapply(cv.res,FUN=function(f){f$iterOutputs}))
 
   failed <- which(sapply(finalRES$res,is.null))
   if(length(failed)!=0){
     finalRES$lambda <- finalRES$lambda[-failed]
-    finalRES$BIC <- finalRES$BIC[-failed]
-    finalRES$eBIC <- finalRES$eBIC[-failed]
+    # finalRES$BIC <- finalRES$BIC[-failed]
+    # finalRES$eBIC <- finalRES$eBIC[-failed]
     finalRES$LL <- finalRES$LL[-failed]
     finalRES$LL.pen <- finalRES$LL.pen[-failed]
     finalRES$res<- finalRES$res[-failed]

@@ -4,11 +4,11 @@
 #'
 #'
 #' @param fit output of \code{\link{cv.remix}};
-#' @param criterion which criterion function to take into account. Default is the function 'BIC", but one can use 'eBIC', 'AIC', 'AICc' or any function depending on a `cvRemix` object.
+#' @param criterion which criterion function to take into account. Default is the function 'BICc", but one can use 'BIC', 'AIC', 'eBIC' or any function depending on a `cvRemix` object.
 #'
 #' @return outputs from \code{\link{remix}} algorithm achieving the best IC among those computed by \code{\link{cv.remix}}.
 #' @export
-#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{AICc.cvRemix}}.
+#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
 #'
 #' @examples
 #' \dontrun{
@@ -42,14 +42,14 @@
 #'
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
-retrieveBest <- function(fit,criterion=BIC){
+retrieveBest <- function(fit,criterion=BICc){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
   argmin.id = which.min(criterion(fit))
 
   results = list(info = append(fit$info,list(lambda=fit$lambda[argmin.id],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[argmin.id]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
-                 finalRes = append(fit$res[[argmin.id]],list(saemBeforeTest=NULL)),
+                 finalRes = append(fit$res[[argmin.id]]),
                  iterOutputs = fit$outputs[[argmin.id]])
   class(results) <- "remix"
   return(results)
@@ -65,7 +65,7 @@ retrieveBest <- function(fit,criterion=BIC){
 #'
 #' @return outputs from \code{\link{remix}} algorithm of rank `n` computed by \code{\link{cv.remix}}.
 #' @export
-#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{AICc.cvRemix}}.
+#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
 #'
 #' @examples
 #' \dontrun{
@@ -105,11 +105,11 @@ extract <- function(fit,n){
     stop("Class of fit must be cvRemix")
   }
   if(!(n>=1 && n<=length(fit$lambda))){
-    stop(paste0("n must be between 1 and ",lenth(fit$lambda)))
+    stop(paste0("n must be between 1 and ",length(fit$lambda)))
   }
 
   results = list(info = append(fit$info,list(lambda=fit$lambda[n],finalSAEM=FALSE,test=FALSE,p.max=NULL,project=if(length(fit$info$project)==1){fit$info$project}else{fit$info$project[n]}))[c("project","param.toprint","regParam.toprint","alpha","lambda","finalSAEM","test","p.max","N","ntot")],
-                 finalRes = append(fit$res[[n]],list(saemBeforeTest=NULL)),
+                 finalRes = append(fit$res[[n]]),
                  iterOutputs = fit$outputs[[n]])
   class(results) <- "remix"
   return(results)

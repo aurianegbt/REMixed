@@ -8,7 +8,7 @@ plotCalibration(
   fit,
   legend.position = "none",
   trueValue = NULL,
-  criterion = BIC,
+  criterion = BICc,
   dismin = TRUE
 )
 }
@@ -19,7 +19,7 @@ plotCalibration(
 
 \item{trueValue}{(for simulation purpose) named vector containing the true value of regularization parameter.}
 
-\item{criterion}{function ; which criterion among 'BIC', 'eBIC', 'AIC', 'AICc', or function of cvRemix object to take into account ;}
+\item{criterion}{function ; which criterion among 'BIC', 'eBIC', 'AIC', 'BICc', or function of cvRemix object to take into account (default : BICc).}
 
 \item{dismin}{logical ; if minimizers of information criterion should be display.}
 }
@@ -56,7 +56,7 @@ res = cv.remix(project = project,
 
 plotCalibration(res)
 
-plotBIC(res)
+plotIC(res)
 }
 }
 \seealso{

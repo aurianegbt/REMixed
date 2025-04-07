@@ -13,7 +13,9 @@
 BIC.
 }
 \description{
-Computes bayesian information criterion from the output of \code{\link{remix}}.
+Computes bayesian information criterion from the output of \code{\link{remix}} as
+\deqn{BIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+\log(N)P}
+where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 }
 \examples{
 \dontrun{
@@ -42,4 +44,7 @@ res = remix(project = project,
 
 BIC(res)
 }
+}
+\references{
+Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
 }

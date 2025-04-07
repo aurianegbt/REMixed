@@ -173,7 +173,7 @@ plotConvergence <- function(fit){
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
 #' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside").
 #' @param trueValue (for simulation purpose) named vector containing the true value of regularization parameter.
-#' @param criterion function ; which criterion among 'BIC', 'eBIC', 'AIC', 'AICc', or function of cvRemix object to take into account ;
+#' @param criterion function ; which criterion among 'BIC', 'eBIC', 'AIC', 'BICc', or function of cvRemix object to take into account (default : BICc).
 #' @param dismin logical ; if minimizers of information criterion should be display.
 #'
 #' @return Calibration plot, over the lambda.grid.
@@ -208,9 +208,9 @@ plotConvergence <- function(fit){
 #'
 #' plotCalibration(res)
 #'
-#' plotBIC(res)
+#' plotIC(res)
 #' }
-plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BIC,dismin=TRUE){
+plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BICc,dismin=TRUE){
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
@@ -265,13 +265,13 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
   return(p)
 }
 
-#' BIC plot.
+#' IC plot.
 #'
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}};
-#' @param criterion which criterion among "BIC" and "eBIC" to take into account ;
+#' @param criterion which criterion among 'BICc', 'BIC', 'AIC' or 'eBIC' to take into account (default: BICc);
 #' @param dismin logical ; if minimizers of information criterion should be display.
 #'
-#' @return BIC trhoughout the lambda.grid.
+#' @return IC trhoughout the lambda.grid.
 #' @export
 #'
 #' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
@@ -303,12 +303,13 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 #'
 #' plotCalibration(res)
 #'
-#' plotBIC(res)
+#' plotIC(res)
 #' }
-plotBIC <- function(fit,criterion=BIC,dismin=TRUE){
+plotIC <- function(fit,criterion=BICc,dismin=TRUE){
   if(!inherits(fit,"cvRemix")){
   stop("Class of fit must be cvRemix")
   }
+
 
   df <- data.frame(criterion = sapply(1:length(fit$lambda),FUN=function(i){criterion(extract(fit,i))}),lambda=fit$lambda)
 
@@ -323,7 +324,7 @@ plotBIC <- function(fit,criterion=BIC,dismin=TRUE){
       ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
       ggplot2::geom_segment(y = df[which.min(df$criterion),"criterion"],yend = df[which.min(df$criterion),"criterion"], x = -Inf, xend=+Inf,col="indianred",lwd=0.7,linetype=5) +
       ggplot2::geom_point(y = df[which.min(df$criterion),"criterion"],x = df[which.min(df$criterion),"lambda"],col="indianred4",size=2)+
-      ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$criterion),"lambda"],digits=2),"\n",criterion,".min = ",round(df[which.min(df$criterion),"criterion"],digits=2)), x= df[which.max(df$lambda),"lambda"],y = df[which.min(df$criterion),"criterion"],hjust=1,vjust=-0.2,color="indianred4",size=4)
+      ggplot2::geom_text(label = paste0("\u03bb.min = ",round(df[which.min(df$criterion),"lambda"],digits=2),"\n IC.min = ",round(df[which.min(df$criterion),"criterion"],digits=2)), x= df[which.max(df$lambda),"lambda"],y = df[which.min(df$criterion),"criterion"],hjust=1,vjust=-0.2,color="indianred4",size=4)
   }
   return(p)
 }

@@ -7,13 +7,15 @@
 \method{AIC}{cvRemix}(x)
 }
 \arguments{
-\item{x}{output of \code{\link{remix}}.}
+\item{x}{output of \code{\link{cv.remix}}.}
 }
 \value{
 AIC across the grid.
 }
 \description{
-Computes akaike information criterion from the output of \code{\link{cv.remix}}.
+Computes akaike information criterion from the output of \code{\link{cv.remix}}as
+\deqn{AIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+2P}
+where \eqn{P} is the total number of parameters estimated and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 }
 \examples{
 \dontrun{
@@ -42,4 +44,7 @@ res = cv.remix(project = project,
 
 AIC(res)
 }
+}
+\references{
+Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199–213. New York: Springer.
 }

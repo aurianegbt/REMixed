@@ -13,7 +13,9 @@ eBIC(x, ...)
 eBIC.
 }
 \description{
-Computes extended bayesian information criterion .
+Computes extended bayesian information criterion  as
+ \deqn{ eBIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P\log(N)+2\gamma\log(\binom(k,K))}
+where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject, \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model, \eqn{K} the number of submodel to explore (here the numbre of biomarkers tested) and \eqn{k} the numbre of biomarkers selected in the model.
 }
 \examples{
 \dontrun{
@@ -42,4 +44,7 @@ res = remix(project = project,
 
 eBIC(res)
 }
+}
+\references{
+Chen, J. and Z. Chen. 2008. Extended Bayesian information criteria for model selection with large model spaces. Biometrika 95 (3): 759–771
 }

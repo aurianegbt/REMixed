@@ -7,13 +7,17 @@
 \method{eBIC}{cvRemix}(x, gamma = 1)
 }
 \arguments{
-\item{x}{output of \code{\link{remix}}.}
+\item{x}{output of \code{\link{cv.remix}}.}
+
+\item{gamma}{(default: 1) penalty parameters between 0 and 1 for eBIC.}
 }
 \value{
-eBIC accross the grid.
+eBIC.
 }
 \description{
-Computes extended bayesian information criterion from the output of \code{\link{cv.remix}}.
+Computes extended bayesian information criterion from the output of \code{\link{cv.remix}}as
+ \deqn{ eBIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P\log(N)+2\gamma\log(\binom(k,K))}
+where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject, \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model, \eqn{K} the number of submodel to explore (here the numbre of biomarkers tested) and \eqn{k} the numbre of biomarkers selected in the model.
 }
 \examples{
 \dontrun{

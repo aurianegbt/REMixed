@@ -39,7 +39,7 @@
 #'                nlambda=8,
 #'                eps2=1)
 #'
-#' res_with_test = computeFinalTest(retrieveBest(res0,criterion=BIC),
+#' res_with_test = computeFinalTest(retrieveBest(res0,criterion=BICc),
 #'                                  dynFUN_demo,
 #'                                  y,
 #'                                  ObsModel.transfo)
@@ -268,8 +268,8 @@ computeFinalTest <- function(remix.output,
 
   to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
   to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-  to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
-  to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
+  to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(remix.output$info$N)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+length(remix.output$info$param.toprint)),digits=digits))
+  to.cat <- paste0(to.cat,"\n      BICc :  ",round(-2*LLfinal+log(remix.output$info$ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(remix.output$info$param.toprint)$PF)+log(remix.output$info$N)*PFPR(remix.output$info$param.toprint)$PR,digits=digits),"\n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
   if(test){
@@ -387,8 +387,8 @@ computeFinalTest <- function(remix.output,
 
   to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
   to.cat <- paste0(to.cat,"        LL : ",round(LLfinal,digits=digits))
-  to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0),digits=digits))
-  to.cat <- paste0(to.cat,"\n      eBIC :  ",round(-2*LLfinal+log(remix.output$info$N)*sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+2*log(choose(length(alpha$alpha1),sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0))),digits=digits),"\n")
+  to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(remix.output$info$N)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+length(remix.output$info$param.toprint)),digits=digits))
+  to.cat <- paste0(to.cat,"\n      BICc :  ",round(-2*LLfinal+log(remix.output$info$ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(remix.output$info$param.toprint)$PF)+log(remix.output$info$N)*PFPR(remix.output$info$param.toprint)$PR,digits=digits),"\n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
   lixoftConnectors::saveProject(final.project)

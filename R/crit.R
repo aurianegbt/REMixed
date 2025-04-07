@@ -1,9 +1,12 @@
 #' BIC for remix object
 #'
-#' Computes bayesian information criterion from the output of \code{\link{remix}}.
+#' Computes bayesian information criterion from the output of \code{\link{remix}} as
+#' \deqn{BIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+\log(N)P}
+#' where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
 #' @param x output of \code{\link{remix}}.
 #'
+#' @references Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
 #' @returns BIC.
 #' @export
 #'
@@ -35,15 +38,19 @@
 #' BIC(res)
 #' }
 BIC.remix <- function(x){
-  return(-2*x$finalRes$LL+log(x$info$ntot)*sum(x$finalRes$alpha!=0))
+  P = sum(x$finalRes$alpha!=0) + length(x$info$param.toprint)
+  return(-2*x$finalRes$LL+log(x$info$N)*P)
 }
 
 #' AIC for remix object
 #'
-#' Computes akaike information criterion from the output of \code{\link{remix}}.
+#' Computes akaike information criterion from the output of \code{\link{remix}} as
+#' \deqn{AIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+2P}
+#' where \eqn{P} is the total number of parameters estimated and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
 #' @param x output of \code{\link{remix}}.
 #'
+#' @references Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199–213. New York: Springer.
 #' @returns AIC.
 #' @export
 #'
@@ -76,15 +83,19 @@ BIC.remix <- function(x){
 #' AIC(res)
 #' }
 AIC.remix <- function(x){
-  return(-2*x$finalRes$LL+2*sum(x$finalRes$alpha!=0))
+  P = sum(x$finalRes$alpha!=0) + length(x$info$param.toprint)
+  return(-2*x$finalRes$LL+2*P)
 }
 
 #' eBIC
 #'
-#' Computes extended bayesian information criterion .
+#' Computes extended bayesian information criterion  as
+#'  \deqn{ eBIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P\log(N)+2\gamma\log(\binom(k,K))}
+#' where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject, \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model, \eqn{K} the number of submodel to explore (here the numbre of biomarkers tested) and \eqn{k} the numbre of biomarkers selected in the model.
 #'
 #' @param x output of \code{\link{remix}} or \code{\link{cv.remix}}.
 #'
+#' @references  Chen, J. and Z. Chen. 2008. Extended Bayesian information criteria for model selection with large model spaces. Biometrika 95 (3): 759–771
 #' @returns eBIC.
 #' @export
 #'
@@ -122,9 +133,12 @@ eBIC <- function(x, ...) {
 
 #' eBIC for remix object
 #'
-#' Computes extended bayesian information criterion from the output of \code{\link{remix}}.
+#' Computes extended bayesian information criterion from the output of \code{\link{remix}} as
+#'  \deqn{ eBIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P\log(N)+2\gamma\log(\binom(k,K))}
+#' where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject, \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model, \eqn{K} the number of submodel to explore (here the numbre of biomarkers tested) and \eqn{k} the numbre of biomarkers selected in the model.
 #'
 #' @param x output of \code{\link{remix}}.
+#' @param gamma (default: 1) penalty parameters between 0 and 1 for eBIC.
 #'
 #' @returns eBIC.
 #' @references Chen, J., & Chen, Z. (2008). Extended Bayesian Information Criteria for Model Selection with Large Model Spaces. Biometrika, 95(3), 759–771. http://www.jstor.org/stable/20441500
@@ -158,16 +172,20 @@ eBIC <- function(x, ...) {
 #' eBIC(res)
 #' }
 eBIC.remix <- function(x,gamma=1){
-  return(-2*x$finalRes$LL+log(x$info$ntot)*sum(x$finalRes$alpha!=0)+2*gamma*log(choose(length(x$finalRes$alpha),sum(x$finalRes$alpha!=0))))
+  P = length(x$info$param.toprint) + sum(x$finalRes$alpha!=0)
+  return(-2*x$finalRes$LL+log(x$info$N)*P+2*gamma*log(choose(length(x$finalRes$alpha),sum(x$finalRes$alpha!=0))))
 }
 
-#' AICc
+#' BICc
 #'
-#' Computes corrected akaike information criterion .
+#' Computes corrected bayesian information criterion  as
+#'  \deqn{ BICc = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P_R\log(N)+P_F\log(n_{tot})}
+#' where \eqn{P_F} is the total number of parameters linked to fixed effects, \eqn{P_R} to random effects, \eqn{N} the number of subject, \eqn{n_tot} the total number of observations and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
-#' @param x output of \code{\link{remix}} or \code{\link{cv.remix}}.
+#' @param x output of \code{\link{remix}} or \code{\link{cv.remix}}
 #'
-#' @returns AICc.
+#' @references  Delattre M, Lavielle M, Poursat M-A. A note on BIC in mixed-effects models. Elect J Stat. 2014; 8(1): 456-475.
+#' @returns BICc.
 #' @export
 #'
 #'
@@ -196,21 +214,23 @@ eBIC.remix <- function(x,gamma=1){
 #'             eps2=1,
 #'             lambda=lambda)
 #'
-#' AICc(res)
+#' BICc(res)
 #' }
-AICc <- function(x, ...) {
-  UseMethod("AICc", x)
+BICc <- function(x, ...) {
+  UseMethod("BICc", x)
 }
 
-#' AICc for remix object
+#' BICc for remix object
 #'
-#' Computes corrected akaike information criterion from the output of \code{\link{remix}}.
+#' Computes corrected bayesian information criterion from the output of \code{\link{remix}}  as
+#'  \deqn{ BICc = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P_R\log(N)+P_F\log(n_{tot})}
+#' where \eqn{P_F} is the total number of parameters linked to fixed effects, \eqn{P_R} to random effects, \eqn{N} the number of subject, \eqn{n_tot} the total number of observations and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
 #' @param x output of \code{\link{remix}}.
 #'
-#' @returns AICc.
+#' @returns BICc.
+#' @references Delattre M, Lavielle M, Poursat M-A. A note on BIC in mixed-effects models. Elect J Stat. 2014; 8(1): 456-475.
 #' @export
-#'
 #'
 #' @examples
 #' \dontrun{
@@ -237,11 +257,19 @@ AICc <- function(x, ...) {
 #'             eps2=1,
 #'             lambda=lambda)
 #'
-#' AICc(res)
+#' BICc(res)
 #' }
-AICc.remix <- function(x){
-  k=sum(x$finalRes$alpha!=0)
-  return(-2*x$finalRes$LL+2*k+2*(k*(k+1))/(x$info$ntot-k-1))
+BICc.remix <- function(x){
+  omega = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"omega_")]
+  corr = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"corr_")]
+  beta = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"beta_") & sub("^[^_]*_(.*)_[^_]*$", "\\1", x$info$param.toprint) %in% stringr::str_remove_all(omega,"omega_")]
+
+  REP = Reduce(union,list(omega,corr,beta))
+  FEP = setdiff(x$info$param.toprint,REP) # avec les alpha1 en moins car compté à part
+
+  PF = length(FEP) + sum(x$finalRes$alpha!=0)
+  PR = length(REP)
+  return(-2*x$finalRes$LL+log(x$info$N)*PR+log(x$info$ntot)*PF)
 }
 
 
@@ -249,9 +277,13 @@ AICc.remix <- function(x){
 
 #' BIC for cvRemix object
 #'
-#' Computes bayesian information criterion from the output of \code{\link{cv.rremix}}.
+#' Computes bayesian information criterion from the output of \code{\link{cv.rremix}} as
+#' \deqn{BIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+\log(N)P}
+#' where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
-#' @param x output of \code{\link{remix}}.
+#' @param x output of \code{\link{cv.remix}}.
+#'
+#' @references Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
 #'
 #' @returns BIC across the grid.
 #' @export
@@ -284,14 +316,19 @@ AICc.remix <- function(x){
 #' BIC(res)
 #' }
 BIC.cvRemix <- function(x){
-  return(-2*x$LL+log(x$info$ntot)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))
+  P = sapply(x$res,FUN=function(x){sum(x$alpha!=0)}) + length(x$info$param.toprint)
+  return(-2*x$LL+log(x$info$N)*P)
 }
 
 #' AIC for cvRemix object
 #'
-#' Computes akaike information criterion from the output of \code{\link{cv.remix}}.
+#' Computes akaike information criterion from the output of \code{\link{cv.remix}}as
+#' \deqn{AIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+2P}
+#' where \eqn{P} is the total number of parameters estimated and \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model.
 #'
-#' @param x output of \code{\link{remix}}.
+#' @param x output of \code{\link{cv.remix}}.
+#'
+#' @references Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199–213. New York: Springer.
 #'
 #' @returns AIC across the grid.
 #' @export
@@ -325,16 +362,20 @@ BIC.cvRemix <- function(x){
 #' AIC(res)
 #' }
 AIC.cvRemix <- function(x){
-  return(-2*x$LL+2*sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))
+  P = sapply(x$res,FUN=function(x){sum(x$alpha!=0)}) + length(x$info$param.toprint)
+  return(-2*x$LL+2*P)
 }
 
 #' eBIC for cvRemix object
 #'
-#' Computes extended bayesian information criterion from the output of \code{\link{cv.remix}}.
+#' Computes extended bayesian information criterion from the output of \code{\link{cv.remix}}as
+#'  \deqn{ eBIC = -2\mathcal{LL}_{y}(\hat\theta,\hat\alpha)+P\log(N)+2\gamma\log(\binom(k,K))}
+#' where \eqn{P} is the total number of parameters estimated, \eqn{N} the number of subject, \eqn{\mathcal{LL}_{y}(\hat\theta,\hat\alpha)} the log-likelihood of the model, \eqn{K} the number of submodel to explore (here the numbre of biomarkers tested) and \eqn{k} the numbre of biomarkers selected in the model.
 #'
-#' @param x output of \code{\link{remix}}.
+#' @param x output of \code{\link{cv.remix}}.
+#' @param gamma (default: 1) penalty parameters between 0 and 1 for eBIC.
 #'
-#' @returns eBIC accross the grid.
+#' @returns eBIC.
 #' @references Chen, J., & Chen, Z. (2008). Extended Bayesian Information Criteria for Model Selection with Large Model Spaces. Biometrika, 95(3), 759–771. http://www.jstor.org/stable/20441500
 #' @export
 #'
@@ -366,16 +407,18 @@ AIC.cvRemix <- function(x){
 #' eBIC(res)
 #' }
 eBIC.cvRemix <- function(x,gamma=1){
-  return(-2*x$LL+log(x$info$ntot)*sapply(x$res,FUN=function(x){sum(x$alpha!=0)})+2*gamma*log(choose(length(x$info$alpha$alpha1),sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))))
+  P =sapply(x$res,FUN=function(x){sum(x$alpha!=0)})+ length(x$info$param.toprint)
+  return(-2*x$LL+log(x$info$N)*P+2*gamma*log(choose(length(x$info$alpha$alpha1),sapply(x$res,FUN=function(x){sum(x$alpha!=0)}))))
 }
 
-#' AICc for cvRemix object
+#' BICc for cvRemix object
 #'
-#' Computes corrected akaike information criterion from the output of \code{\link{cv.remix}}.
+#' Computes corrected Bayesian Information Criterion from the output of \code{\link{cv.remix}}.
 #'
 #' @param x output of \code{\link{cv.remix}}.
 #'
-#' @returns AICc accross the grid.
+#' @references Delattre M, Lavielle M, Poursat M-A. A note on BIC in mixed-effects models. Elect J Stat. 2014; 8(1): 456-475.
+#' @returns BICc accross the grid.
 #' @export
 #'
 #'
@@ -404,10 +447,19 @@ eBIC.cvRemix <- function(x,gamma=1){
 #'                nlambda=8,
 #'                eps2=1)
 #'
-#' AICc(res)
+#' BICc(res)
 #' }
-AICc.cvRemix <- function(x){
-  k=sapply(x$res,FUN=function(x){sum(x$alpha!=0)})
-  return(-2*x$LL+2*k+2*(k*(k+1))/(x$info$ntot-k-1))
+BICc.cvRemix <- function(x){
+  omega = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"omega_")]
+  corr = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"corr_")]
+  beta = x$info$param.toprint[stringr::str_detect(x$info$param.toprint,"beta_") & sub("^[^_]*_(.*)_[^_]*$", "\\1", x$info$param.toprint) %in% stringr::str_remove_all(omega,"omega_")]
+
+  REP = Reduce(union,list(omega,corr,beta))
+  FEP = setdiff(x$info$param.toprint,REP) # avec les alpha1 en moins car compté à part
+
+  PF = length(FEP) + sapply(x$res,FUN=function(x){sum(x$alpha!=0)})
+  PR = length(REP)
+
+  return(-2*x$LL+log(x$info$N)*PR+log(x$info$ntot)*PF)
 }
 
