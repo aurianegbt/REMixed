@@ -1,3 +1,29 @@
+#' Plot of cv.remix object
+#'
+#' Calibration and Informative Criterion plot for cvRemix object.
+#'
+#' @param x output of \code{\link{cv.remix}}.
+#'
+#' @return A plot.
+#'
+#' @seealso \code{\link{cv.remix}}
+#'
+#' @export
+plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL){
+  pC <- plotCalibration(x,criterion=criterion,trueValue = trueValue)+ggplot2::ggtitle("")
+  pI <- plotIC(x,criterion=criterion)+ggplot2::ggtitle("")
+
+  plot <-
+    ggpubr::ggarrange(pC,pI,
+                      labels = c("Calibration Plot          ",
+                                 "Information Criterion Plot"),
+                      hjust=-0.2,
+                      font.label = list(size = 14, color = "brown4", face = "bold"),
+                      ncol=1)
+
+  return(plot)
+}
+
 #' Display the value of parameters at each iteration
 #'
 #' @param fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.

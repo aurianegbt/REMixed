@@ -1,41 +1,6 @@
-#' print
-#'
-#' Print final estimated parameters, with standard errors estimates if computed, by \code{\link{remix}} algorithm.
-#'
-#' @param x output of \code{\link{remix}}.
-#'
 #' @export
-#'
-#'
-#' @examples
-#' \dontrun{
-#' project <- getMLXdir()
-#'
-#' ObsModel.transfo = list(S=list(Ab=log10),
-#'                         linkS="yAB",
-#'                         R=rep(list(S=function(x){x}),5),
-#'                         linkR = paste0("yG",1:5))
-#'
-#' alpha=list(alpha0=NULL,
-#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
-#'
-#' y = c(S=5,Ab=1000)
-#' lambda = 1440
-#'
-#' res = remix(project = project,
-#'             dynFUN = dynFUN_demo,
-#'             y = y,
-#'             ObsModel.transfo = ObsModel.transfo,
-#'             alpha = alpha,
-#'             selfInit = TRUE,
-#'             eps1=10**(-2),
-#'             eps2=1,
-#'             lambda=lambda)
-#'
-#' print(res)
-#' }
 print.remix <- function(x,trueValue=NULL,digits=3){
-  to.cat <- "\n      - - - <  FINAL PARAMETERS  > - - -     \n\n"
+  to.cat <- "\n      - - - <  ESTIMATED PARAMETERS  > - - -     \n\n"
   cat(to.cat)
 
   if(!is.null(x$finalRes$standardError)){

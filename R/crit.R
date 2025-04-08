@@ -463,3 +463,12 @@ BICc.cvRemix <- function(x){
   return(-2*x$LL+log(x$info$N)*PR+log(x$info$ntot)*PF)
 }
 
+#'@export
+logLik.remix <- function(x){
+  return(x$finalRes$LL)
+}
+
+#' @export
+logLik.cvRemix <- function(x){
+  return(x$LL)
+}
