@@ -337,7 +337,7 @@ remix <- function(project = NULL,
 
     if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
 
-      to.cat("\t/!\ [RECALIBRATION] /!\\n")
+      to.cat<-("\t/!\ [RECALIBRATION] /!\\n")
       print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
       th <- 1
