@@ -129,7 +129,7 @@ res = remix(project = project,
             eps2=1,
             lambda=lambda)
 
-plotConvergence(res)
+summary(res)
 
 trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
 

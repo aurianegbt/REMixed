@@ -74,7 +74,7 @@
 #'             eps2=1,
 #'             lambda=lambda)
 #'
-#' plotConvergence(res)
+#' summary(res)
 #'
 #' trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
 #'
@@ -129,7 +129,6 @@ remix <- function(project = NULL,
     doSNOW::registerDoSNOW(cluster)
   }
 
-
   ################ START INITIALIZATION OF PROJECT REMIXed ################
   check.proj(project,alpha)
   g = lixoftConnectors::getObservationInformation()
@@ -149,7 +148,13 @@ remix <- function(project = NULL,
     names(trueValue)[names(trueValue) %in% alpha$alpha1] <- paste0(
       names(trueValue)[names(trueValue) %in% alpha$alpha1],"_pop")
   }
-  param.toprint = setdiff(union(lixoftConnectors::getPopulationParameterInformation()$name[which(lixoftConnectors::getPopulationParameterInformation()$method=="MLE")],union(paste0(alpha$alpha0,"_pop"),sapply(names(alpha$alpha0),FUN=function(yG){lixoftConnectors::getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
+
+  if(!is.null(alpha$alpha0)){
+    para0 = paste0(alpha$alpha0,"_pop")
+  }else{
+    para0 = c()
+  }
+  param.toprint = setdiff(union(lixoftConnectors::getPopulationParameterInformation()$name[which(lixoftConnectors::getPopulationParameterInformation()$method=="MLE")],union(para0,sapply(names(alpha$alpha1),FUN=function(yG){lixoftConnectors::getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
 
   project.dir <- lixoftConnectors::getProjectSettings()$directory
   if (!dir.exists(project.dir))
