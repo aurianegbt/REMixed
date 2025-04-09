@@ -521,8 +521,6 @@ cv.remix <- function(project = NULL,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
-                                    BIC = -2*LLfinal+log(N)*(length(param.toprint)+sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)),
-                                    BICc = -2*LLfinal+log(ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(param.toprint)$PF)+log(N)*PFPR(param.toprint)$PR,
                                     standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
                                     saemBeforeTest = NULL),
                       iterOutputs=list(param=param.outputs,
@@ -537,8 +535,8 @@ cv.remix <- function(project = NULL,
       to.cat <- "        DONE !\n"
       to.cat <- "\n      - - - <  CRITERION  > - - -     \n"
       to.cat <- paste0(to.cat,"        LL : ",round(results$finalRes$LL,digits=digits))
-      to.cat <- paste0(to.cat,"\n       BIC :  ",round(results$finalRes$BIC,digits=digits),"\n")
-      to.cat <- paste0(to.cat,"\n      BICc :  ",round(results$finalRes$BICc,digits=digits),"\n")
+      to.cat <- paste0(to.cat,"\n       BIC :  ",round(-2*LLfinal+log(N)*(length(param.toprint)+sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)),digits=digits))
+      to.cat <- paste0(to.cat,"\n      BICc :  ",round(-2*LLfinal+log(ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(param.toprint)$PF)+log(N)*PFPR(param.toprint)$PR),"\n")
       print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
 
       to.cat <- "\n      - - - <   FINAL  PARAMETERS  > - - -     \n\n"
@@ -566,11 +564,9 @@ cv.remix <- function(project = NULL,
 
   finalRES = list(info = append(cv.res[[1]]$info[c("param.toprint","regParam.toprint","alpha","N","ntot")],list(project=if(unlinkBuildProject){initial.project}else{sapply(cv.res,FUN=function(f){f$info$project})})),
                   lambda = rev(lambda.grid),
-                  # BIC = sapply(cv.res,FUN=function(f){f$finalRes$BIC}),
-                  # eBIC = sapply(cv.res,FUN=function(f){f$finalRes$eBIC}),
                   LL = sapply(cv.res,FUN=function(f){f$finalRes$LL}),
                   LL.pen = sapply(cv.res,FUN=function(f){f$finalRes$LL - f$info$lambda*sum(abs(as.numeric(f$finalRes$alpha)))}),
-                  res = lapply(cv.res,FUN=function(f){f$finalRes[-which(names(f$finaleRes)%in% c("BIC","BICc"))]}),
+                  res = lapply(cv.res,FUN=function(f){f$finalRes}),
                   outputs = lapply(cv.res,FUN=function(f){f$iterOutputs}))
 
   failed <- which(sapply(finalRES$res,is.null))
