@@ -371,7 +371,7 @@ cv.remix <- function(project = NULL,
         LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE ,onlyLL=TRUE,verbose = PRINT) - lambda * sum(abs(a.final))
 
         if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
-          to.cat("\t/!\ [RECALIBRATION] /!\\n")
+          to.cat <- "\t/!\ [RECALIBRATION] /!\\n"
           print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
           print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
           th <- 1
