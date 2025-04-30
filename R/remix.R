@@ -182,7 +182,7 @@ remix <- function(project = NULL,
 
   if(!selfInit){
     pset1 <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
-                  simulatedannealing = F, smoothingautostop = T, exploratoryautostop = T)
+                  simulatedannealing = T, smoothingautostop = T, exploratoryautostop = T)
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
@@ -191,8 +191,8 @@ remix <- function(project = NULL,
                                                      names(pop.set1))])
   }
 
-  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = F,
-                smoothingautostop = F, exploratoryautostop = F)
+  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = T,
+                smoothingautostop = T, exploratoryautostop = T)
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
@@ -432,6 +432,9 @@ remix <- function(project = NULL,
 
     param <- re$param
 
+    if(iter==7){
+      browser()
+    }
 
     ############ ESTIMATE PENALIZED   ###########
     to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
@@ -846,7 +849,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
     pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
   }else{
     pset <- list(nbsmoothingiterations=50,nbexploratoryiterations=50,
-                 simulatedannealing=F, smoothingautostop=F,exploratoryautostop=F)
+                 simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
     if(!is.null(pop.set))
       pset <-  modifyList(pset, pop.set[intersect(names(pop.set),
                                                   names(pset))])

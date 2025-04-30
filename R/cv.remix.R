@@ -178,7 +178,7 @@ cv.remix <- function(project = NULL,
 
   if(!selfInit){
     pset1 <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
-                  simulatedannealing = F, smoothingautostop = T, exploratoryautostop = T)
+                  simulatedannealing = T, smoothingautostop = T, exploratoryautostop = T)
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
@@ -187,8 +187,8 @@ cv.remix <- function(project = NULL,
                                                      names(pop.set1))])
   }
 
-  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = F,
-                smoothingautostop = F, exploratoryautostop = F)
+  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = T,
+                smoothingautostop =T, exploratoryautostop = T)
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
