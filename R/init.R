@@ -185,7 +185,14 @@ initStrat <- function(project,
         cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='FIXED'))")
         eval(parse(text = cmd))
       }else{
-        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(initialValue=1))")
+        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(initialValue=1,method='MLE'))")
+        eval(parse(text = cmd))
+
+        if(!is.null(alpha$alpha0)){
+          cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(method='MLE'))")
+          eval(parse(text = cmd))
+        }
+        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='MLE'))")
         eval(parse(text = cmd))
       }
     }
@@ -262,5 +269,6 @@ initStrat <- function(project,
     unlink(paste0(remix.dir,"/tmp_init"),force=TRUE,recursive = TRUE)
   }
 
+  class(res) <- "init"
   return(res)
 }
