@@ -117,7 +117,7 @@ alpha=list(alpha0=NULL,
            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 
 y = c(S=5,AB=1000)
-lambda = 8
+lambda = 382
 
 res = remix(project = project,
             dynFUN = dynFUN_demo,
