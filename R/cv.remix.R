@@ -159,7 +159,7 @@ cv.remix <- function(project = NULL,
   if (!dir.exists(remix.dir))
     dir.create(remix.dir)
   Sys.sleep(0.1)
-  summary.file = file.path(remix.dir, "summary.txt")
+  summary.file = file.path(remix.dir, "summary_cv.txt")
   unlink(summary.file,force=TRUE)
   Sys.sleep(0.1)
 

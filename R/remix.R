@@ -432,10 +432,6 @@ remix <- function(project = NULL,
 
     param <- re$param
 
-    if(iter==7){
-      browser()
-    }
-
     ############ ESTIMATE PENALIZED   ###########
     to.cat <- paste0("\nEstimating penalised log-likelihood... \n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
