@@ -355,3 +355,72 @@ plotIC <- function(fit,criterion=BICc,dismin=TRUE){
   return(p)
 }
 
+#' Plot initialization
+#'
+#' @param init outputs from \code{\link{initStrat}} function.
+#' @param alpha named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
+#' @param trueValue (for simulation purpose) named vector containing the true value of regularization parameter.
+#'
+#' @returns log-likelihood value for all groups of genes tested.
+#' @export
+#'
+#' @seealso \code{\link{initStrat}}.
+#'
+#' @examples
+#' \dontrun{
+#' project <- getMLXdir()
+#'
+#' ObsModel.transfo = list(S=list(AB=log10),
+#'                         linkS="yAB",
+#'                         R=rep(list(S=function(x){x}),5),
+#'                         linkR = paste0("yG",1:5))
+#'
+#' alpha=list(alpha0=NULL,
+#'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
+#'
+#' init <- initStrat(project,alpha,ObsModel.transfo,seed=1710)
+#'
+#' plotInit(init)
+#' }
+plotInit <- function(init,alpha=NULL,trueValue=NULL){
+  if(!inherits(fit,"init")){
+    stop("Class of init must be init")
+  }
+
+  results <- data.frame(genes = unname(sapply(init,function(i){paste0("(",paste0(sort(i$genes),collapse=","),")")})),
+                        LL = sapply(init,function(i){-1/2*i$LL[["OFV"]]}))
+
+  if(is.null(trueValue)){
+    ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL))+ggplot2::geom_point(size=3)+
+      ggplot2::ylab("Log-Likelihood")+
+      ggplot2::xlab("Genes pair") +
+      ggplot2::theme(axis.title=ggplot2::element_text(size=12),
+            axis.text.y = ggplot2::element_text(size=10),
+            axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
+            strip.text = ggplot2::element_text(size = 11),
+            plot.background = ggplot2::element_rect(fill='transparent', color=NA),
+            legend.key = ggplot2::element_rect(fill = "transparent", color = NA),
+            legend.background = ggplot2::element_rect(fill = "transparent", color = NA))
+  }else{
+    if(!is.null(alpha)){
+      stop("alpha arguments need to be provided")
+    }
+    genes = data.frame(yGk=names(alpha$alpha1),
+                       true = as.numeric(trueValue[alpha$alpha1])!=0)
+
+    results <- cbind(results,
+                     P = sapply(init,function(i){sum(genes[genes$yGk %in% i$genes,"true"])}))
+  }
+
+  ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL,color=P))+ggplot2::geom_point(size=3)+
+    ggplot2::ylab("Log-Likelihood")+
+    ggplot2::xlab("Genes pair") +
+    ggplot2::theme(axis.title=ggplot2::element_text(size=12),
+                   axis.text.y = ggplot2::element_text(size=10),
+                   axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
+                   strip.text = ggplot2::element_text(size = 11),
+                   plot.background = ggplot2::element_rect(fill='transparent', color=NA),
+                   legend.key = ggplot2::element_rect(fill = "transparent", color = NA),
+                   legend.background = ggplot2::element_rect(fill = "transparent", color = NA)) +
+    ggplot2::scale_color_gradient2(name="Contains\nTrue Positives",low ="darkred",high =  "darkseagreen",midpoint=0.5,mid="#999b6e",breaks=0:max(results$P))
+}

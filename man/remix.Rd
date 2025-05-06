@@ -131,7 +131,7 @@ res = remix(project = project,
 
 summary(res)
 
-trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))#'
+trueValue = read.csv(paste0(dirname(project),"/demoSMLX/Simulation/populationParameters.txt"))
 
 plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 }
