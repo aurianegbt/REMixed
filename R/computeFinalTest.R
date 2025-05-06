@@ -18,7 +18,7 @@
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -26,7 +26,7 @@
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,

@@ -40,7 +40,7 @@ plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -48,7 +48,7 @@ plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,

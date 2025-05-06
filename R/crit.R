@@ -14,7 +14,7 @@
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -22,7 +22,7 @@
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -59,7 +59,7 @@ BIC.remix <- function(x){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -67,7 +67,7 @@ BIC.remix <- function(x){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -104,7 +104,7 @@ AIC.remix <- function(x){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -112,7 +112,7 @@ AIC.remix <- function(x){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -148,7 +148,7 @@ eBIC <- function(x, ...) {
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -156,7 +156,7 @@ eBIC <- function(x, ...) {
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -193,7 +193,7 @@ eBIC.remix <- function(x,gamma=1){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -201,7 +201,7 @@ eBIC.remix <- function(x,gamma=1){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -236,7 +236,7 @@ BICc <- function(x, ...) {
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -244,7 +244,7 @@ BICc <- function(x, ...) {
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #' lambda = 1440
 #'
 #' res = remix(project = project,
@@ -292,7 +292,7 @@ BICc.remix <- function(x){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -300,7 +300,7 @@ BICc.remix <- function(x){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,
@@ -338,7 +338,7 @@ BIC.cvRemix <- function(x){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -346,7 +346,7 @@ BIC.cvRemix <- function(x){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,
@@ -383,7 +383,7 @@ AIC.cvRemix <- function(x){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -391,7 +391,7 @@ AIC.cvRemix <- function(x){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,
@@ -426,7 +426,7 @@ eBIC.cvRemix <- function(x,gamma=1){
 #' \dontrun{
 #' project <- getMLXdir()
 #'
-#' ObsModel.transfo = list(S=list(Ab=log10),
+#' ObsModel.transfo = list(S=list(AB=log10),
 #'                         linkS="yAB",
 #'                         R=rep(list(S=function(x){x}),5),
 #'                         linkR = paste0("yG",1:5))
@@ -434,7 +434,7 @@ eBIC.cvRemix <- function(x,gamma=1){
 #' alpha=list(alpha0=NULL,
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
-#' y = c(S=5,Ab=1000)
+#' y = c(S=5,AB=1000)
 #'
 #' res = cv.remix(project = project,
 #'                dynFUN = dynFUN_demo,

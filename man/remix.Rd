@@ -108,7 +108,7 @@ See \code{\link{REMix-package}} for details on the model.
 \dontrun{
 project <- getMLXdir()
 
-ObsModel.transfo = list(S=list(Ab=log10),
+ObsModel.transfo = list(S=list(AB=log10),
                         linkS="yAB",
                         R=rep(list(S=function(x){x}),5),
                         linkR = paste0("yG",1:5))
