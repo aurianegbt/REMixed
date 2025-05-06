@@ -1,4 +1,0 @@
-parameter,statistics,p-value,test
-delta_S,0.989785,0.94331,Shapiro-Wilk
-phi_S,0.987506,0.444325,Shapiro-Wilk
-delta_AB,0.988941,0.836475,Shapiro-Wilk
