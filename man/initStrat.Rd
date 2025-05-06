@@ -12,6 +12,7 @@ initStrat(
   trueValue = NULL,
   pop.set = NULL,
   useSettingsInAPI = FALSE,
+  conditionalDistributionSampling = FALSE,
   print = TRUE,
   digits = 2,
   unlinkTemporaryProject = TRUE,
@@ -40,6 +41,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{pop.set}{population parameters setting for initialization (see \code{\link{setPopulationParameterEstimationSettings}}).}
 
 \item{useSettingsInAPI}{logical, if the settings for SAEM should not be changed from what is currently set in the project.}
+
+\item{conditionalDistributionSampling}{logical, if conditional distribution estimation should be done on the final project.}
 
 \item{print}{logical, if the results and algotihm steps should be displayed in the console (default to TRUE).}
 

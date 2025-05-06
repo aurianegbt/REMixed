@@ -21,6 +21,7 @@
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
 #' @param digits number of digits to print (default to 2).
 #' @param seed value of the seed used to initialize the group (see set.seed).
+#' @param conditionalDistributionSampling logical, if conditional distribution estimation should be done on the final project.
 #'
 #' @returns a list of outputs for every group of genes tested with composition of the group, final parameter estimates, final scores estimates (OFV, AIC, BIC, BICc), temporary project directory. The final selected set is initialize in the project.
 #' @export
@@ -46,6 +47,7 @@ initStrat <- function(project,
                       trueValue=NULL,
                       pop.set = NULL,
                       useSettingsInAPI = FALSE,
+                      conditionalDistributionSampling = FALSE,
                       print=TRUE,
                       digits=2,
                       unlinkTemporaryProject = TRUE,
@@ -257,7 +259,7 @@ initStrat <- function(project,
   lixoftConnectors::saveProject(project)
 
   if(unlinkTemporaryProject){
-    unlink(temporaryDirectory,force=TRUE,recursive = TRUE)
+    unlink(paste0(remix.dir,"/tmp_init"),force=TRUE,recursive = TRUE)
   }
 
   return(res)
