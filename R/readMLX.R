@@ -65,30 +65,30 @@ readMLX <- function(project=NULL,
     if (!is.null(project)){
       project <- prcheck(project)$project
     }else{
-      project <- lixoftConnectors::getProjectSettings()$project
+      project <- mlx.getProjectSettings()$project
     }
 
-    lixoftConnectors::loadProject(project)
+    mlx.loadProject(project)
   })
 
-  if(!all(Reduce(union,list(ObsModel.transfo$linkS,ObsModel.transfo$linkR,names(alpha$alpha0),names(alpha$alpha1))) %in% names(lixoftConnectors::getObservationInformation()))){
+  if(!all(Reduce(union,list(ObsModel.transfo$linkS,ObsModel.transfo$linkR,names(alpha$alpha0),names(alpha$alpha1))) %in% names(mlx.getObservationInformation()))){
     stop("Inconsistent observation model between the one provided in the monolix project and the one in function inputs.")
   }
 
-  if(lixoftConnectors::getLaunchedTasks()$populationParameterEstimation){
-    est = lixoftConnectors::getEstimatedPopulationParameters()
+  if(mlx.getLaunchedTasks()$populationParameterEstimation){
+    est = mlx.getEstimatedPopulationParameters()
     value.params = data.frame(name=names(est),initialValue=unname(est))
   }else{
-    value.params = lixoftConnectors::getPopulationParameterInformation()[,-3]
+    value.params = mlx.getPopulationParameterInformation()[,-3]
     }
 
   # covariates
-  covariates = lixoftConnectors::getCovariateInformation()$covariate[,-1]
+  covariates = mlx.getCovariateInformation()$covariate[,-1]
 
   cov.exists = !is.null(covariates)
 
   # theta
-  IndividualParameterModel <- lixoftConnectors::getIndividualParameterModel()
+  IndividualParameterModel <- mlx.getIndividualParameterModel()
   if(cov.exists){
     formula = IndividualParameterModel$formula
     CovariateModel <- IndividualParameterModel$covariateModel
@@ -163,7 +163,7 @@ readMLX <- function(project=NULL,
   theta = setNames(list(phi_pop,psi_pop,gamma,beta,alpha0,omega),c("phi_pop","psi_pop","gamma","beta","alpha0","omega"))
 
   # Serr, Rerr
-  ErrorModel <- lixoftConnectors::getContinuousObservationModel()$parameters
+  ErrorModel <- mlx.getContinuousObservationModel()$parameters
 
   # ObsModel.transfo need to be name after ??? model name in monolix ??? or dyn ??? # need to look at that closer
 
@@ -194,12 +194,12 @@ readMLX <- function(project=NULL,
   names(ParModel.transfo) <-  names(ParModel.transfo.inv) <- names(ParModel)
 
   # Sobs Robs
-  Observation <- lixoftConnectors::getObservationInformation()
+  Observation <- mlx.getObservationInformation()
 
   Sobs <- setNames(lapply(ObsModel.transfo$linkS,FUN=function(x){Observation[[x]]}),ObsModel.transfo$linkS)
   Robs <- setNames(lapply(ObsModel.transfo$linkR,FUN=function(x){Observation[[x]]}),ObsModel.transfo$linkR)
 
-  if(!lixoftConnectors::getLaunchedTasks()$conditionalDistributionSampling){
+  if(!mlx.getLaunchedTasks()$conditionalDistributionSampling){
     return(list(
       theta = theta,
       alpha1 = alpha1,
@@ -213,7 +213,7 @@ readMLX <- function(project=NULL,
       ObsModel.transfo = ObsModel.transfo
     ))
   }else{
-    random.effect = lixoftConnectors::getEstimatedRandomEffects(method="conditionalMean")
+    random.effect = mlx.getEstimatedRandomEffects(method="conditionalMean")
     N = length(random.effect$conditionalMean$id)
 
     Omega = lapply(1:N,FUN=function(i){
@@ -371,7 +371,7 @@ prcheck <- function (project, f = NULL, settings = NULL, model = NULL,
     if (!file.exists(project))
       stop(paste0("Project '", project, "' does not exist"),
            call. = FALSE)
-    lp <- lixoftConnectors::loadProject(project)
+    lp <- mlx.loadProject(project)
     if (!lp)
       stop(paste0("Could not load project '", project,
                   "'"), call. = FALSE)

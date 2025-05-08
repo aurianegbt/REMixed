@@ -124,7 +124,7 @@ cv.remix <- function(project = NULL,
 
   ################ START INITIALIZATION OF PROJECT REMIXed ################
   check.proj(project,alpha)
-  g = lixoftConnectors::getObservationInformation()
+  g = mlx.getObservationInformation()
   gy <- data.frame()
   for(var in g$name){
     gy <- rbind(gy,dplyr::rename(g[[var]],"obsid"=var))
@@ -135,7 +135,7 @@ cv.remix <- function(project = NULL,
 
 
   if(selfInit){
-    pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
+    pop.set1 <- mlx.getPopulationParameterEstimationSettings()
   }
 
   regParam.toprint = paste0(alpha$alpha1,"_pop")
@@ -149,12 +149,12 @@ cv.remix <- function(project = NULL,
   }else{
     para0 = c()
   }
-  param.toprint = setdiff(union(lixoftConnectors::getPopulationParameterInformation()$name[which(lixoftConnectors::getPopulationParameterInformation()$method=="MLE")],union(para0,sapply(names(alpha$alpha1),FUN=function(yG){lixoftConnectors::getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
+  param.toprint = setdiff(union(mlx.getPopulationParameterInformation()$name[which(mlx.getPopulationParameterInformation()$method=="MLE")],union(para0,sapply(names(alpha$alpha1),FUN=function(yG){mlx.getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
 
-  project.dir <- lixoftConnectors::getProjectSettings()$directory
+  project.dir <- mlx.getProjectSettings()$directory
   if (!dir.exists(project.dir))
     dir.create(project.dir)
-  remix.dir <- file.path(lixoftConnectors::getProjectSettings()$directory,"remix")
+  remix.dir <- file.path(mlx.getProjectSettings()$directory,"remix")
   Sys.sleep(0.1)
   if (!dir.exists(remix.dir))
     dir.create(remix.dir)
@@ -182,7 +182,7 @@ cv.remix <- function(project = NULL,
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
-    pop.set1 <- lixoftConnectors::getPopulationParameterEstimationSettings()
+    pop.set1 <- mlx.getPopulationParameterEstimationSettings()
     pop.set1 <- modifyList(pop.set1, pset1[intersect(names(pset1),
                                                      names(pop.set1))])
   }
@@ -192,7 +192,7 @@ cv.remix <- function(project = NULL,
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
-  pop.set2 <- lixoftConnectors::getPopulationParameterEstimationSettings()
+  pop.set2 <- mlx.getPopulationParameterEstimationSettings()
   pop.set2 <- modifyList(pop.set2, pset2[intersect(names(pset2),
                                                    names(pop.set2))])
 
@@ -200,8 +200,8 @@ cv.remix <- function(project = NULL,
   check <- check.init(initial.project,pop.set1) # check if initialization step
   if(identical(check,FALSE)){                   # has been done according to
     suppressMessages({                          # the settings given
-      lixoftConnectors::loadProject(project)
-      lixoftConnectors::saveProject(initial.project)
+      mlx.loadProject(project)
+      mlx.saveProject(initial.project)
     })
     check <- check.init(initial.project,pop.set1)
   }
@@ -212,23 +212,23 @@ cv.remix <- function(project = NULL,
     to.cat <- c(to.cat,"               -",pop.set1$nbexploratoryiterations,"exploratory iterations;\n")
     to.cat <- c(to.cat,"               -",pop.set1$nbsmoothingiterations,"smoothing iterations.\n\n")
     print_result(print,summary.file,to.cat)
-    lixoftConnectors::setPopulationParameterEstimationSettings(pop.set1)
+    mlx.setPopulationParameterEstimationSettings(pop.set1)
     to.cat <- "Estimation of the population parameters using the initial model ... \n"
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
-    lixoftConnectors::runPopulationParameterEstimation()
+    mlx.runPopulationParameterEstimation()
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    lixoftConnectors::runConditionalDistributionSampling()
+    mlx.runConditionalDistributionSampling()
   }else if(!check$MCMC){
     to.cat <- "     - - - Running Initialization Step - - -\n\n"
     to.cat <- "Estimation of the R.E. distribution using the initial model ... \n"
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    lixoftConnectors::runConditionalDistributionSampling()
+    mlx.runConditionalDistributionSampling()
   }
-  lixoftConnectors::saveProject(initial.project)
+  mlx.saveProject(initial.project)
 
-  param0 <- param <- lixoftConnectors::getEstimatedPopulationParameters()
+  param0 <- param <- mlx.getEstimatedPopulationParameters()
 
   ########################## RENDER FIRST ESTIMATION  ###########################
   to.cat <- "\n      - - - <  INITIAL PARAMETERS  > - - -     \n\n"
@@ -307,7 +307,7 @@ cv.remix <- function(project = NULL,
       if (!grepl("\\.mlxtran", final.project))
         stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
              call. = FALSE)
-      lixoftConnectors::saveProject(final.project)
+      mlx.saveProject(final.project)
 
       ########################## ESTIMATING FIRST LL  ###########################
       to.cat <- "\nEstimating the log-likelihood, and its derivates, using the initial model ... \n"
@@ -324,13 +324,13 @@ cv.remix <- function(project = NULL,
       to.cat <- paste0(to.cat,"\n         LL.pen : ",round(LL.pen,digits=digits),"\n")
       print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
 
-      suppressMessages({lixoftConnectors::loadProject(final.project)})
+      suppressMessages({mlx.loadProject(final.project)})
 
       a.ini <- a.ini0 <- currentData$alpha1
 
       ########################## SAVE OUTPUTS   ###########################
 
-      estimates.outputs <- lixoftConnectors::getChartsData("plotSaem")
+      estimates.outputs <- mlx.getChartsData("plotSaem")
       if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimates.outputs)[-c(1,2,3)]))!=0){
         for(p in setdiff(union(param.toprint,regParam.toprint),colnames(estimates.outputs)[-c(1,2,3)])){
           estimates.outputs <- cbind(estimates.outputs,new=param[[p]])
@@ -454,8 +454,8 @@ cv.remix <- function(project = NULL,
 
         to.print <- data.frame(EstimatedValue = sapply(re$param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
         row.names(to.print) <- param.toprint
-        if(!identical(lixoftConnectors::getEstimatedStandardErrors(),NULL)){
-          sd.est = lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation
+        if(!identical(mlx.getEstimatedStandardErrors(),NULL)){
+          sd.est = mlx.getEstimatedStandardErrors()$stochasticApproximation
           sd.est = sd.est[sd.est$parameter %in% param.toprint,"se"]
           to.print <- cbind(to.print, CI_95 = paste0("[",format(signif(re$param[param.toprint]-1.96*sd.est,digits=digits),scientific=TRUE),";",format(signif(re$param[param.toprint]+1.96*sd.est,digits=digits),scientific=TRUE),"]"))
         }
@@ -512,7 +512,7 @@ cv.remix <- function(project = NULL,
       LLfinal <- LL$LL
       paramfinal <- param
 
-      # lixoftConnectors::saveProject(final.project)
+      # mlx.saveProject(final.project)
 
       results <- list(info = list(project = paste0(remix.dir, paste0("/Build_",array,".mlxtran")),
                                   param.toprint=param.toprint,
@@ -527,7 +527,7 @@ cv.remix <- function(project = NULL,
                                     alpha=paramfinal[paste0(alpha$alpha1,"_pop")],
                                     iter=iter,
                                     time=(proc.time()-ptm.first)["elapsed"],
-                                    standardError=lixoftConnectors::getEstimatedStandardErrors()$stochasticApproximation,
+                                    standardError=mlx.getEstimatedStandardErrors()$stochasticApproximation,
                                     saemBeforeTest = NULL),
                       iterOutputs=list(param=param.outputs,
                                        LL=LL.outputs,

@@ -88,10 +88,10 @@ computeFinalTest <- function(remix.output,
   param.toprint = remix.output$info$param.toprint
   alpha = remix.output$info$alpha
 
-  project.dir <- lixoftConnectors::getProjectSettings()$directory
+  project.dir <- mlx.getProjectSettings()$directory
   if (!dir.exists(project.dir))
     dir.create(project.dir)
-  remix.dir <- file.path(lixoftConnectors::getProjectSettings()$directory,"remix")
+  remix.dir <- file.path(mlx.getProjectSettings()$directory,"remix")
   Sys.sleep(0.1)
   if (!dir.exists(remix.dir))
     dir.create(remix.dir)
@@ -110,7 +110,7 @@ computeFinalTest <- function(remix.output,
   if (!grepl("\\.mlxtran", final.project))
     stop(paste0(final.project, " is not a valid name for a Monolix project (use the .mlxtran extension)"),
          call. = FALSE)
-  lixoftConnectors::saveProject(final.project)
+  mlx.saveProject(final.project)
 
   ###### Starting first estimation
 
@@ -123,7 +123,7 @@ computeFinalTest <- function(remix.output,
   if(!is.null(pop.set))
     pset <-  modifyList(pset, pop.set[intersect(names(pop.set),
                                                 names(pset))])
-  pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
+  pop.set <- mlx.getPopulationParameterEstimationSettings()
   pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
 
   ## RENDER INITIAL PARAMETER
@@ -165,8 +165,8 @@ computeFinalTest <- function(remix.output,
                         alpha = alpha)
 
   populationParameters <- data.frame(name=names(param),initialValue=as.numeric(unname(param)))
-  lixoftConnectors::setPopulationParameterInformation(populationParameters)
-  populationParameters <- lixoftConnectors::getPopulationParameterInformation()
+  mlx.setPopulationParameterInformation(populationParameters)
+  populationParameters <- mlx.getPopulationParameterInformation()
 
   populationParameters[populationParameters$name %in% unname(paste0(remix.output$info$alpha$alpha1,"_pop")) & populationParameters$initialValue==0,"method"] <- "FIXED"
   populationParameters[populationParameters$name %in% unname(paste0(remix.output$info$alpha$alpha1,"_pop")) & populationParameters$initialValue!=0,"method"] <- "MLE"
@@ -194,27 +194,27 @@ computeFinalTest <- function(remix.output,
 
         populationParameters[populationParameters$name==paste0(alpha$alpha0[k],"_pop"),c("initialValue","method")] <- c(MLE[[k]]$estimate[["mean"]],"FIXED")
       }
-      populationParameters[populationParameters$name==lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[k]]$estimate[["sd"]],"FIXED")
+      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[k]]$estimate[["sd"]],"FIXED")
     }else{
       if(!is.null(alpha$alpha0)){
         populationParameters[populationParameters$name==paste0(alpha$alpha0[k],"_pop"),"method"] <- "MLE"
       }
-      populationParameters[populationParameters$name==lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],"method"] <- "MLE"
+      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],"method"] <- "MLE"
     }
   }
   MLE <- setNames(MLE,names(alpha$alpha0))
 
   populationParameters$initialValue <- as.numeric(populationParameters$initialValue)
 
-  lixoftConnectors::setPopulationParameterInformation(populationParameters)
-  lixoftConnectors::setPopulationParameterEstimationSettings(pop.set)
-  lixoftConnectors::saveProject(final.project)
-  lixoftConnectors::runPopulationParameterEstimation()
-  lixoftConnectors::runConditionalDistributionSampling()
-  lixoftConnectors::runStandardErrorEstimation()
-  lixoftConnectors::saveProject(final.project)
+  mlx.setPopulationParameterInformation(populationParameters)
+  mlx.setPopulationParameterEstimationSettings(pop.set)
+  mlx.saveProject(final.project)
+  mlx.runPopulationParameterEstimation()
+  mlx.runConditionalDistributionSampling()
+  mlx.runStandardErrorEstimation()
+  mlx.saveProject(final.project)
 
-  se = lixoftConnectors::getEstimatedStandardErrors()
+  se = mlx.getEstimatedStandardErrors()
   if(any(a.final==0)){
     if(!is.null(alpha$alpha0)){
       se$stochasticApproximation <- rbind(se$stochasticApproximation,
@@ -224,13 +224,13 @@ computeFinalTest <- function(remix.output,
     }
 
     se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                        data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                        data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameter[names(which(a.final==0))])),
                                                    se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
                                                    rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
   }
 
-  re <- saemfinal <- list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
-                          param = lixoftConnectors::getEstimatedPopulationParameters(),
+  re <- saemfinal <- list(SAEMiterations = mlx.getChartsData("plotSaem"),
+                          param = mlx.getEstimatedPopulationParameters(),
                           standardErrors=se)
 
   to.cat <- paste0("Estimating log-likelihood... \n")
@@ -240,7 +240,7 @@ computeFinalTest <- function(remix.output,
                                          alpha = alpha)
   LLfinal <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = parallel,verbose = print,onlyLL = TRUE)
 
-  populationParameters <- merge(data.frame(name=names(re$param),initialValue=as.numeric(unname(re$param))),lixoftConnectors::getPopulationParameterInformation()[,c(1,3)],by="name")
+  populationParameters <- merge(data.frame(name=names(re$param),initialValue=as.numeric(unname(re$param))),mlx.getPopulationParameterInformation()[,c(1,3)],by="name")
 
   sd.est = re$standardErrors$stochasticApproximation[,-3]
   if(length(setdiff(names(re$param),sd.est$parameter))!=0){
@@ -308,7 +308,7 @@ computeFinalTest <- function(remix.output,
         if(!is.null(alpha$alpha0)){
           populationParameters[populationParameters$name==paste0(alpha$alpha0[yGk],"_pop"),c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["mean"]],"FIXED")
         }
-        populationParameters[populationParameters$name==lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["sd"]],"FIXED")
+        populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["sd"]],"FIXED")
         }
 
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
@@ -319,17 +319,17 @@ computeFinalTest <- function(remix.output,
 
       populationParameters$initialValue <- as.numeric(populationParameters$initialValue)
 
-      lixoftConnectors::setPopulationParameterInformation(populationParameters)
-      lixoftConnectors::setPopulationParameterEstimationSettings(pop.set)
-      lixoftConnectors::saveProject(final.project)
-      lixoftConnectors::runPopulationParameterEstimation()
-      lixoftConnectors::runConditionalDistributionSampling()
-      lixoftConnectors::runStandardErrorEstimation()
-      lixoftConnectors::saveProject(final.project)
+      mlx.setPopulationParameterInformation(populationParameters)
+      mlx.setPopulationParameterEstimationSettings(pop.set)
+      mlx.saveProject(final.project)
+      mlx.runPopulationParameterEstimation()
+      mlx.runConditionalDistributionSampling()
+      mlx.runStandardErrorEstimation()
+      mlx.saveProject(final.project)
 
-      a.final = setNames(lixoftConnectors::getEstimatedPopulationParameters()[paste0(alpha$alpha1,"_pop")],names(alpha$alpha1))
+      a.final = setNames(mlx.getEstimatedPopulationParameters()[paste0(alpha$alpha1,"_pop")],names(alpha$alpha1))
 
-      se = lixoftConnectors::getEstimatedStandardErrors()
+      se = mlx.getEstimatedStandardErrors()
       if(any(a.final==0)){
         if(!is.null(alpha$alpha0)){
           se$stochasticApproximation <- rbind(se$stochasticApproximation,
@@ -338,13 +338,13 @@ computeFinalTest <- function(remix.output,
                                                          rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
         }
         se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                            data.frame(parameter = unlist(unname(lixoftConnectors::getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                            data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameter[names(which(a.final==0))])),
                                                        se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
                                                        rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
       }
 
-      re = list(SAEMiterations = lixoftConnectors::getChartsData("plotSaem"),
-                param = lixoftConnectors::getEstimatedPopulationParameters(),
+      re = list(SAEMiterations = mlx.getChartsData("plotSaem"),
+                param = mlx.getEstimatedPopulationParameters(),
                 standardErrors=se)
 
       to.cat <- paste0("Estimating log-likelihood... \n")
@@ -391,7 +391,7 @@ computeFinalTest <- function(remix.output,
   to.cat <- paste0(to.cat,"\n      BICc :  ",round(-2*LLfinal+log(remix.output$info$ntot)*(sum(paramfinal[paste0(alpha$alpha1,"_pop")]!=0)+PFPR(remix.output$info$param.toprint)$PF)+log(remix.output$info$N)*PFPR(remix.output$info$param.toprint)$PR,digits=digits),"\n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
-  lixoftConnectors::saveProject(final.project)
+  mlx.saveProject(final.project)
 
   results <- list(info = list(project=final.project,
                               param.toprint=param.toprint,

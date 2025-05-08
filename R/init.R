@@ -67,7 +67,7 @@ initStrat <- function(project,
   options(op.new)
 
   check.proj(project,alpha)
-  g = lixoftConnectors::getObservationInformation()
+  g = mlx.getObservationInformation()
   gy <- data.frame()
   for(var in g$name){
     gy <- rbind(gy,dplyr::rename(g[[var]],"obsid"=var))
@@ -76,7 +76,7 @@ initStrat <- function(project,
   ntot <- nrow(gy)
 
   if(useSettingsInAPI){
-    pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
+    pop.set <- mlx.getPopulationParameterEstimationSettings()
   }
 
   pset <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
@@ -84,11 +84,11 @@ initStrat <- function(project,
   if (!is.null(pop.set))
     pset <- modifyList(pset, pop.set[intersect(names(pop.set),
                                                   names(pset))])
-  pop.set <- lixoftConnectors::getPopulationParameterEstimationSettings()
+  pop.set <- mlx.getPopulationParameterEstimationSettings()
   pop.set <- modifyList(pop.set, pset[intersect(names(pset),
                                                    names(pop.set))])
 
-  lixoftConnectors::setPopulationParameterEstimationSettings(pop.set)
+  mlx.setPopulationParameterEstimationSettings(pop.set)
 
   regParam.toprint = paste0(alpha$alpha1,"_pop")
   if(!is.null(trueValue)){
@@ -101,12 +101,12 @@ initStrat <- function(project,
   }else{
     para0 = c()
   }
-  param.toprint = setdiff(union(lixoftConnectors::getPopulationParameterInformation()$name[which(lixoftConnectors::getPopulationParameterInformation()$method=="MLE")],union(para0,sapply(names(alpha$alpha1),FUN=function(yG){lixoftConnectors::getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
+  param.toprint = setdiff(union(mlx.getPopulationParameterInformation()$name[which(mlx.getPopulationParameterInformation()$method=="MLE")],union(para0,sapply(names(alpha$alpha1),FUN=function(yG){mlx.getContinuousObservationModel()$parameters[[yG]]},USE.NAMES = FALSE))),regParam.toprint) # the parameter to be estimated minus regParam.toprint
 
-  project.dir <- lixoftConnectors::getProjectSettings()$directory
+  project.dir <- mlx.getProjectSettings()$directory
   if (!dir.exists(project.dir))
     dir.create(project.dir)
-  remix.dir <- file.path(lixoftConnectors::getProjectSettings()$directory,"remix")
+  remix.dir <- file.path(mlx.getProjectSettings()$directory,"remix")
   Sys.sleep(0.1)
   if (!dir.exists(remix.dir))
     dir.create(remix.dir)
@@ -171,8 +171,8 @@ initStrat <- function(project,
       dir(temporaryDirectory)
     }
 
-    lixoftConnectors::loadProject(project)
-    lixoftConnectors::saveProject(paste0(temporaryDirectory,"project.mlxtran"))
+    mlx.loadProject(project)
+    mlx.saveProject(paste0(temporaryDirectory,"project.mlxtran"))
 
     for(yGk in names(alpha$alpha1)){
       if(!(yGk %in% genes)){
@@ -182,7 +182,7 @@ initStrat <- function(project,
           cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(initialValue=",MLE[[yGk]]$estimate[["mean"]],",method='FIXED'))")
         eval(parse(text = cmd))
         }
-        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='FIXED'))")
+        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",mlx.getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='FIXED'))")
         eval(parse(text = cmd))
       }else{
         cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(initialValue=1,method='MLE'))")
@@ -192,24 +192,24 @@ initStrat <- function(project,
           cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",alpha$alpha1[[yGk]],"_pop=list(method='MLE'))")
           eval(parse(text = cmd))
         }
-        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",lixoftConnectors::getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='MLE'))")
+        cmd = paste0("lixoftConnectors::setPopulationParameterInformation(",mlx.getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[yGk]]$estimate[["sd"]],",method='MLE'))")
         eval(parse(text = cmd))
       }
     }
 
-    lixoftConnectors::saveProject(paste0(temporaryDirectory,"project.mlxtran"))
+    mlx.saveProject(paste0(temporaryDirectory,"project.mlxtran"))
 
     to.cat <- paste0("\nComputing SAEM update for population parameters... \n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    lixoftConnectors::runPopulationParameterEstimation()
+    mlx.runPopulationParameterEstimation()
     to.cat <- paste0("Estimating log-likelihood... \n")
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    lixoftConnectors::runLogLikelihoodEstimation()
+    mlx.runLogLikelihoodEstimation()
 
-    lixoftConnectors::saveProject(paste0(temporaryDirectory,"project.mlxtran"))
+    mlx.saveProject(paste0(temporaryDirectory,"project.mlxtran"))
 
     to.cat <- "\n > Estimated Population Parameters :\n\n"
-    param <- lixoftConnectors::getEstimatedPopulationParameters()
+    param <- mlx.getEstimatedPopulationParameters()
 
     to.print <- data.frame(EstimatedValue = sapply(param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
     row.names(to.print) <- param.toprint
@@ -237,14 +237,14 @@ initStrat <- function(project,
     print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
     to.cat <- "\n > Estimated logLikelihood :\n"
-    to.print <- c(LL=-1/2*lixoftConnectors::getEstimatedLogLikelihood()$importanceSampling[["OFV"]],round(lixoftConnectors::getEstimatedLogLikelihood()$importanceSampling[c("OFV","AIC","BIC","BICc")],digits=digits))
+    to.print <- c(LL=-1/2*mlx.getEstimatedLogLikelihood()$importanceSampling[["OFV"]],round(mlx.getEstimatedLogLikelihood()$importanceSampling[c("OFV","AIC","BIC","BICc")],digits=digits))
     print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
 
     return(list(genes=genes,
                 project=paste0(temporaryDirectory,"project.mlxtran"),
                 parameters = param,
-                LL=lixoftConnectors::getEstimatedLogLikelihood()$importanceSampling))
+                LL=mlx.getEstimatedLogLikelihood()$importanceSampling))
   })
 
   LL = sapply(res,FUN=function(r){r$LL[["OFV"]]})
@@ -254,16 +254,16 @@ initStrat <- function(project,
   to.cat <- paste0(to.cat,"FINAL SET SELECTED : ", paste0(res[[keep]]$genes,collapse=", "),".\n")
   print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
 
-  lixoftConnectors::loadProject(res[[keep]]$project)
-  lixoftConnectors::saveProject(project)
+  mlx.loadProject(res[[keep]]$project)
+  mlx.saveProject(project)
 
   if(conditionalDistributionSampling){
     to.cat <- "Estimation of the R.E. distribution..."
     print_result(print, summary.file, to.cat = to.cat, to.print = NULL)
-    lixoftConnectors::runConditionalDistributionSampling()
+    mlx.runConditionalDistributionSampling()
   }
 
-  lixoftConnectors::saveProject(project)
+  mlx.saveProject(project)
 
   if(unlinkTemporaryProject){
     unlink(paste0(remix.dir,"/tmp_init"),force=TRUE,recursive = TRUE)
