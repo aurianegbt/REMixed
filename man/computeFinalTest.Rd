@@ -45,7 +45,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{final.project}{directory of the final Monolix project (default add "_upd" to the Monolix project).}
 
-\item{pop.set}{population parameters setting for final estimation (see Monolix documentation .}
+\item{pop.set}{population parameters setting for final estimation (see details).}
 
 \item{prune}{percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).}
 
@@ -70,6 +70,9 @@ a remix object on which final SAEM and test, if \code{test} is \code{TRUE}, have
 }
 \description{
 Computes a final saem and wald test if `test` on the final model found by remix algorithm.
+}
+\details{
+For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 }
 \examples{
 \dontrun{

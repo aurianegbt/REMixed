@@ -38,7 +38,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{trueValue}{-for simulation purposes- named vector of true value for parameters.}
 
-\item{pop.set}{population parameters setting for initialization (see \code{\link{setPopulationParameterEstimationSettings}}).}
+\item{pop.set}{population parameters setting for initialization (see details).}
 
 \item{useSettingsInAPI}{logical, if the settings for SAEM should not be changed from what is currently set in the project.}
 
@@ -57,6 +57,9 @@ a list of outputs for every group of genes tested with composition of the group,
 }
 \description{
 Selecting an initialization point by grouping biomarkers of project and running the SAEM. Initial condition is then selected using maximum log-likelihood.
+}
+\details{
+For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 }
 \examples{
 \dontrun{

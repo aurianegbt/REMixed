@@ -5,6 +5,7 @@
 #'
 #' @details
 #' See \code{\link{REMix-package}} for details on the model.
+#' For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 #'
 #'
 #' @param project directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).
@@ -29,9 +30,9 @@
 #' @param eps1 integer (>0) used to define the convergence criteria for the regression parameters.
 #' @param eps2 integer (>0) used to define the convergence criteria for the likelihood.
 #' @param selfInit logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).
-#' @param pop.set1 population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings}}).
-#' @param pop.set2 population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings}}).
-#' @param pop.set3 population parameters setting for final estimation (see \code{\link{setPopulationParameterEstimationSettings}}).
+#' @param pop.set1 population parameters setting for initialisation (see details).
+#' @param pop.set2 population parameters setting for iterations.
+#' @param pop.set3 population parameters setting for final estimation.
 #' @param prune percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).
 #' @param n number of points for  gaussian quadrature (see \code{\link{gh.LL}}).
 #' @param parallel logical, if the computation should be done in parallel when possible (default TRUE).

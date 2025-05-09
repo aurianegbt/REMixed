@@ -8,7 +8,7 @@
 #'
 #' @return outputs from \code{\link{remix}} algorithm achieving the best IC among those computed by \code{\link{cv.remix}}.
 #' @export
-#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
+#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.remix}}, \code{\link{eBIC}}, \code{\link{AIC.remix}}, \code{\link{BICc}}.
 #'
 #' @examples
 #' \dontrun{
@@ -65,7 +65,7 @@ retrieveBest <- function(fit,criterion=BICc){
 #'
 #' @return outputs from \code{\link{remix}} algorithm of rank `n` computed by \code{\link{cv.remix}}.
 #' @export
-#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
+#' @seealso \code{\link{cv.remix}}, \code{\link{remix}}.
 #'
 #' @examples
 #' \dontrun{

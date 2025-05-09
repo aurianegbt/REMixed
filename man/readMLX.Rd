@@ -65,5 +65,5 @@ res <- readMLX(project,ObsModel.transfo,alpha)
 }
 }
 \seealso{
-\code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
+\code{\link{remix}}, \code{\link{cv.remix}}.
 }

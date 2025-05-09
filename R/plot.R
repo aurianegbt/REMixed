@@ -240,6 +240,7 @@ plotConvergence <- function(fit){
 #' plotIC(res)
 #' }
 plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterion=BICc,dismin=TRUE){
+  lambda <- value <- parameter <- y <- yend <- NULL
   if(!inherits(fit,"cvRemix")){
     stop("Class of fit must be cvRemix")
   }
@@ -335,6 +336,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 #' plotIC(res)
 #' }
 plotIC <- function(fit,criterion=BICc,dismin=TRUE){
+  lambda <- NULL
   if(!inherits(fit,"cvRemix")){
   stop("Class of fit must be cvRemix")
   }
@@ -386,7 +388,8 @@ plotIC <- function(fit,criterion=BICc,dismin=TRUE){
 #' plotInit(init)
 #' }
 plotInit <- function(init,alpha=NULL,trueValue=NULL){
-  if(!inherits(fit,"init")){
+  LL <- P <- NULL
+  if(!inherits(init,"init")){
     stop("Class of init must be init")
   }
 

@@ -1,25 +1,25 @@
 #' @export
-summary.remix <- function(remix.output,...){
+summary.remix <- function(object,...){
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
   plain.short <- "_______________________\n"
 
   cat("\n",plain.line)
-  cat("Outputs of remix algorithm from the project :\n\t",remix.output$info$project,"\n")
-  cat(paste0("with  :\n\t- ",remix.output$info$N," individuals;",
-      "\n\t- \u03bb = ",round(remix.output$info$lambda,digits=2),
-      if(remix.output$info$finalSAEM){paste0(";\n\t- final SAEM computed",
-      if(remix.output$info$test){";\n\t- final test computed"})},
+  cat("Outputs of remix algorithm from the project :\n\t",object$info$project,"\n")
+  cat(paste0("with  :\n\t- ",object$info$N," individuals;",
+      "\n\t- \u03bb = ",round(object$info$lambda,digits=2),
+      if(object$info$finalSAEM){paste0(";\n\t- final SAEM computed",
+      if(object$info$test){";\n\t- final test computed"})},
       ".\n"))
   cat(dashed.line)
   cat("\u2022 Final Estimated Parameters :\n")
-  if(is.null(remix.output$finalRes$standardError)){
-    print(sapply(remix.output$finalRes$param[-which(names(remix.output$finalRes$param) %in% remix.output$info$regParam.toprint)],FUN=function(x){round(x,digits=2)}))
+  if(is.null(object$finalRes$standardError)){
+    print(sapply(object$finalRes$param[-which(names(object$finalRes$param) %in% object$info$regParam.toprint)],FUN=function(x){round(x,digits=2)}))
   }else{
-    re.param = remix.output$finalRes$param[-which(names(remix.output$finalRes$param) %in% remix.output$info$regParam.toprint)]
+    re.param = object$finalRes$param[-which(names(object$finalRes$param) %in% object$info$regParam.toprint)]
 
-    sd.est = remix.output$finalRes$standardError$stochasticApproximation[remix.output$finalRes$standardError$stochasticApproximation$parameter %in% names(re.param),-3]
+    sd.est = object$finalRes$standardError$stochasticApproximation[object$finalRes$standardError$stochasticApproximation$parameter %in% names(re.param),-3]
 
     to.print <- data.frame(EstimatedValue = sapply(re.param,FUN=function(p){format(signif(p,digits=2),scientific=TRUE)}))
 
@@ -33,13 +33,13 @@ summary.remix <- function(remix.output,...){
     print(to.print)
     }
   cat("\t",dashed.short,"\u2022 Final Selected Biomarkers and Estimate:\n")
-  if(is.null(remix.output$finalRes$standardError)){
-    print(sapply(remix.output$finalRes$param[names(which(remix.output$finalRes$param[remix.output$info$regParam.toprint]!=0))],FUN=function(x){signif(x,digits=3)}))
+  if(is.null(object$finalRes$standardError)){
+    print(sapply(object$finalRes$param[names(which(object$finalRes$param[object$info$regParam.toprint]!=0))],FUN=function(x){signif(x,digits=3)}))
   }else{
 
-    re.param = remix.output$finalRes$param[names(which(remix.output$finalRes$param[remix.output$info$regParam.toprint]!=0))]
+    re.param = object$finalRes$param[names(which(object$finalRes$param[object$info$regParam.toprint]!=0))]
 
-    sd.est = remix.output$finalRes$standardError$stochasticApproximation[remix.output$finalRes$standardError$stochasticApproximation$parameter %in% names(re.param),-3]
+    sd.est = object$finalRes$standardError$stochasticApproximation[object$finalRes$standardError$stochasticApproximation$parameter %in% names(re.param),-3]
 
     to.print <- data.frame(EstimatedValue = sapply(re.param,FUN=function(p){format(signif(p,digits=2),scientific=TRUE)}))
 
@@ -54,29 +54,29 @@ summary.remix <- function(remix.output,...){
 
   }
   cat("\t",dashed.short,"\u2022 Final Scores :\n")
-  cat("\t\u00B7 OFV  :",-2*remix.output$finalRes$LL,"\n")
-  cat("\t\u00B7 BIC  :",BIC(remix.output),"\n")
-  cat("\t\u00B7 BICc :",BICc(remix.output),"\n")
-  cat("\nExecuted in",remix.output$finalRes$iter,"iterations, ",round(remix.output$finalRes$time,digits=1),"s.\n")
+  cat("\t\u00B7 OFV  :",-2*object$finalRes$LL,"\n")
+  cat("\t\u00B7 BIC  :",BIC(object),"\n")
+  cat("\t\u00B7 BICc :",BICc(object),"\n")
+  cat("\nExecuted in",object$finalRes$iter,"iterations, ",round(object$finalRes$time,digits=1),"s.\n")
   cat(plain.line)
 }
 
 #' @export
-summary.cvRemix <- function(cvremix.output,...){
+summary.cvRemix <- function(cvobject,...){
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
   plain.short <- "_______________________\n"
 
   cat("\n",plain.line)
-  cat("Outputs of cv.remix algorithm from the project :\n\t",cvremix.output$info$project,"\n")
+  cat("Outputs of cv.remix algorithm from the project :\n\t",cvobject$info$project,"\n")
   cat(dashed.line)
   cat("Results over the grid of \u03bb:\n")
   toprint <- apply(data.frame(
-                          OFV = -2*cvremix.output$LL,
-                          BIC = BIC(cvremix.output),
-                          BICc = BICc(cvremix.output),
-                          "Positives"=sapply(cvremix.output$res,FUN=function(r){sum(r$alpha!=0)}),row.names = round(cvremix.output$lambda,digits=2)),2,FUN=function(x){round(x,digits=2)})
+                          OFV = -2*cvobject$LL,
+                          BIC = BIC(cvobject),
+                          BICc = BICc(cvobject),
+                          "Positives"=sapply(cvobject$res,FUN=function(r){sum(r$alpha!=0)}),row.names = round(cvobject$lambda,digits=2)),2,FUN=function(x){round(x,digits=2)})
   print(toprint)
   cat(dashed.line)
 }

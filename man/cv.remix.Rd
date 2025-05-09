@@ -70,9 +70,9 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{selfInit}{logical, if the SAEM is already done in the monolix project should be use as the initial point of the algorithm (if FALSE, SAEM is automatically compute according to \code{pop.set1} settings ; if TRUE, a SAEM through monolix need to have been launched).}
 
-\item{pop.set1}{population parameters setting for initialisation (see \code{\link{setPopulationParameterEstimationSettings}}).}
+\item{pop.set1}{population parameters setting for initialisation (see details).}
 
-\item{pop.set2}{population parameters setting for iterations (see \code{\link{setPopulationParameterEstimationSettings}}).}
+\item{pop.set2}{population parameters setting for iterations.}
 
 \item{prune}{percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).}
 
@@ -101,6 +101,7 @@ Regularization and Estimation in MIXed effects model, over a regularization path
 \details{
 See \code{\link{REMix-package}} for details on the model.
 For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
+For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 }
 \examples{
 \dontrun{

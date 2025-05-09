@@ -2,9 +2,14 @@
 #'
 #' Computes a final saem and wald test if `test` on the final model found by remix algorithm.
 #'
+#' @details
+#' For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
+#'
+#'
+#'
 #' @param remix.output a \link{\code{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.
 #' @param final.project directory of the final Monolix project (default add "_upd" to the Monolix project).
-#' @param pop.set population parameters setting for final estimation (see \code{\link{setPopulationParameterEstimationSettings}}).
+#' @param pop.set population parameters setting for final estimation (see details).
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
 #' @param digits number of digits to print (default to 3).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
@@ -298,10 +303,12 @@ computeFinalTest <- function(remix.output,
     ST <- re$standardErrors$stochasticApproximation
     ST <- merge(ST[ST$parameter %in% regParam.toprint,,drop=FALSE],data.frame(parameter=ST$parameter,ES=re$param[ST$parameter]),by="parameter")
 
+    stat.test <- p.value <- NULL
     ST <- dplyr::mutate(ST,stat.test=abs(ST$ES/ST$se))
     ST <- dplyr::mutate(ST,p.value=2*(1-pnorm(stat.test)))
     ST <- dplyr::mutate(ST," "=ifelse(p.value<=p.max,paste0("<",p.max)," "))
 
+    RelativeBias <- parameter <- NULL
     if(!is.null(trueValue)){
       aux.print <- dplyr::mutate(merge(data.frame(parameter=rownames(to.print),dplyr::select(to.print,-RelativeBias)),ST[,c("parameter","stat.test","p.value"," ")],by="parameter",all.x = TRUE),stat.test=round(stat.test,digits=digits))
     }else{

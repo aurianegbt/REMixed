@@ -17,5 +17,7 @@
 #' @importFrom utils read.csv
 #' @importFrom stats pnorm
 #' @importFrom stats sd
+#' @importFrom stats BIC
+#' @importFrom stats AIC
 ## usethis namespace: end
 NULL

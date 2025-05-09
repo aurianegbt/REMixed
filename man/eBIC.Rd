@@ -4,10 +4,10 @@
 \alias{eBIC}
 \title{eBIC}
 \usage{
-eBIC(x, ...)
+eBIC(object, ...)
 }
 \arguments{
-\item{x}{output of \code{\link{remix}} or \code{\link{cv.remix}}.}
+\item{object}{output of \code{\link{remix}} or \code{\link{cv.remix}}.}
 
 \item{...}{opptional additional arguments.}
 }

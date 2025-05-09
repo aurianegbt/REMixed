@@ -40,7 +40,7 @@
 #' }
 #' @export
 #'
-#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
+#' @seealso \code{\link{remix}}, \code{\link{cv.remix}}.
 #'
 #' @examples
 #' \dontrun{

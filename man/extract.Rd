@@ -52,5 +52,5 @@ plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue
 }
 }
 \seealso{
-\code{\link{cv.remix}}, \code{\link{remix}}, \code{\link{BIC.cvRemix}}, \code{\link{eBIC.cvRemix}}, \code{\link{AIC.cvRemix}}, \code{\link{BICc.cvRemix}}.
+\code{\link{cv.remix}}, \code{\link{remix}}.
 }

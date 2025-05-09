@@ -1,5 +1,15 @@
 #' @export
-print.remix <- function(x,trueValue=NULL,digits=3){
+print.remix <- function(x,...){
+  extra_args <- list(...)
+
+  # Defining default settings
+  if (!"trueValue" %in% names(extra_args)) {
+    trueValue <- NULL
+  }
+  if (!"digits" %in% names(extra_args)) {
+    digits <- 2
+  }
+
   to.cat <- "\n      - - - <  ESTIMATED PARAMETERS  > - - -     \n\n"
   cat(to.cat)
 

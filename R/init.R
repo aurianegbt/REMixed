@@ -2,6 +2,10 @@
 #'
 #' Selecting an initialization point by grouping biomarkers of project and running the SAEM. Initial condition is then selected using maximum log-likelihood.
 #'
+#' @details
+#' For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
+#'
+#'
 #' @param project directory of the Monolix project (in .mlxtran). If NULL, the current loaded project is used (default is NULL).
 #' @param Nb_genes Size of group of genes.
 #' @param unlinkTemporaryProject If temporary project (of genes group) is deleted (defaut: TRUE)
@@ -16,7 +20,7 @@
 #' }
 #' @param alpha named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
 #' @param trueValue -for simulation purposes- named vector of true value for parameters.
-#' @param pop.set  population parameters setting for initialization (see \code{\link{setPopulationParameterEstimationSettings}}).
+#' @param pop.set  population parameters setting for initialization (see details).
 #' @param useSettingsInAPI logical, if the settings for SAEM should not be changed from what is currently set in the project.
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
 #' @param digits number of digits to print (default to 2).
@@ -209,7 +213,7 @@ initStrat <- function(project,
     mlx.saveProject(paste0(temporaryDirectory,"project.mlxtran"))
 
     to.cat <- "\n > Estimated Population Parameters :\n\n"
-    param <- mlx.getEstimatedPopulationParameters()
+    param  <- mlx.getEstimatedPopulationParameters()
 
     to.print <- data.frame(EstimatedValue = sapply(param,FUN=function(p){format(signif(p,digits=digits),scientific=TRUE)})[param.toprint])
     row.names(to.print) <- param.toprint
@@ -217,7 +221,7 @@ initStrat <- function(project,
     if(!is.null(trueValue)){
       to.print <- cbind(to.print,
                         TrueValue = format(signif(as.numeric(trueValue[param.toprint]),digits=digits),scientific = TRUE),
-                        RelativeBias = round((param0[param.toprint]-as.numeric(trueValue[param.toprint]))/as.numeric(trueValue[param.toprint]),digits=digits))
+                        RelativeBias = round((param[param.toprint]-as.numeric(trueValue[param.toprint]))/as.numeric(trueValue[param.toprint]),digits=digits))
     }
     print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
@@ -227,12 +231,12 @@ initStrat <- function(project,
     if(!is.null(trueValue)){
       to.print <- cbind(to.print,
                         TrueValue = format(signif(as.numeric(trueValue[regParam.toprint]),digits=digits),scientific = TRUE),
-                        RelativeBias = round((param0[regParam.toprint]-as.numeric(trueValue[regParam.toprint]))/as.numeric(trueValue[regParam.toprint]),digits=digits))
+                        RelativeBias = round((param[regParam.toprint]-as.numeric(trueValue[regParam.toprint]))/as.numeric(trueValue[regParam.toprint]),digits=digits))
 
       to.print[is.nan(to.print$RelativeBias) | is.infinite(to.print$RelativeBias),"RelativeBias"] <- " "
 
       to.print[trueValue[regParam.toprint]==0,"TrueValue"] <- "  "
-      to.print[param0[regParam.toprint]==0,"EstimatedValue"] <- "  "
+      to.print[param[regParam.toprint]==0,"EstimatedValue"] <- "  "
     }
     print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 

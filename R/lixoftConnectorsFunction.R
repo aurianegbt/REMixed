@@ -121,7 +121,7 @@ mlx.getCovariateInformation <- function() {
   j.strat <- grep("stratification",r$type)
   if (length(j.strat) > 0) {
     strat.cov <- r$name[j.strat]
-    r$covariate <- r$covariate %>% select(-strat.cov)
+    r$covariate <- r$covariate %>% dplyr::select(-strat.cov)
     r$type <- r$type[-j.strat]
     r$name <- r$name[-j.strat]
   }
