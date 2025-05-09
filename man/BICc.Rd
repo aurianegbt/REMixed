@@ -8,6 +8,8 @@ BICc(x, ...)
 }
 \arguments{
 \item{x}{output of \code{\link{remix}} or \code{\link{cv.remix}}}
+
+\item{...}{opptional additional arguments.}
 }
 \value{
 BICc.
