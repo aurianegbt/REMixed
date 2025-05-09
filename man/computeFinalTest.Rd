@@ -25,9 +25,35 @@ computeFinalTest(
 \arguments{
 \item{remix.output}{a \link{\code{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.}
 
+\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \itemize{\item \code{y} a named vector with the initial condition. The names are the dynamics names.
+\item \code{parms} a named vector of parameter.
+\item \code{time} vector a timepoint.}
+
+See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
+
+\item{y}{initial condition of the mechanism model, conform to what is asked in dynFUN.}
+
+\item{ObsModel.transfo}{list containing two lists of transformations and two vectors linking each transformations to their observation model name in the Monolix project. The list should include identity transformations and be named \code{S} and \code{R}. The two vectors should be named \code{linkS} and \code{linkR}.
+
+Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
+
+\itemize{
+  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
+
+  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
+}}
+
 \item{final.project}{directory of the final Monolix project (default add "_upd" to the Monolix project).}
 
-\item{pop.set}{population parameters setting for final estimation (see \code{\link{setPopulationParameterEstimationSettings}}).}
+\item{pop.set}{population parameters setting for final estimation (see Monolix documentation .}
+
+\item{prune}{percentage for prunning (\eqn{\in[0;1]})  in the Adaptative Gauss-Hermite algorithm used to compute the log-likelihood and its derivates (see \code{\link{gh.LL}}).}
+
+\item{n}{number of points for  gaussian quadrature (see \code{\link{gh.LL}}).}
+
+\item{parallel}{logical, if the computation should be done in parallel when possible (default TRUE).}
+
+\item{ncores}{number of cores for parallelization (default NULL and \code{\link{detectCores}} is used).}
 
 \item{print}{logical, if the results and algotihm steps should be displayed in the console (default to TRUE).}
 

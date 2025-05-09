@@ -4,10 +4,16 @@
 \alias{plot.cvRemix}
 \title{Plot of cv.remix object}
 \usage{
-\method{plot}{cvRemix}(x, criterion = BICc, trueValue = NULL)
+\method{plot}{cvRemix}(x, criterion = BICc, trueValue = NULL, ...)
 }
 \arguments{
 \item{x}{output of \code{\link{cv.remix}}.}
+
+\item{criterion}{which criterion function to take into account. Default is the function 'BICc", but one can use 'BIC', 'AIC', 'eBIC' or any function depending on a `cvRemix` object.}
+
+\item{trueValue}{-for simulation purposes- named vector of true value for parameters.}
+
+\item{...}{opptional additional arguments.}
 }
 \value{
 A plot.

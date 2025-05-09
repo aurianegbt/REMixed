@@ -50,6 +50,7 @@ This function retrieves all necessary information from a Monolix project file to
 To simplify its use, functions \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{gh.LL}} can be used with arguments \code{data} rather than all necessary informations "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" that could be extract from a monolix project. If the SAEM task of the project hasn't been launched, it's the initial condition and not the estimated parameters that are returned. If the conditional distribution estimation task has been launched, parameters "\code{mu}" and "\code{Omega}" are returned too.
 }
 \examples{
+\dontrun{
 project <- getMLXdir()
 
 ObsModel.transfo = list(S=list(AB=log10),
@@ -61,6 +62,7 @@ alpha=list(alpha0=NULL,
            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 
 res <- readMLX(project,ObsModel.transfo,alpha)
+}
 }
 \seealso{
 \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
