@@ -9,7 +9,7 @@ SystemRequirements: 'Monolix' (<https://monolix.lixoft.com>)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports: foreach, deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow
+Imports: foreach, deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr, ggpubr
 Depends : foreach
 RoxygenNote: 7.3.2
 Depends: 

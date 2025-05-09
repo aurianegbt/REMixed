@@ -62,21 +62,21 @@ summary.remix <- function(object,...){
 }
 
 #' @export
-summary.cvRemix <- function(cvobject,...){
+summary.cvRemix <- function(object,...){
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
   plain.short <- "_______________________\n"
 
   cat("\n",plain.line)
-  cat("Outputs of cv.remix algorithm from the project :\n\t",cvobject$info$project,"\n")
+  cat("Outputs of cv.remix algorithm from the project :\n\t",object$info$project,"\n")
   cat(dashed.line)
   cat("Results over the grid of \u03bb:\n")
   toprint <- apply(data.frame(
-                          OFV = -2*cvobject$LL,
-                          BIC = BIC(cvobject),
-                          BICc = BICc(cvobject),
-                          "Positives"=sapply(cvobject$res,FUN=function(r){sum(r$alpha!=0)}),row.names = round(cvobject$lambda,digits=2)),2,FUN=function(x){round(x,digits=2)})
+                          OFV = -2*object$LL,
+                          BIC = BIC(object),
+                          BICc = BICc(object),
+                          "Positives"=sapply(object$res,FUN=function(r){sum(r$alpha!=0)}),row.names = round(object$lambda,digits=2)),2,FUN=function(x){round(x,digits=2)})
   print(toprint)
   cat(dashed.line)
 }

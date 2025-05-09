@@ -23,7 +23,7 @@ computeFinalTest(
 )
 }
 \arguments{
-\item{remix.output}{a \link{\code{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.}
+\item{remix.output}{a \code{\link{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.}
 
 \item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \itemize{\item \code{y} a named vector with the initial condition. The names are the dynamics names.
 \item \code{parms} a named vector of parameter.

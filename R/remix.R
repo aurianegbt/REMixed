@@ -108,6 +108,8 @@ remix <- function(project = NULL,
                   p.max=0.05){
 
   method <- NULL
+  RelativeBias <- parameter <- NULL
+  stat.test <- p.value <- NULL
 
   ptm.first <- ptm <- proc.time()
   dashed.line <- "--------------------------------------------------\n"

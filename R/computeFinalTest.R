@@ -7,7 +7,7 @@
 #'
 #'
 #'
-#' @param remix.output a \link{\code{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.
+#' @param remix.output a \code{\link{remix}} outputs. It's important that the \code{project} path of this outputs is still existing.
 #' @param final.project directory of the final Monolix project (default add "_upd" to the Monolix project).
 #' @param pop.set population parameters setting for final estimation (see details).
 #' @param print logical, if the results and algotihm steps should be displayed in the console (default to TRUE).
