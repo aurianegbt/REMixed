@@ -43,6 +43,7 @@
 #' @seealso \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{getContinuousObservationModel}}, \code{\link{getObservationInformation}}
 #'
 #' @examples
+#' \dontrun{
 #' project <- getMLXdir()
 #'
 #' ObsModel.transfo = list(S=list(AB=log10),
@@ -54,6 +55,7 @@
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
 #' res <- readMLX(project,ObsModel.transfo,alpha)
+#' }
 readMLX <- function(project=NULL,
                     ObsModel.transfo,
                     alpha

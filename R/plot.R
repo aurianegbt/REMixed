@@ -3,13 +3,16 @@
 #' Calibration and Informative Criterion plot for cvRemix object.
 #'
 #' @param x output of \code{\link{cv.remix}}.
+#' @param criterion which criterion function to take into account. Default is the function 'BICc", but one can use 'BIC', 'AIC', 'eBIC' or any function depending on a `cvRemix` object.
+#' @param trueValue -for simulation purposes- named vector of true value for parameters.
+#' @param ... opptional additional arguments.
 #'
 #' @return A plot.
 #'
 #' @seealso \code{\link{cv.remix}}
 #'
 #' @export
-plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL){
+plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL,...){
   pC <- plotCalibration(x,criterion=criterion,trueValue = trueValue)+ggplot2::ggtitle("")
   pI <- plotIC(x,criterion=criterion)+ggplot2::ggtitle("")
 

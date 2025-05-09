@@ -1,5 +1,5 @@
 #' @export
-summary.remix <- function(remix.output){
+summary.remix <- function(remix.output,...){
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
@@ -62,7 +62,7 @@ summary.remix <- function(remix.output){
 }
 
 #' @export
-summary.cvRemix <- function(cvremix.output){
+summary.cvRemix <- function(cvremix.output,...){
   dashed.line <- "--------------------------------------------------\n"
   plain.line <- "__________________________________________________\n"
   dashed.short <- "-----------------------\n"
