@@ -164,6 +164,7 @@ initStrat <- function(project,
   to.cat <- paste0(to.cat,"\n ",paste0(lapply(split_list,FUN=function(x){paste0("(",paste0(sort(x),collapse=","),")")}),collapse=" - "))
   print_result(print,summary.file,to.cat,to.print=NULL)
 
+
   res = lapply(split_list,FUN=function(genes){
     to.cat <- ("\n--------------------------------------------------\n")
     to.cat <- paste0(to.cat,"Starting with biomarkers : ",paste0(genes,collapse=", "),"\n")

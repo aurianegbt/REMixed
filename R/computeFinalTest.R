@@ -121,7 +121,7 @@ computeFinalTest <- function(remix.output,
     dir.create(remix.dir)
   Sys.sleep(0.1)
   summary.file = file.path(remix.dir, "summary.txt")
-  # unlink(summary.file,force=TRUE)
+  unlink(summary.file,force=TRUE)
   Sys.sleep(0.1)
 
 
@@ -218,15 +218,15 @@ computeFinalTest <- function(remix.output,
 
         populationParameters[populationParameters$name==paste0(alpha$alpha0[k],"_pop"),c("initialValue","method")] <- c(MLE[[k]]$estimate[["mean"]],"FIXED")
       }
-      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[k]]$estimate[["sd"]],"FIXED")
+      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameters[[yGk]],c("initialValue","method")] <-c(MLE[[k]]$estimate[["sd"]],"FIXED")
     }else{
       if(!is.null(alpha$alpha0)){
         populationParameters[populationParameters$name==paste0(alpha$alpha0[k],"_pop"),"method"] <- "MLE"
       }
-      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],"method"] <- "MLE"
+      populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameters[[yGk]],"method"] <- "MLE"
     }
   }
-  MLE <- setNames(MLE,names(alpha$alpha0))
+  MLE <- setNames(MLE,names(alpha$alpha1))
 
   populationParameters$initialValue <- as.numeric(populationParameters$initialValue)
 
@@ -248,7 +248,7 @@ computeFinalTest <- function(remix.output,
     }
 
     se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                        data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                        data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameters[names(which(a.final==0))])),
                                                    se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
                                                    rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
   }
@@ -334,7 +334,7 @@ computeFinalTest <- function(remix.output,
         if(!is.null(alpha$alpha0)){
           populationParameters[populationParameters$name==paste0(alpha$alpha0[yGk],"_pop"),c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["mean"]],"FIXED")
         }
-        populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameter[[yGk]],c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["sd"]],"FIXED")
+        populationParameters[populationParameters$name==mlx.getContinuousObservationModel()$parameters[[yGk]],c("initialValue","method")] <-c(MLE[[yGk]]$estimate[["sd"]],"FIXED")
         }
 
       to.cat <- paste0("   time elapsed : ",round((proc.time()-ptm)["elapsed"],digits=digits),"s\n")
@@ -364,7 +364,7 @@ computeFinalTest <- function(remix.output,
                                                          rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["mean"]]/MLE[[yGk]]$estimate[["mean"]]*100}),row.names = 1:length(which(a.final==0))))
         }
         se$stochasticApproximation <- rbind(se$stochasticApproximation,
-                                            data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameter[names(which(a.final==0))])),
+                                            data.frame(parameter = unlist(unname(mlx.getContinuousObservationModel()$parameters[names(which(a.final==0))])),
                                                        se = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]}),
                                                        rse = sapply(names(which(a.final==0)),FUN=function(yGk){MLE[[yGk]]$sd[["sd"]]/MLE[[yGk]]$estimate[["sd"]]*100}),row.names = 1:length(which(a.final==0))))
       }

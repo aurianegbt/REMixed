@@ -145,9 +145,10 @@ mlx.getEstimatedIndividualParameters <- function() {
   .hiddenCall(paste0('r <- lixoftConnectors::getEstimatedIndividualParameters()'))
   return(r)
 }
-mlx.getEstimatedRandomEffects <- function(...,method="") {
+mlx.getEstimatedRandomEffects <- function ()
+{
   r <- NULL
-  .hiddenCall(paste0('r <- lixoftConnectors::getEstimatedRandomEffects(...,method)'))
+  .hiddenCall(paste0("r <- lixoftConnectors::getEstimatedRandomEffects()"))
   return(r)
 }
 mlx.getEstimatedStandardErrors <- function() {

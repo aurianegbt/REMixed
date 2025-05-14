@@ -215,7 +215,7 @@ readMLX <- function(project=NULL,
       ObsModel.transfo = ObsModel.transfo
     ))
   }else{
-    random.effect = mlx.getEstimatedRandomEffects(method="conditionalMean")
+    random.effect = mlx.getEstimatedRandomEffects()
     N = length(random.effect$conditionalMean$id)
 
     Omega = lapply(1:N,FUN=function(i){

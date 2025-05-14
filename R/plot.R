@@ -11,7 +11,7 @@
 #'
 #' @seealso \code{\link{cv.remix}}
 #'
-#' @export
+# #' @export
 plot.cvRemix <- function(x,criterion=BICc,trueValue=NULL,...){
   pC <- plotCalibration(x,criterion=criterion,trueValue = trueValue)+ggplot2::ggtitle("")
   pI <- plotIC(x,criterion=criterion)+ggplot2::ggtitle("")
@@ -171,19 +171,16 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #'
 #' plotSAEM(res,paramToPlot = c("delta_S_pop","phi_S_pop","delta_AB_pop"),trueValue=trueValue)
 #' }
-plotConvergence <- function(fit){
+plotConvergence <- function(fit,...){
   if(!inherits(fit,"remix")){
     stop("Class of fit must be remix")
   }
-
 
   iteration <-  NULL
 
   niter = fit$finalRes$iter
   LL.outputs <- sapply(fit$iterOutputs$LL,FUN=function(Liter){Liter$LL})
-  LL.pen <- sapply(1:niter,FUN=function(i){
-    LL.outputs[i] - fit$info$lambda*sum(fit$iterOutputs$param[i,fit$info$regParam.toprint]!=0)
-  })
+  LL.pen <- unlist(fit$iterOutputs$LL.pen)
 
   dfToPlot <- data.frame(iteration = 1:length(LL.outputs),LL=LL.outputs,LL.pen = LL.pen)
 
@@ -191,7 +188,7 @@ plotConvergence <- function(fit){
   ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LL.pen))+
     ggplot2::geom_line()+
     ggplot2::geom_point() +
-    ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
+    # ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
     ggplot2::ylab("Penalised log-likelihood")
 }
 
@@ -408,7 +405,7 @@ plotInit <- function(init,alpha=NULL,trueValue=NULL){
             legend.key = ggplot2::element_rect(fill = "transparent", color = NA),
             legend.background = ggplot2::element_rect(fill = "transparent", color = NA))
   }else{
-    if(!is.null(alpha)){
+    if(is.null(alpha)){
       stop("alpha arguments need to be provided")
     }
     genes = data.frame(yGk=names(alpha$alpha1),
@@ -416,17 +413,17 @@ plotInit <- function(init,alpha=NULL,trueValue=NULL){
 
     results <- cbind(results,
                      P = sapply(init,function(i){sum(genes[genes$yGk %in% i$genes,"true"])}))
-  }
 
-  ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL,color=P))+ggplot2::geom_point(size=3)+
-    ggplot2::ylab("Log-Likelihood")+
-    ggplot2::xlab("Genes pair") +
-    ggplot2::theme(axis.title=ggplot2::element_text(size=12),
-                   axis.text.y = ggplot2::element_text(size=10),
-                   axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
-                   strip.text = ggplot2::element_text(size = 11),
-                   plot.background = ggplot2::element_rect(fill='transparent', color=NA),
-                   legend.key = ggplot2::element_rect(fill = "transparent", color = NA),
-                   legend.background = ggplot2::element_rect(fill = "transparent", color = NA)) +
-    ggplot2::scale_color_gradient2(name="Contains\nTrue Positives",low ="darkred",high =  "darkseagreen",midpoint=0.5,mid="#999b6e",breaks=0:max(results$P))
+    ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL,color=P))+ggplot2::geom_point(size=3)+
+      ggplot2::ylab("Log-Likelihood")+
+      ggplot2::xlab("Genes pair") +
+      ggplot2::theme(axis.title=ggplot2::element_text(size=12),
+                     axis.text.y = ggplot2::element_text(size=10),
+                     axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
+                     strip.text = ggplot2::element_text(size = 11),
+                     plot.background = ggplot2::element_rect(fill='transparent', color=NA),
+                     legend.key = ggplot2::element_rect(fill = "transparent", color = NA),
+                     legend.background = ggplot2::element_rect(fill = "transparent", color = NA)) +
+      ggplot2::scale_color_gradient2(name="Contains\nTrue Positives",low ="darkred",high =  "darkseagreen",midpoint=0.5,mid="#999b6e",breaks=0:max(results$P))
+  }
 }

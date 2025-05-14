@@ -63,7 +63,7 @@
 #'            alpha1=setNames(paste0("alpha_1",1:5),paste0("yG",1:5)))
 #'
 #' y = c(S=5,AB=1000)
-#' lambda = 382
+#' lambda = 382.22
 #'
 #' res = remix(project = project,
 #'             dynFUN = dynFUN_demo,
@@ -874,17 +874,27 @@ saemUpdate <- function(project = NULL,final.project=NULL,
                        sd=c(mean=sd(Yk)*sqrt((length(Yk)-1)/length(Yk))/sqrt(length(Yk)),
                             sd=sd(Yk)*sqrt((length(Yk)-1)/length(Yk))/sqrt(2*length(Yk))))
     }
-
     if(a.final[k]==0){
       if(!is.null(alpha$alpha0)){
-        eval(parse(text=paste0("mlx.setPopulationParameterInformation(",alpha$alpha0[k],"_pop=list(initialValue=",MLE[[k]]$estimate[["mean"]],",method='FIXED'))")))
+        # eval(parse(text=paste0("a <-list(",alpha$alpha0[k],"_pop=list(initialValue=",MLE[[k]]$estimate[["mean"]],",method='FIXED'))")))
+        a <- data.frame(name=paste0(alpha$alpha0[k],"_pop"),
+                        initialValue=MLE[[k]]$estimate[["mean"]],
+                        method="FIXED")
+        mlx.setPopulationParameterInformation(a)
       }
-      eval(parse(text=paste0("mlx.setPopulationParameterInformation(",mlx.getContinuousObservationModel()$parameter[[yGk]],"=list(initialValue=",MLE[[k]]$estimate[["sd"]],",method='FIXED'))")))
+      a <- data.frame(name=mlx.getContinuousObservationModel()$parameter[[yGk]],
+                      initialValue=MLE[[k]]$estimate[["sd"]],
+                      method="FIXED")
+      mlx.setPopulationParameterInformation(a)
     }else{
       if(!is.null(alpha$alpha0)){
-        eval(parse(text=paste0("mlx.setPopulationParameterInformation(",alpha$alpha0[k],"_pop=list(method='MLE'))")))
+        a <- data.frame(name=paste0(alpha$alpha0[k],"_pop"),
+                        method="MLE")
+        mlx.setPopulationParameterInformation(a)
       }
-      eval(parse(text=paste0("mlx.setPopulationParameterInformation(",mlx.getContinuousObservationModel()$parameter[[yGk]],"=list(method='MLE'))")))
+      a <- data.frame(name=mlx.getContinuousObservationModel()$parameter[[yGk]],
+                      method="MLE")
+      mlx.setPopulationParameterInformation(a)
     }
   }
   MLE <- setNames(MLE,names(alpha$alpha0))
@@ -892,14 +902,22 @@ saemUpdate <- function(project = NULL,final.project=NULL,
   if(finalSAEM){
     for(k in 1:length(alpha$alpha1)){
       if(a.final[k]==0){
-        eval(parse(text=paste0("mlx.setPopulationParameterInformation(",alpha$alpha1[k],"_pop=list(initialValue=0,method='FIXED'))")))
+        a <- data.frame(name=paste0(alpha$alpha1[k],"_pop"),
+                        initialValue=0,
+                        method="FIXED")
+        mlx.setPopulationParameterInformation(a)
       }else{
-        eval(parse(text=paste0("mlx.setPopulationParameterInformation(",alpha$alpha1[k],"_pop=list(initialValue=",a.final[k],",method='MLE'))")))
+        a <- data.frame(name=paste0(alpha$alpha1[k],"_pop"),
+                        method="MLE")
+        mlx.setPopulationParameterInformation(a)
       }
     }
   }else{
     for(k in 1:length(alpha$alpha1)){
-      eval(parse(text=paste0("mlx.setPopulationParameterInformation(",alpha$alpha1[k],"_pop=list(initialValue=",a.final[k],",method='FIXED'))")))
+      a <- data.frame(name=paste0(alpha$alpha1[k],"_pop"),
+                      initialValue = a.final[k],
+                      method="FIXED")
+      mlx.setPopulationParameterInformation(a)
     }
   }
 

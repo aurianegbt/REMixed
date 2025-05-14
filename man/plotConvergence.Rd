@@ -4,7 +4,7 @@
 \alias{plotConvergence}
 \title{Log-likelihood convergence.}
 \usage{
-plotConvergence(fit)
+plotConvergence(fit, ...)
 }
 \arguments{
 \item{fit}{fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.}
