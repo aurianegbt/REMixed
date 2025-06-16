@@ -124,7 +124,7 @@ readMLX <- function(project=NULL,
                        "initialValue"]
         }else{
           0
-        }},USE.NAMES = F)
+        }},USE.NAMES = FALSE)
       if(identical(g,rep(0,ncol(covariates)))){
         g <- NULL
       }
@@ -138,7 +138,7 @@ readMLX <- function(project=NULL,
                        "initialValue"]
         }else{
           0
-        }},USE.NAMES = F)
+        }},USE.NAMES = FALSE)
       if(identical(b,rep(0,ncol(covariates)))){
         b <- NULL
       }
@@ -160,7 +160,7 @@ readMLX <- function(project=NULL,
     alpha0[!is.null(alpha$alpha0)] <- setNames(value.params[value.params$name %in% paste0(alpha$alpha0,"_pop"),"initialValue"],names(alpha$alpha0))
   }
   alpha1 <- setNames(sapply(alpha$alpha1,FUN=function(a){
-    value.params[value.params$name==paste0(a,"_pop"),"initialValue"]},USE.NAMES = F),names(alpha$alpha1))
+    value.params[value.params$name==paste0(a,"_pop"),"initialValue"]},USE.NAMES = FALSE),names(alpha$alpha1))
 
   theta = setNames(list(phi_pop,psi_pop,gamma,beta,alpha0,omega),c("phi_pop","psi_pop","gamma","beta","alpha0","omega"))
 
@@ -171,10 +171,10 @@ readMLX <- function(project=NULL,
 
   Serr <- sapply(ObsModel.transfo$linkS,FUN=function(x){
     value.params[value.params$name==ErrorModel[[x]],"initialValue"]
-  },USE.NAMES = T)
+  },USE.NAMES = TRUE)
   Rerr <- sapply(ObsModel.transfo$linkR,FUN=function(x){
     value.params[value.params$name==ErrorModel[[x]],"initialValue"]
-  },USE.NAMES = T)
+  },USE.NAMES = TRUE)
 
   # ParModel.transfo and inv
   ParModel <- IndividualParameterModel$distribution[union(phi.names,psi.names)]

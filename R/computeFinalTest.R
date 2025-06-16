@@ -95,6 +95,8 @@ computeFinalTest <- function(remix.output,
   plain.short <- "_______________________\n"
 
   op.original <- options()
+
+  on.exit(options(op.original))
   op.new <- options()
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
@@ -143,7 +145,7 @@ computeFinalTest <- function(remix.output,
   print_result(print,summary.file,to.cat,to.print=NULL)
 
   pset <- list(nbsmoothingiterations=200,nbexploratoryiterations=500,
-               simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
+               simulatedannealing=TRUE, smoothingautostop=TRUE,exploratoryautostop=TRUE)
   if(!is.null(pop.set))
     pset <-  modifyList(pset, pop.set[intersect(names(pop.set),
                                                 names(pset))])
@@ -166,7 +168,7 @@ computeFinalTest <- function(remix.output,
   print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   to.cat <- "\n"
-  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = T)})[regParam.toprint])
+  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = TRUE)})[regParam.toprint])
   row.names(to.print) <- regParam.toprint
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,

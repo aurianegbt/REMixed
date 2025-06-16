@@ -134,6 +134,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
 #' Log-likelihood convergence.
 #'
 #' @param fit fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.
+#' @param ... opptional additional arguments.
 #'
 #' @return Log-Likelihood values throughout the algorithm iteration.
 #' @export
@@ -391,7 +392,11 @@ plotInit <- function(init,alpha=NULL,trueValue=NULL){
   }
 
   results <- data.frame(genes = unname(sapply(init,function(i){paste0("(",paste0(sort(i$genes),collapse=","),")")})),
-                        LL = sapply(init,function(i){-1/2*i$LL[["OFV"]]}))
+                        LL = sapply(init,function(i){-1/2*i$LL[["OFV"]]})) %>%
+    dplyr::arrange(dplyr::desc(LL))
+
+
+  results$genes <- factor(results$genes,levels=results$genes)
 
   if(is.null(trueValue)){
     ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL))+ggplot2::geom_point(size=3)+

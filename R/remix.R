@@ -118,6 +118,7 @@ remix <- function(project = NULL,
   plain.short <- "_______________________\n"
 
   op.original <- options()
+  on.exit(options(op.original))
   op.new <- options()
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
@@ -185,7 +186,7 @@ remix <- function(project = NULL,
 
   if(!selfInit){
     pset1 <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
-                  simulatedannealing = T, smoothingautostop = T, exploratoryautostop = T)
+                  simulatedannealing = TRUE, smoothingautostop = TRUE, exploratoryautostop = TRUE)
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
@@ -194,8 +195,8 @@ remix <- function(project = NULL,
                                                      names(pop.set1))])
   }
 
-  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = T,
-                smoothingautostop = T, exploratoryautostop = T)
+  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = TRUE,
+                smoothingautostop = TRUE, exploratoryautostop = TRUE)
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
@@ -263,7 +264,7 @@ remix <- function(project = NULL,
   print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   to.cat <- "\n"
-  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = T)})[regParam.toprint])
+  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = TRUE)})[regParam.toprint])
   row.names(to.print) <- regParam.toprint
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,
@@ -314,7 +315,7 @@ remix <- function(project = NULL,
   param.outputs <- param0
   crit.outputs <- data.frame()
 
-  stop <- F
+  stop <- FALSE
   iter =  0
   crit1 <- crit2 <- critb <- 1
 
@@ -466,7 +467,7 @@ remix <- function(project = NULL,
     crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
 
     if(crit1<eps1 && crit2 <eps2 ){
-      stop <- T
+      stop <- TRUE
     }
 
     LL0 <- LL
@@ -694,7 +695,7 @@ inflate.H.Ariane <- function(H,eps.eigen=10**(-5),print=FALSE){# inflation hessi
 
   tr <- sum(diag(H))/ncol(H)
 
-  eigen.values<-eigen(H,symmetric=T,only.values=T)$values
+  eigen.values<-eigen(H,symmetric=TRUE,only.values=TRUE)$values
 
   idpos<-ifelse(any(eigen.values<=eps.eigen),1,0) # nous avons besoin de faire la procédure d'inflation ?
   idpos0<-idpos
@@ -736,7 +737,7 @@ inflate.H.Ariane <- function(H,eps.eigen=10**(-5),print=FALSE){# inflation hessi
 
     # la on élimine si la essienne a des valeurs infinie (erreur dans ces cas là et on sort de l'algorithme)
     if(sum(H==Inf)>0|sum(H==-Inf)>0){stop("eigen values of hessienne undefined")}
-    eigen.values<-eigen(H,symmetric=T,only.values=T)$values
+    eigen.values<-eigen(H,symmetric=TRUE,only.values=TRUE)$values
     if(print){
       cat("eigen.values :\n")
       cat("\t",eigen.values,"\n\n")
@@ -840,7 +841,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
 
   if(finalSAEM){
     pset <- list(nbsmoothingiterations=200,nbexploratoryiterations=500,
-                 simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
+                 simulatedannealing=TRUE, smoothingautostop=TRUE,exploratoryautostop=TRUE)
     if(!is.null(pop.setFinal))
       pset <-  modifyList(pset, pop.setFinal[intersect(names(pop.setFinal),
                                                        names(pset))])
@@ -848,7 +849,7 @@ saemUpdate <- function(project = NULL,final.project=NULL,
     pop.set <- modifyList(pop.set, pset[intersect(names(pset), names(pop.set))])
   }else{
     pset <- list(nbsmoothingiterations=50,nbexploratoryiterations=50,
-                 simulatedannealing=T, smoothingautostop=T,exploratoryautostop=T)
+                 simulatedannealing=TRUE, smoothingautostop=TRUE,exploratoryautostop=TRUE)
     if(!is.null(pop.set))
       pset <-  modifyList(pset, pop.set[intersect(names(pop.set),
                                                   names(pset))])

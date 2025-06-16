@@ -108,6 +108,7 @@ cv.remix <- function(project = NULL,
 
   op.original <- options()
   op.new <- options()
+  on.exit(options(op.original))
   op.new$lixoft_notificationOptions$warnings <- 1
   options(op.new)
 
@@ -179,7 +180,7 @@ cv.remix <- function(project = NULL,
 
   if(!selfInit){
     pset1 <- list(nbexploratoryiterations = 200, nbsmoothingiterations = 50,
-                  simulatedannealing = T, smoothingautostop = T, exploratoryautostop = T)
+                  simulatedannealing = TRUE, smoothingautostop = TRUE, exploratoryautostop = TRUE)
     if (!is.null(pop.set1))
       pset1 <- modifyList(pset1, pop.set1[intersect(names(pop.set1),
                                                     names(pset1))])
@@ -188,8 +189,8 @@ cv.remix <- function(project = NULL,
                                                      names(pop.set1))])
   }
 
-  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = T,
-                smoothingautostop =T, exploratoryautostop = T)
+  pset2 <- list(nbexploratoryiterations = 150, nbsmoothingiterations = 50, simulatedannealing = TRUE,
+                smoothingautostop =TRUE, exploratoryautostop = TRUE)
   if (!is.null(pop.set2))
     pset2 <- modifyList(pset2, pop.set2[intersect(names(pop.set2),
                                                   names(pset2))])
@@ -245,7 +246,7 @@ cv.remix <- function(project = NULL,
   print_result(print, summary.file, to.cat = to.cat, to.print = to.print)
 
   to.cat <- "\n"
-  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = T)})[regParam.toprint])
+  to.print <- data.frame(EstimatedValue = sapply(param0,FUN=function(p){format(signif(p,digits=digits),scientific = TRUE)})[regParam.toprint])
   row.names(to.print) <- regParam.toprint
   if(!is.null(trueValue)){
     to.print <- cbind(to.print,
@@ -343,7 +344,7 @@ cv.remix <- function(project = NULL,
       param.outputs <- param0
       crit.outputs <- data.frame()
 
-      stop <- F
+      stop <- FALSE
       iter =  0
       crit1 <- crit2 <- critb <- 1
 
@@ -502,7 +503,7 @@ cv.remix <- function(project = NULL,
         crit.outputs <- rbind(crit.outputs,data.frame(iter=iter,crit1,critb,crit2))
 
         if(crit1<eps1 && crit2 <eps2 ){
-          stop <- T
+          stop <- TRUE
         }
 
         LL0 <- LL

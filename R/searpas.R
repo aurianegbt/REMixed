@@ -175,7 +175,7 @@ fim.searpas <- function(
               alpha1 = alpha1,
               dynFUN = dynFUN,
               y = y,
-              covariates_i = covariates[i,,drop=F],
+              covariates_i = covariates[i,,drop=FALSE],
               ParModel.transfo = ParModel.transfo,
               ParModel.transfo.inv = ParModel.transfo.inv,
               Sobs_i = lapply(Sobs,FUN=function(S){S[S$id==i,]}),
@@ -264,7 +264,7 @@ fim.searpas.ind <- function(
       Robs_i = lapply(Robs,FUN=function(R){R[R$id==ind,]})
     }
     if(is.null(covariates_i)){
-      covariates_i = covariates[ind,,drop=F]
+      covariates_i = covariates[ind,,drop=FALSE]
     }
   }
 
