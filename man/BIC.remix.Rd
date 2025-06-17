@@ -48,5 +48,5 @@ BIC(res)
 }
 }
 \references{
-Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
+Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461-464
 }

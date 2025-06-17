@@ -37,9 +37,9 @@ remix(
 
 \item{final.project}{directory of the final Monolix project (default add "_upd" to the Monolix project).}
 
-\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \itemize{\item \code{y} a named vector with the initial condition. The names are the dynamics names.
-\item \code{parms} a named vector of parameter.
-\item \code{time} vector a timepoint.}
+\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \describe{\item{\code{y}}{a named vector with the initial condition. The names are the dynamics names.}
+\item{\code{parms}}{a named vector of parameter.}
+\item{\code{time}}{vector a timepoint.}}
 
 See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
 
@@ -49,10 +49,10 @@ See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pa
 
 Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 
-\itemize{
-  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
+\describe{
+  \item{\code{S}}{a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});}\item{\code{linkS}}{a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};}
 
-  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
+  \item{\code{R}}{similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN};} \item{\code{linkR}}{a vector specifying the observation model names for each transformation, in the same order as in \code{R}.}
 }}
 
 \item{alpha}{named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).}
@@ -96,7 +96,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{p.max}{maximum value to each for wald test p.value (default 0.05).}
 }
 \value{
-a list of outputs of final project and through the iteration : \itemize{\item \code{info} informations about the parameters (project path, regulatization and population parameter names, alpha names, value of lambda used, if final SAEM and test has been computed, parameters p.max and \eqn{N}) ;\item \code{finalRes} containing loglikelihood \code{LL} and penalized loglikelihood \code{LL.pen} values, final population parameters \code{param} and final regularization parameters \code{alpha} values, number of iterations \code{iter} and \code{time} needed , if computed, the estimated standard errors \code{standardError} and if test computed, the final results before test \code{saemBeforeTest} ; \item\code{iterOutputs} the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}
+a list of outputs of final project and through the iteration : \describe{\item{\code{info}}{informations about the parameters (project path, regulatization and population parameter names, alpha names, value of lambda used, if final SAEM and test has been computed, parameters p.max and \eqn{N}) ;}\item{\code{finalRes}}{containing loglikelihood \code{LL} and penalized loglikelihood \code{LL.pen} values, final population parameters \code{param} and final regularization parameters \code{alpha} values, number of iterations \code{iter} and \code{time} needed , if computed, the estimated standard errors \code{standardError} and if test computed, the final results before test \code{saemBeforeTest} ;}\item{\code{iterOutputs}}{the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}}
 }
 \description{
 Regularization and Estimation in MIXed effects model.

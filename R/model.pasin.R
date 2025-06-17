@@ -1,4 +1,4 @@
-#' Model from Pasin and al.,2019.
+#' Model from Pasin and al.,2019
 #'
 #' @description
 #' Generate trajectory of the Humoral Immune Response to a Prime-Boost Ebola Vaccine.
@@ -27,7 +27,8 @@
 #' res <- model.pasin(t,y,parms)
 #' plot(res)
 #'
-#' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
+#' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93: e00579-19. https://doi.org/10.1128/JVI.00579-19
+
 
 model.pasin <- function(t,y,parms){
   #phi_S,phi_L,delta_Ab,delta_S=0.23,delta_L=0.000316

@@ -131,7 +131,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
   finalPlot
 }
 
-#' Log-likelihood convergence.
+#' Log-likelihood convergence
 #'
 #' @param fit fit object of class remix, from \code{\link{remix}} or a certain build from \code{\link{cv.remix}} output.
 #' @param ... opptional additional arguments.
@@ -195,7 +195,7 @@ plotConvergence <- function(fit,...){
 
 
 
-#' Calibration plot.
+#' Calibration plot
 #'
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}}.
 #' @param legend.position (default NULL) 	the default position of legends ("none", "left", "right", "bottom", "top", "inside").
@@ -293,7 +293,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
   return(p)
 }
 
-#' IC plot.
+#' IC plot
 #'
 #' @param fit fit object of class cvRemix, from \code{\link{cv.remix}};
 #' @param criterion which criterion among 'BICc', 'BIC', 'AIC' or 'eBIC' to take into account (default: BICc);

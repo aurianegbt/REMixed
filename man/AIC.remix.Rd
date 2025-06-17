@@ -50,5 +50,5 @@ AIC(res)
 }
 }
 \references{
-Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199–213. New York: Springer.
+Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199-213. New York: Springer.
 }

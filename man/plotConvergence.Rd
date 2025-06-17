@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plotConvergence}
 \alias{plotConvergence}
-\title{Log-likelihood convergence.}
+\title{Log-likelihood convergence}
 \usage{
 plotConvergence(fit, ...)
 }
@@ -15,7 +15,7 @@ plotConvergence(fit, ...)
 Log-Likelihood values throughout the algorithm iteration.
 }
 \description{
-Log-likelihood convergence.
+Log-likelihood convergence
 }
 \examples{
 \dontrun{

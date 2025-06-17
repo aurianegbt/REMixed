@@ -77,13 +77,13 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{data}{output from \code{\link{readMLX}} containing parameters "\code{mu}", "\code{Omega}", "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" extract from a monolix project.}
 
-\item{n}{number of points to use for the Gauss-Hermite quadrature rule (see \code{\link{gaussHermiteData}}).}
+\item{n}{number of points to use for the Gauss-Hermite quadrature rule.}
 
 \item{prune}{integer between 0 and 1, percentage of pruning for the Gauss-Hermite quadrature rule (default NULL).}
 
 \item{parallel}{logical, if computation should be done in parallel.}
 
-\item{ncores}{number of cores to use for parallelization, default will detect the number of cores available (see \code{\link{detectCores}}).}
+\item{ncores}{number of cores to use for parallelization, default will detect the number of cores available.}
 
 \item{onlyLL}{logical, if only the log-likelihood should be computed (and not \eqn{\partial_{\alpha_1} LL} or \eqn{\partial_{\alpha_1}^2 LL}).}
 

@@ -36,9 +36,10 @@ cv.remix(
 
 \item{final.project}{directory of the final Monolix project (default add "_upd" to the Monolix project).}
 
-\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input : \itemize{\item \code{y} a named vector with the initial condition. The names are the dynamics names.
-\item \code{parms} a named vector of parameter.
-\item \code{time} vector a timepoint.}
+\item{dynFUN}{function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a \code{foreach} loop). The output of this function need to return a data.frame with \code{time} as first columns and named dynamics in other columns. It must take in input :
+\describe{\item{\code{y}}{a named vector with the initial condition. The names are the dynamics names.}
+\item{\code{parms}}{a named vector of parameter}.
+\item{\code{time}}{vector a timepoint.}}
 
 See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
 
@@ -48,10 +49,10 @@ See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pa
 
 Both \code{S} (for the direct observation models) and \code{linkS}, as well as \code{R} (for latent process models) and \code{linkR}, must have the same length.
 
-\itemize{
-  \item\code{S}: a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});  \item\code{linkS} : a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S};
+\describe{
+  \item{\code{S}}{a list of transformations for the direct observation models. Each transformation corresponds to a variable \eqn{Y_p=h_p(S_p)}, where the name indicates which dynamic is observed (from \code{dynFUN});}\item{\code{linkS}}{a vector specifying the observation model names (that is used in the monolix project, \code{alpha1}, etc.) for each transformation, in the same order as in \code{S}};
 
-  \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
+  \item{\code{R}}{similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN};} \item{\code{linkR}}{a vector specifying the observation model names for each transformation, in the same order as in \code{R}.}
 }}
 
 \item{alpha}{named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The name of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).}
@@ -93,7 +94,18 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{max.iter}{maximum number of iteration (default 20).}
 }
 \value{
-a list of outputs of final project and through the iteration for every lambda on lambda.grid : \itemize{\item \code{info} information about the parameters ; \item{\code{project}} the project path if not unlinked ; \item{\code{lambda}} the grid of \eqn{\lambda} ; \item \code{BIC, BICc} the vector of BIC/BICc for the model built over the grid of \eqn{\lambda} ; \item\code{LL} the vector of Log-Likelihood for the model built over the grid of \eqn{\lambda} ; \item\code{LL.pen} the vector of penalisez log-likelihood for the model built over the grid of \eqn{\lambda};\item\code{res} the list of all remix results for every \eqn{\lambda} (see \code{\link{remix}}); \item\code{outputs} the list of all remix outputs for every \eqn{\lambda} (see \code{\link{remix}}).}
+A list of outputs of the final project and of the iterative process over each value of \code{lambda.grid}:
+\describe{
+  \item{\code{info}}{Information about the parameters.}
+  \item{\code{project}}{The project path if not unlinked.}
+  \item{\code{lambda}}{The grid of \eqn{\lambda}.}
+  \item{\code{BIC}}{Vector of BIC values for the model built over the grid of \eqn{\lambda}.}
+  \item{\code{BICc}}{Vector of BICc values for the model built over the grid of \eqn{\lambda}.}
+  \item{\code{LL}}{Vector of log-likelihoods for the model built over the grid of \eqn{\lambda}.}
+  \item{\code{LL.pen}}{Vector of penalized log-likelihoods for the model built over the grid of \eqn{\lambda}.}
+  \item{\code{res}}{List of all REMix results for each \eqn{\lambda} (see \code{\link{remix}}).}
+  \item{\code{outputs}}{List of all REMix outputs for each \eqn{\lambda} (see \code{\link{remix}}).}
+}
 }
 \description{
 Regularization and Estimation in MIXed effects model, over a regularization path.
@@ -128,7 +140,4 @@ res = cv.remix(project = project,
                nlambda=8,
                eps2=1)
 }
-}
-\seealso{
-\code{\link{remix}}, \code{\link{retrieveBest}}.
 }

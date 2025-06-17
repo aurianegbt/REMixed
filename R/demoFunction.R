@@ -1,4 +1,4 @@
-#' Get monolix demo project path.
+#' Get monolix demo project path
 #'
 #' @return path to the monolix demo from REMix package.
 #' @export

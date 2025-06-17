@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plotCalibration}
 \alias{plotCalibration}
-\title{Calibration plot.}
+\title{Calibration plot}
 \usage{
 plotCalibration(
   fit,
@@ -27,7 +27,7 @@ plotCalibration(
 Calibration plot, over the lambda.grid.
 }
 \description{
-Calibration plot.
+Calibration plot
 }
 \examples{
 \dontrun{

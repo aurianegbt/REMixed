@@ -2,7 +2,7 @@
 % Please edit documentation in R/demoFunction.R
 \name{getMLXdir}
 \alias{getMLXdir}
-\title{Get monolix demo project path.}
+\title{Get monolix demo project path}
 \usage{
 getMLXdir()
 }
@@ -10,7 +10,7 @@ getMLXdir()
 path to the monolix demo from REMix package.
 }
 \description{
-Get monolix demo project path.
+Get monolix demo project path
 }
 \examples{
 print(getMLXdir())

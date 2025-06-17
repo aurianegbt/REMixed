@@ -39,10 +39,10 @@
 #'   \item\code{R}: similarly, a list of transformations for the latent process models. Although currently there is only one latent dynamic, each \eqn{s_k, k\leq K} transformation corresponds to the same dynamic but may vary for each \eqn{Y_k} observed. The names should match the output from \code{dynFUN}; \item \code{linkR} : a vector specifying the observation model names for each transformation, in the same order as in \code{R}.
 #' }
 #' @param data output from \code{\link{readMLX}} containing parameters "\code{mu}", "\code{Omega}", "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" extract from a monolix project.
-#' @param n number of points to use for the Gauss-Hermite quadrature rule (see \code{\link{gaussHermiteData}}).
+#' @param n number of points to use for the Gauss-Hermite quadrature rule.
 #' @param prune integer between 0 and 1, percentage of pruning for the Gauss-Hermite quadrature rule (default NULL).
 #' @param parallel logical, if computation should be done in parallel.
-#' @param ncores number of cores to use for parallelization, default will detect the number of cores available (see \code{\link{detectCores}}).
+#' @param ncores number of cores to use for parallelization, default will detect the number of cores available.
 #' @param onlyLL logical, if only the log-likelihood should be computed (and not \eqn{\partial_{\alpha_1} LL} or \eqn{\partial_{\alpha_1}^2 LL}).
 #' @param verbose logical, if progress bar should be printed through the computation.
 #'

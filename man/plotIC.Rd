@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plotIC}
 \alias{plotIC}
-\title{IC plot.}
+\title{IC plot}
 \usage{
 plotIC(fit, criterion = BICc, dismin = TRUE)
 }
@@ -17,7 +17,7 @@ plotIC(fit, criterion = BICc, dismin = TRUE)
 IC trhoughout the lambda.grid.
 }
 \description{
-IC plot.
+IC plot
 }
 \examples{
 \dontrun{

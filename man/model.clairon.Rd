@@ -2,7 +2,7 @@
 % Please edit documentation in R/model.clairon.R
 \name{model.clairon}
 \alias{model.clairon}
-\title{Model from Clairon and al.,2023.}
+\title{Model from Clairon and al.,2023}
 \usage{
 model.clairon(t, y, parms, tinj = 21)
 }
@@ -43,7 +43,7 @@ plot(res)
 
 }
 \references{
-Quentin Clairon, Mélanie Prague, Delphine Planas, Timothée Bruel, Laurent Hocqueloux, et al.. Modeling the evolution of the neutralizing antibody response against SARS-CoV-2 variants after several administrations of Bnt162b2. 2023. hal-03946556
+Quentin Clairon, Melanie Prague, Delphine Planas, Timothee Bruel, Laurent Hocqueloux, et al. Modeling the evolution of the neutralizing antibody response against SARS-CoV-2 variants after several administrations of Bnt162b2. 2023. hal-03946556
 }
 \seealso{
 \code{\link{indParm}}

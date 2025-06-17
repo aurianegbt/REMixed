@@ -1,16 +1,27 @@
 Package: REMix
 Type: Package
-Title: Regularization & estimation in MIXed effect model
+Title: Regularized Estimation in MIXed Effect Model
 Version: 0.1.0
-Author: Auriane Gabaut, Ariane Bercu, Mélanie Prague, Cécile Proust-Lima
+Authors@R: c(person(given = "Auriane",
+                        family = "Gabaut",
+                        role = c("aut", "cre"),
+                        email = "auriane.gabaut@inria.fr"),
+                 person(given = "Ariane",
+                        family = "Bercu",
+                        role = "aut"),
+                 person(given = "Mélanie",
+                        family = "Prague",
+                        role = "aut"),
+                 person(given = "Cécile",
+                        family = "Proust-Lima",
+                        role = "aut"))
 Maintainer: Auriane Gabaut <auriane.gabaut@inria.fr>
-Description: This package propose the implementation of an algorithm in two steps to estimate parameters of a model whose latent dynamics are inferred through latent processes, jointly regularized. This package uses Monolix software <https://monolix.lixoft.com>, which provide robust statistical method for non-linear mixed effects modeling. 'Monolix' must have been installed prior to use. 
-SystemRequirements: 'Monolix' (<https://monolix.lixoft.com>)
+Description: Implementation of an algorithm in two steps to estimate parameters of a model whose latent dynamics are inferred through latent processes, jointly regularized. This package uses Monolix software (<https://monolixsuite.slp-software.com/>), which provide robust statistical method for non-linear mixed effects modeling. 'Monolix' must have been installed prior to use. 
+SystemRequirements: 'Monolix' (<https://monolixsuite.slp-software.com/>)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Imports: foreach, deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr, ggpubr
-Depends : foreach
 RoxygenNote: 7.3.2
 Depends: 
-    R (>= 3.5.0) 
+    R (>= 3.5.0), foreach

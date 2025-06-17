@@ -1,4 +1,4 @@
-#' Model from Clairon and al.,2023.
+#' Model from Clairon and al.,2023
 #'
 #' @description
 #' Generates the dynamics of antibodies secreting cells -\eqn{S}- that produces antibodies -\eqn{AB}-   over time, with two injection of vaccine at time \eqn{t_0=0} and \eqn{t_{inj}}, using Clairon and al., 2023, model.
@@ -32,7 +32,7 @@
 #'
 #' plot(res)
 #'
-#' @references Quentin Clairon, Mélanie Prague, Delphine Planas, Timothée Bruel, Laurent Hocqueloux, et al.. Modeling the evolution of the neutralizing antibody response against SARS-CoV-2 variants after several administrations of Bnt162b2. 2023. hal-03946556
+#' @references Quentin Clairon, Melanie Prague, Delphine Planas, Timothee Bruel, Laurent Hocqueloux, et al. Modeling the evolution of the neutralizing antibody response against SARS-CoV-2 variants after several administrations of Bnt162b2. 2023. hal-03946556
 model.clairon <- function(t,y,parms,tinj=21){
   #t_inj,fM1,fM2,theta1,theta2,delta_S,delta_V=2.7,delta_Ab=0.03
   if(!setequal(names(y),c("S","Ab"))){

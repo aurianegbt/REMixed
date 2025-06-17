@@ -1,4 +1,4 @@
-#' Dynamic functions demo.
+#' Dynamic functions demo
 #'
 #' Example of solver for \code{\link{remix}} and \code{\link{cv.remix}} algorithm. It is perfectly adapted for the Monolix demo project (see \code{\link{getMLXdir}}).
 #'
@@ -8,11 +8,11 @@
 #'
 #' @format \code{dynFUN_demo}
 #' function of \code{t}, \code{y}, \code{parms} :
-#' \describe{ \itemize{
-#'   \item{\code{t} : vector of timepoint.}
-#'   \item{\code{y} : initial condition, named vector of form \code{c(AB=<...>,S=<...>)}.}
-#'   \item{\code{parms} : named vector of model parameter ; should contain \code{phi_S},\code{delta_AB},\code{delta_S}.}
-#' }}
+#' \describe{
+#'   \item{\code{t}}{vector of timepoint.}
+#'   \item{\code{y}}{initial condition, named vector of form \code{c(AB=<...>,S=<...>)}.}
+#'   \item{\code{parms}}{named vector of model parameter ; should contain \code{phi_S},\code{delta_AB},\code{delta_S}.}
+#' }
 #'
 #' @seealso \code{\link{model.pasin}}, \code{\link{getMLXdir}}.
 #'
@@ -37,5 +37,6 @@
 #'      main="Antibody secreting cells quantity over time",
 #'      type="l")
 #'
-#' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93:e00579-19. https://doi.org/10.1128/JVI.00579-19.
+#' @references Pasin C, Balelli I, Van Effelterre T, Bockstal V, Solforosi L, Prague M, Douoguih M, Thiébaut R, for the EBOVAC1 Consortium. 2019. Dynamics of the humoral immune response to a prime-boost Ebola vaccine: quantification and sources of variation. J Virol 93 : e00579-19. https://doi.org/10.1128/JVI.00579-19
+
 "dynFUN_demo"

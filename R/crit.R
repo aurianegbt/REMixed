@@ -7,7 +7,7 @@
 #' @param object output of \code{\link{remix}}.
 #' @param ... additional arguments.
 #'
-#' @references Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461–464
+#' @references Schwarz, G. 1978. Estimating the dimension of a model. The annals of statistics 6 (2): 461-464
 #' @returns BIC.
 #' @export
 #'
@@ -54,7 +54,7 @@ BIC.remix <- function(object,...){
 #' @param ... additional arguments.
 #' @param k 	numeric, the penalty per parameter to be used; the default k = 2 is the classical AIC.
 #'
-#' @references Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199–213. New York: Springer.
+#' @references Akaike, H. 1998. Information theory and an extension of the maximum likelihood principle, Selected papers of hirotugu akaike, 199-213. New York: Springer.
 #' @returns AIC.
 #' @export
 #'
@@ -100,7 +100,7 @@ AIC.remix <- function(object,...,k){
 #' @param object output of \code{\link{remix}} or \code{\link{cv.remix}}.
 #' @param ... opptional additional arguments.
 #'
-#' @references  Chen, J. and Z. Chen. 2008. Extended Bayesian information criteria for model selection with large model spaces. Biometrika 95 (3): 759–771
+#' @references  Chen, J. and Z. Chen. 2008. Extended Bayesian information criteria for model selection with large model spaces. Biometrika 95 (3): 759-771.
 #' @returns eBIC.
 #' @export
 #'
