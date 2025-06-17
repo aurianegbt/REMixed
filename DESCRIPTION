@@ -21,7 +21,7 @@ SystemRequirements: 'Monolix' (<https://monolixsuite.slp-software.com/>)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports: foreach, deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr, ggpubr
+Imports: deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr, ggpubr
 RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5.0), foreach
