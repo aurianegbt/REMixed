@@ -93,10 +93,10 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 A list with the approximation by Gauss-Hermite quadrature of the likelihood \code{L}, the log-likelihood \code{LL}, the gradient of the log-likelihood \code{dLL}, and the Hessian of the log-likelihood \code{ddLL} at the point \eqn{\theta, \alpha} provided.
 }
 \description{
-Computes Adaptive Gauss-Hermite approximation of the log-likelihood and its derivatives in NLMEM with latent observation processes, see \code{\link{REMix-package}} for details on the model.
+Computes Adaptive Gauss-Hermite approximation of the log-likelihood and its derivatives in NLMEM with latent observation processes, see \code{\link{REMixed-package}} for details on the model.
 }
 \details{
-Based on notation introduced \code{\link{REMix-package}}. The log-likelihood of the model \eqn{LL(\theta,\alpha_1)} for a set of population parameters \eqn{\theta} and regulatization parameters \eqn{\alpha_1} is estimated using Adaptative Gausse-Hermite quadrature, using  conditional distribution estimation to locate the mass of the integrand. If the project has been initialized as a Monolix project, the user can use \code{\link{readMLX}} function to retrieve all the project information needed here.
+Based on notation introduced \code{\link{REMixed-package}}. The log-likelihood of the model \eqn{LL(\theta,\alpha_1)} for a set of population parameters \eqn{\theta} and regulatization parameters \eqn{\alpha_1} is estimated using Adaptative Gausse-Hermite quadrature, using  conditional distribution estimation to locate the mass of the integrand. If the project has been initialized as a Monolix project, the user can use \code{\link{readMLX}} function to retrieve all the project information needed here.
 }
 \examples{
 \dontrun{

@@ -1,10 +1,10 @@
-#' REMix algorithm
+#' REMixed algorithm
 #'
 #' @description
-#' Regularization and Estimation in MIXed effects model.
+#' Regularization and Estimation in Mixed effects model.
 #'
 #' @details
-#' See \code{\link{REMix-package}} for details on the model.
+#' See \code{\link{REMixed-package}} for details on the model.
 #' For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 #'
 #'

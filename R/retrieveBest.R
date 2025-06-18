@@ -1,4 +1,4 @@
-#' Remix results
+#' REMixed results
 #'
 #' Extracts the build minimizing an information criterion over a grid of lambda.
 #'

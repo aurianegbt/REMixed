@@ -2,7 +2,7 @@
 % Please edit documentation in R/cv.remix.R
 \name{cv.remix}
 \alias{cv.remix}
-\title{REMix algorithm over a grid of \eqn{\lambda}}
+\title{REMixed algorithm over a grid of \eqn{\lambda}}
 \usage{
 cv.remix(
   project = NULL,
@@ -103,15 +103,15 @@ A list of outputs of the final project and of the iterative process over each va
   \item{\code{BICc}}{Vector of BICc values for the model built over the grid of \eqn{\lambda}.}
   \item{\code{LL}}{Vector of log-likelihoods for the model built over the grid of \eqn{\lambda}.}
   \item{\code{LL.pen}}{Vector of penalized log-likelihoods for the model built over the grid of \eqn{\lambda}.}
-  \item{\code{res}}{List of all REMix results for each \eqn{\lambda} (see \code{\link{remix}}).}
-  \item{\code{outputs}}{List of all REMix outputs for each \eqn{\lambda} (see \code{\link{remix}}).}
+  \item{\code{res}}{List of all REMixed results for each \eqn{\lambda} (see \code{\link{remix}}).}
+  \item{\code{outputs}}{List of all REMixed outputs for each \eqn{\lambda} (see \code{\link{remix}}).}
 }
 }
 \description{
 Regularization and Estimation in MIXed effects model, over a regularization path.
 }
 \details{
-See \code{\link{REMix-package}} for details on the model.
+See \code{\link{REMixed-package}} for details on the model.
 For each \eqn{\lambda\in\Lambda}, the \code{\link{remix}} is launched.
 For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 }

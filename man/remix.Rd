@@ -2,7 +2,7 @@
 % Please edit documentation in R/remix.R
 \name{remix}
 \alias{remix}
-\title{REMix algorithm}
+\title{REMixed algorithm}
 \usage{
 remix(
   project = NULL,
@@ -99,10 +99,10 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 a list of outputs of final project and through the iteration : \describe{\item{\code{info}}{informations about the parameters (project path, regulatization and population parameter names, alpha names, value of lambda used, if final SAEM and test has been computed, parameters p.max and \eqn{N}) ;}\item{\code{finalRes}}{containing loglikelihood \code{LL} and penalized loglikelihood \code{LL.pen} values, final population parameters \code{param} and final regularization parameters \code{alpha} values, number of iterations \code{iter} and \code{time} needed , if computed, the estimated standard errors \code{standardError} and if test computed, the final results before test \code{saemBeforeTest} ;}\item{\code{iterOutputs}}{the list of all remix outputs, i.e. parameters, lieklihood, SAEM estimates and convergence criterion value over the iteration.}}
 }
 \description{
-Regularization and Estimation in MIXed effects model.
+Regularization and Estimation in Mixed effects model.
 }
 \details{
-See \code{\link{REMix-package}} for details on the model.
+See \code{\link{REMixed-package}} for details on the model.
 For population parameter estimation settings, see (<https://monolixsuite.slp-software.com/r-functions/2024R1/setpopulationparameterestimationsettings>).
 }
 \examples{

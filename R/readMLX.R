@@ -1,7 +1,7 @@
-#' Extract Data for REMix Algorithm from a Monolix Project
+#' Extract Data for REMixed Algorithm from a Monolix Project
 #'
 #' @description
-#' This function retrieves all necessary information from a Monolix project file to format the input for the REMix package. It gathers all relevant data required for the REMix algorithm.
+#' This function retrieves all necessary information from a Monolix project file to format the input for the REMixed package. It gathers all relevant data required for the REMix algorithm.
 #'
 #' @details
 #' To simplify its use, functions \code{\link{remix}}, \code{\link{cv.remix}}, \code{\link{gh.LL}} can be used with arguments \code{data} rather than all necessary informations "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" that could be extract from a monolix project. If the SAEM task of the project hasn't been launched, it's the initial condition and not the estimated parameters that are returned. If the conditional distribution estimation task has been launched, parameters "\code{mu}" and "\code{Omega}" are returned too.
@@ -18,7 +18,7 @@
 #' }
 #' @param alpha named list of named vector "\code{alpha0}", "\code{alpha1}" (all \code{alpha1} are mandatory). The names of \code{alpha$alpha0} and \code{alpha$alpha1} are the observation model names from the monolix project to which they are linked (if the observations models are defined whithout intercept, alpha$alpha0 need to be set to the vector NULL).
 #'
-#' @return A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMix algorithm :
+#' @return A list containing parameters, transformations, and observations from the Monolix project in the format needed for the REMixed algorithm :
 #' \itemize{
 #'   \item\code{mu} list of individuals random effects estimation (vector of r.e. need to be named by the parameter names), use to locate the density mass (if conditional distribution estimation through Monolix has been launched);
 #'   \item\code{Omega} list of individuals estimated standard deviation diagonal matrix (matrix need to have rows and columns named by the parameter names), use to locate the density mass (if conditional distribution estimation through Monolix has been launched);

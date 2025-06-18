@@ -2,7 +2,7 @@
 % Please edit documentation in R/retrieveBest.R
 \name{retrieveBest}
 \alias{retrieveBest}
-\title{Remix results}
+\title{REMixed results}
 \usage{
 retrieveBest(fit, criterion = BICc)
 }
