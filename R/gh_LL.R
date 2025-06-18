@@ -1,10 +1,10 @@
 #' Adaptive Gauss-Hermite approximation of log-likelihood derivatives
 #'
 #' @description
-#' Computes Adaptive Gauss-Hermite approximation of the log-likelihood and its derivatives in NLMEM with latent observation processes, see \code{\link{REMix-package}} for details on the model.
+#' Computes Adaptive Gauss-Hermite approximation of the log-likelihood and its derivatives in NLMEM with latent observation processes, see \code{\link{REMixed-package}} for details on the model.
 #'
 #' @details
-#' Based on notation introduced \code{\link{REMix-package}}. The log-likelihood of the model \eqn{LL(\theta,\alpha_1)} for a set of population parameters \eqn{\theta} and regulatization parameters \eqn{\alpha_1} is estimated using Adaptative Gausse-Hermite quadrature, using  conditional distribution estimation to locate the mass of the integrand. If the project has been initialized as a Monolix project, the user can use \code{\link{readMLX}} function to retrieve all the project information needed here.
+#' Based on notation introduced \code{\link{REMixed-package}}. The log-likelihood of the model \eqn{LL(\theta,\alpha_1)} for a set of population parameters \eqn{\theta} and regulatization parameters \eqn{\alpha_1} is estimated using Adaptative Gausse-Hermite quadrature, using  conditional distribution estimation to locate the mass of the integrand. If the project has been initialized as a Monolix project, the user can use \code{\link{readMLX}} function to retrieve all the project information needed here.
 #'
 #' @param dynFUN function computing the dynamics of interest for a set of parameters. This function need to contain every sub-function that it may needs (as it is called in a foreach loop). The output of this function need to return a data.frame with \code{time} : as first columns and named dynamics in other columns. It must take in input : \itemize{\item\code{y} : a named vector with the initial condition. The names are the dynamics names.
 #' \item\code{parms} : a named vector of parameter.
@@ -141,8 +141,7 @@ gh.LL <- function(
     opts <- NULL
   }
 
-
-  res = foreach::foreach(i = 1:N,.packages = "REMix",.options.snow=opts)%dopar%{
+  res = foreach::foreach(i = 1:N,.packages = "REMixed",.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
@@ -304,7 +303,7 @@ gh.LL.ind <- function(
 
     # .Machine$double.xmin
 
-    little_marg = sapply(1:R.sz,FUN=function(k){
+    decomp_marg = lapply(1:R.sz,FUN=function(k){
       yGk = ObsModel.transfo$linkR[k]
       sig = Rerr[[yGk]]
       tki = Robs_i[[yGk]]$time
@@ -315,14 +314,23 @@ gh.LL.ind <- function(
       trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
       Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-      prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
+      aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
+      if(any(aux)==0){
+        pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = 32)
+
+        aux = 1/(sig*sqrt(2*pi))*exp(pw)
+      }
+
+      decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
+
+      return(decomp_aux)
     })
 
-    if(any(little_marg==0)){
-      stop("Error in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
+    if(any(sapply(decomp_marg,function(x){x["mantissa"]})==0)){
+      stop("[Error] in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
     }
 
-    decomp_marg = lapply(little_marg,decomp)
+    # decomp_marg = lapply(little_marg,decomp)
 
     decomp_intermediaire = decomp(prod(sapply(decomp_marg,FUN=function(decomp){decomp["mantissa"]})))
 
@@ -786,7 +794,7 @@ lambda.max  <- function(
     opts <- NULL
   }
 
-  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = c("lambda.max.ind","amgauss.hermite"),.options.snow=opts)%dopar%{
+  res = foreach::foreach(i = 1:N,.packages = "REMixed",.export = c("lambda.max.ind","amgauss.hermite"),.options.snow=opts)%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
@@ -816,6 +824,9 @@ lambda.max  <- function(
 }
 
 decomp <- function(x){
+  if(x==0){
+    return(c(exponent=0,mantissa=0))
+  }
   exponent_x <- floor(log10(abs(x))) # Exponent
   exponent_lim <- abs(floor(log10(.Machine$double.xmin)))
 
