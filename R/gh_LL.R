@@ -315,14 +315,23 @@ gh.LL.ind <- function(
       Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
       aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
-      if(any(aux)==0){
+      if(any(aux==0)){
         pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = 32)
 
         aux = 1/(sig*sqrt(2*pi))*exp(pw)
+
+        decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
+      }else{
+
+        decomp_aux <- lapply(aux,decomp)
+
+        decomp_intermediaire = decomp(prod(sapply(decomp_aux,FUN=function(decomp){decomp["mantissa"]})))
+
+        mantissa_aux = decomp_intermediaire["mantissa"]
+        exponent_aux = sum(sapply(decomp_aux,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+        decomp_aux <- c(exponent_aux,mantissa_aux)
       }
-
-      decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
-
       return(decomp_aux)
     })
 
