@@ -1,6 +1,6 @@
-Package: REMix
+Package: REMixed
 Type: Package
-Title: Regularized Estimation in MIXed Effect Model
+Title: Regularized Estimation in Mixed Effect Model
 Version: 0.1.0
 Authors@R: c(person(given = "Auriane",
                         family = "Gabaut",
@@ -21,7 +21,7 @@ SystemRequirements: 'Monolix' (<https://monolixsuite.slp-software.com/>)
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-Imports: deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr, ggpubr
+Imports: deSolve, Rsmlx, doSNOW, dplyr, fastGHQuad, ggplot2, snow, stringr
 RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5.0), foreach

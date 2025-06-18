@@ -19,7 +19,7 @@
 A plot.
 }
 \description{
-Calibration and Informative Criterion plot for cvRemix object.
+Calibration plot for cvRemix object.
 }
 \seealso{
 \code{\link{cv.remix}}
