@@ -77,7 +77,7 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 
 \item{data}{output from \code{\link{readMLX}} containing parameters "\code{mu}", "\code{Omega}", "\code{theta}", "\code{alpha1}", "\code{covariates}", "\code{ParModel.transfo}", "\code{ParModel.transfo.inv}", "\code{Sobs}", "\code{Robs}", "\code{Serr}", "\code{Rerr}", "\code{ObsModel.transfo}" extract from a monolix project.}
 
-\item{n}{number of points to use for the Gauss-Hermite quadrature rule.}
+\item{n}{number of points per dimension to use for the Gauss-Hermite quadrature rule.}
 
 \item{prune}{integer between 0 and 1, percentage of pruning for the Gauss-Hermite quadrature rule (default NULL).}
 
