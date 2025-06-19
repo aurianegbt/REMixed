@@ -8,9 +8,9 @@
 #' @examples
 #' print(getMLXdir())
 getMLXdir <- function(){
-  return(system.file("extdata", "demoMLX.mlxtran", package = "REMix"))
+  return(system.file("extdata", "demoMLX.mlxtran", package = "REMixed"))
 }
 
 getSMLXdir <- function(){
-  return(system.file("extdata", "demoSMLX.mlxtran", package = "REMix"))
+  return(system.file("extdata", "demoSMLX.mlxtran", package = "REMixed"))
 }
