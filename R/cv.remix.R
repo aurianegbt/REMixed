@@ -418,6 +418,7 @@ cv.remix <- function(project = NULL,
                            n = n,
                            prune = prune,
                            stored = NULL,
+                           print=print,
                            to.recalibrate=to.recalibrate,
                            parallel = FALSE,
                            lambda = lambda)
