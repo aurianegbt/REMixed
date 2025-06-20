@@ -1,6 +1,6 @@
 #' Line search
 #' @noRd
-searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,...){
+searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,print=FALSE,...){
 
   valfpa <- function(vw,b,delta,funcpa,stored,...){
     if(is.na(vw)) return(list(fim=-Inf,stored=stored))
@@ -31,14 +31,16 @@ searpas <- function(vw,step,b,delta,funcpa,res.out.error,stored=NULL,...){
   fi2 <- valfpa(vlw2,b,delta,funcpa,stored,...)$fim
 
   if((sum(!is.finite(fi1)) > 0) || (sum(!is.finite(fi2)) > 0)){
-    cat("Probably too much accuracy requested...\n")
-    cat("Last step values :\n")
-    cat("      b :",res.out.error$old.b,"\n")
-    cat("      function value :",res.out.error$old.rl,"\n")
-    cat("      Convergence criteria: parameters stability=", res.out.error$old.ca, "\n")
-    cat("                          : function stability=", res.out.error$old.cb, "\n")
-    cat("                          : best relative distance to maximum obtained (RDM)=", res.out.error$old.dd, "\n")
-    stop("")
+    if(print){
+      cat("Probably too much accuracy requested...\n")
+      cat("Last step values :\n")
+      cat("      b :",res.out.error$old.b,"\n")
+      cat("      function value :",res.out.error$old.rl,"\n")
+      cat("      Convergence criteria: parameters stability=", res.out.error$old.ca, "\n")
+      cat("                          : function stability=", res.out.error$old.cb, "\n")
+      cat("                          : best relative distance to maximum obtained (RDM)=", res.out.error$old.dd, "\n")
+      stop("")
+    }
   }
 
   if((fi2 >= fi1)){

@@ -16,7 +16,7 @@ Authors@R: c(person(given = "Auriane",
                         family = "Proust-Lima",
                         role = "aut"))
 Maintainer: Auriane Gabaut <auriane.gabaut@inria.fr>
-Description: Implementation of an algorithm in two steps to estimate parameters of a model whose latent dynamics are inferred through latent processes, jointly regularized. This package uses Monolix software (<https://monolixsuite.slp-software.com/>), which provide robust statistical method for non-linear mixed effects modeling. 'Monolix' must have been installed prior to use. 
+Description: Implementation of an algorithm in two steps to estimate parameters of a model whose latent dynamics are inferred through latent processes, jointly regularized. This package uses 'Monolix' software (<https://monolixsuite.slp-software.com/>), which provide robust statistical method for non-linear mixed effects modeling. 'Monolix' must have been installed prior to use. 
 SystemRequirements: 'Monolix' (<https://monolixsuite.slp-software.com/>)
 License: GPL (>= 3)
 Encoding: UTF-8
