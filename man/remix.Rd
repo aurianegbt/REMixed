@@ -13,7 +13,7 @@ remix(
   alpha,
   lambda,
   eps1 = 10^(-2),
-  eps2 = 10^(-2),
+  eps2 = 10^(-1),
   selfInit = FALSE,
   pop.set1 = NULL,
   pop.set2 = NULL,
