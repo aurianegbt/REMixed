@@ -45,6 +45,7 @@
 #' @param ncores number of cores to use for parallelization, default will detect the number of cores available.
 #' @param onlyLL logical, if only the log-likelihood should be computed (and not \eqn{\partial_{\alpha_1} LL} or \eqn{\partial_{\alpha_1}^2 LL}).
 #' @param verbose logical, if progress bar should be printed through the computation.
+#' @param precBits precision if needed
 #'
 #' @return A list with the approximation by Gauss-Hermite quadrature of the likelihood \code{L}, the log-likelihood \code{LL}, the gradient of the log-likelihood \code{dLL}, and the Hessian of the log-likelihood \code{ddLL} at the point \eqn{\theta, \alpha} provided.
 #' @export
@@ -92,7 +93,8 @@ gh.LL <- function(
     parallel=TRUE,
     ncores=NULL,
     onlyLL=FALSE,
-    verbose=TRUE){
+    verbose=TRUE,
+    precBits=10){
 
   if(is.null(data)){
     test <- sapply(c("mu","Omega","theta","alpha1","covariates","ParModel.transfo","ParModel.transfo.inv","Sobs","Robs","Serr","Rerr","ObsModel.transfo"),FUN=is.null)
@@ -162,7 +164,8 @@ gh.LL <- function(
                     ind = i,
                     n = n,
                     prune = prune,
-                    onlyLL = onlyLL)
+                    onlyLL = onlyLL,
+                    precBits=precBits)
 
 
     return(LLi)
@@ -212,7 +215,8 @@ gh.LL.ind <- function(
     ind = NULL,
     n = NULL,
     prune=NULL,
-    onlyLL=FALSE){
+    onlyLL=FALSE,
+    precBits=10){
 
   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
@@ -316,7 +320,7 @@ gh.LL.ind <- function(
 
       aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
       if(any(aux==0)){
-        pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = 32)
+        pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = precBits)
 
         aux = 1/(sig*sqrt(2*pi))*exp(pw)
 

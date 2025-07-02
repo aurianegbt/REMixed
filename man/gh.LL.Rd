@@ -25,7 +25,8 @@ gh.LL(
   parallel = TRUE,
   ncores = NULL,
   onlyLL = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  precBits = 10
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ Both \code{S} (for the direct observation models) and \code{linkS}, as well as \
 \item{onlyLL}{logical, if only the log-likelihood should be computed (and not \eqn{\partial_{\alpha_1} LL} or \eqn{\partial_{\alpha_1}^2 LL}).}
 
 \item{verbose}{logical, if progress bar should be printed through the computation.}
+
+\item{precBits}{precision if needed}
 }
 \value{
 A list with the approximation by Gauss-Hermite quadrature of the likelihood \code{L}, the log-likelihood \code{LL}, the gradient of the log-likelihood \code{dLL}, and the Hessian of the log-likelihood \code{ddLL} at the point \eqn{\theta, \alpha} provided.
