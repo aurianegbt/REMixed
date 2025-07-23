@@ -296,7 +296,16 @@ gh.LL.ind <- function(
   # eta_i = split(mh.parm$Points,1:nd)[[1]]
   dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
     PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
-    dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
+
+    yi <- sapply(y,function(yk){
+      if(length(yk)==1){
+        return(yk)
+      }else{
+        return(yk[[ind]])
+      }
+    })
+
+    dyn_eta_i <- dynFUN(all.tobs,yi,unlist(unname(PSI_i)))
 
     return(dyn_eta_i)
   }),paste0("eta_",1:nd))
@@ -597,7 +606,6 @@ lambda.max.ind <- function(
     prune=NULL){
 
 
-
   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
   if(is.null(data)){
@@ -644,7 +652,13 @@ lambda.max.ind <- function(
   }
 
   if(is.null(n)){
-    n <- floor(100**(1/length(theta$psi_pop)))
+    if(length(theta$psi_pop)==1){
+      n <- 100
+    }else if(length(theta$psi_pop)==2){
+      n <- 10
+    }else{
+      n <- 7
+    }
   }
 
   dm = length(mu_i)
@@ -666,30 +680,39 @@ lambda.max.ind <- function(
 
   dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
     PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
-    dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
+
+    yi <- sapply(y,function(yk){
+      if(length(yk)==1){
+        return(yk)
+      }else{
+        return(yk[[ind]])
+      }
+    })
+
+    dyn_eta_i <- dynFUN(all.tobs,yi,unlist(unname(PSI_i)))
 
     return(dyn_eta_i)
   }),paste0("eta_",1:nd))
 
   # Compute marginal latent density for each individual and value of RE
-  R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
-    dyn.ei = dyn[[paste0("eta_",ei)]]
-
-
-    res = prod(sapply(1:R.sz,FUN=function(k){
-      yGk = ObsModel.transfo$linkR[k]
-      sig = Rerr[[yGk]]
-      tki = Robs_i[[yGk]]$time
-      Zki = Robs_i[[yGk]][,yGk]
-
-      a0 = theta$alpha0[[yGk]]
-      a1 = alpha1[[yGk]]
-      trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
-      Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
-
-      prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
-    }))
-  }),paste0("eta_",1:nd))
+  # R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+  #   dyn.ei = dyn[[paste0("eta_",ei)]]
+  #
+  #
+  #   res = prod(sapply(1:R.sz,FUN=function(k){
+  #     yGk = ObsModel.transfo$linkR[k]
+  #     sig = Rerr[[yGk]]
+  #     tki = Robs_i[[yGk]]$time
+  #     Zki = Robs_i[[yGk]][,yGk]
+  #
+  #     a0 = theta$alpha0[[yGk]]
+  #     a1 = alpha1[[yGk]]
+  #     trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
+  #     Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
+  #
+  #     prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
+  #   }))
+  # }),paste0("eta_",1:nd))
 
   # A(Y|theta0)
   if(S.sz!=0){
@@ -827,6 +850,7 @@ lambda.max  <- function(
                    ObsModel.transfo = ObsModel.transfo,
                    n = n,
                    prune = prune)
+
     }
 
   if(verbose)
