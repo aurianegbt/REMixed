@@ -36,7 +36,7 @@ gh.LL(
 
 See \code{\link{dynFUN_demo}}, \code{\link{model.clairon}}, \code{\link{model.pasin}} or \code{\link{model.pk}} for examples.}
 
-\item{y}{initial condition of the mechanism model, conform to what is asked in \code{dynFUN}.}
+\item{y}{initial condition of the mechanism model, conform to what is asked in \code{dynFUN}. If regressor used in Monolix provided a named list of vector of individual initial conditions. Each vector need to be of length 1 (same for all), or exactly the numbre of individuals (range in the same order as their id).}
 
 \item{mu}{list of individuals random effects estimation (vector of r.e. need to be named by the parameter names), use to locate the density mass; (optional, see description).}
 
