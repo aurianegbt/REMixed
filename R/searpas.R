@@ -146,7 +146,13 @@ fim.searpas <- function(
     }
   }
   if(is.null(n)){
-    n <- floor(100**(1/length(theta$psi_pop)))
+    if(length(theta$psi_pop)==1){
+      n <- 100
+    }else if(length(theta$psi_pop)==2){
+      n <- 10
+    }else{
+      n <- 7
+    }
   }
 
   if(parallel){
