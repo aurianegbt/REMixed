@@ -341,7 +341,16 @@ fim.searpas.ind <- function(
 
     dyn <- setNames(lapply(split(mh.parm$Points,1:nd),FUN=function(eta_i){
       PSI_i  = indParm(theta[c("phi_pop","psi_pop","gamma","beta")],covariates_i,setNames(eta_i,colnames(Omega_i)),ParModel.transfo,ParModel.transfo.inv)
-      dyn_eta_i <- dynFUN(all.tobs,y,unlist(unname(PSI_i)))
+
+      yi <- sapply(y,function(yk){
+        if(length(yk)==1){
+          return(yk)
+        }else{
+          return(yk[[ind]])
+        }
+      })
+
+      dyn_eta_i <- dynFUN(all.tobs,yi,unlist(unname(PSI_i)))
 
       return(dyn_eta_i)
     }),paste0("eta_",1:nd))
