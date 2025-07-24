@@ -605,7 +605,6 @@ lambda.max.ind <- function(
     n = NULL,
     prune=NULL){
 
-
   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
   if(is.null(data)){
@@ -853,6 +852,7 @@ lambda.max  <- function(
                    Robs_i = lapply(Robs,FUN=function(R){R[R$id==i,]}),
                    Serr = Serr,
                    Rerr = Rerr,
+                   ind=i,
                    ObsModel.transfo = ObsModel.transfo,
                    n = n,
                    prune = prune)
