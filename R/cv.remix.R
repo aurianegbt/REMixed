@@ -386,6 +386,7 @@ cv.remix <- function(project = NULL,
 
         if((LLpen.aux %in% c(-Inf,Inf) | LLpen.aux < LL0.pen) && !all(a.final==0)){
           to.cat <- "\t/!\ [RECALIBRATION] /!\\n"
+
           print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
           print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
           th <- 1
@@ -423,11 +424,19 @@ cv.remix <- function(project = NULL,
                            parallel = FALSE,
                            lambda = lambda)
 
-          a.final[to.recalibrate] <- a.ini[to.recalibrate] + delta*sears$vw
+          if(is.na(sears$vw)){
+            to.cat <- "Fail to recalibrate, move to the next iteration\n"
+
+            print_result(PRINT, summary.file, to.cat = to.cat, to.print = NULL)
+            print_result(print, summary.file.new, to.cat = to.cat, to.print = NULL)
+          }else{
+            a.final[to.recalibrate] <- a.ini[to.recalibrate] + delta*sears$vw
 
           currentData$alpha1 <- a.final
 
           LLpen.aux <- gh.LL(dynFUN = dynFUN, y = y, data = currentData, n = n, prune = prune, parallel = FALSE,onlyLL=TRUE,verbose=FALSE) - lambda * sum(abs(a.final))
+
+          }
         }
 
         to.print <- data.frame(EstimatedValue = format(signif(a.final,digits=digits),scientific=TRUE))
@@ -457,7 +466,6 @@ cv.remix <- function(project = NULL,
                          currentData = currentData,
                          alpha = alpha, a.final = a.final,iter = iter , pop.set = pop.set2,
                          conditionalDistributionSampling = TRUE, StandardErrors = FALSE)
-
 
         estimates = re$SAEMiterations
         if(length(setdiff(union(param.toprint,regParam.toprint),colnames(estimates)[-c(1,2,3)]))!=0){
