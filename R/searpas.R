@@ -173,7 +173,7 @@ fim.searpas <- function(
   progress <- function(n) utils::setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
 
-  res = foreach::foreach(i = 1:N,.packages = "REMix",.export = "fim.searpas.ind")%dopar%{
+  res = foreach::foreach(i = 1:N,.packages = "REMixed",.export = "fim.searpas.ind")%dopar%{
     if(0 %in% diag(Omega[[i]])){
       diag(Omega[[i]])[diag(Omega[[i]])==0] <- 10**(-5)
     }
@@ -191,6 +191,7 @@ fim.searpas <- function(
               Serr = Serr,
               Rerr = Rerr,
               ObsModel.transfo = ObsModel.transfo,
+              ind = i,
               n = n,
               prune = prune,
               to.recalibrate = to.recalibrate,
@@ -282,7 +283,6 @@ fim.searpas.ind <- function(
 
   dm = length(mu_i)
 
-
   # STORED ----------------------------------------------------------------
   if(!is.null(stored)){
     mh.parm = stored$agh$mh.parm
@@ -298,11 +298,10 @@ fim.searpas.ind <- function(
     dyn <- stored$dyn
 
 
-    R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+    R.margDensity <-  setNames(lapply(1:nd,FUN=function(ei){
       dyn.ei = dyn[[paste0("eta_",ei)]]
 
-
-      res = prod(sapply(to.recalibrate,FUN=function(k){
+      decomp_marg = lapply(to.recalibrate,FUN=function(k){
         yGk = ObsModel.transfo$linkR[k]
         sig = Rerr[[yGk]]
         tki = Robs_i[[yGk]]$time
@@ -313,8 +312,44 @@ fim.searpas.ind <- function(
         trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
-      }))*stored$R.marg[[ei]]
+        aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
+        if(any(aux==0)){
+          pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = precBits)
+
+          aux = 1/(sig*sqrt(2*pi))*exp(pw)
+
+          decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
+        }else{
+
+          decomp_aux <- lapply(aux,decomp)
+
+          decomp_intermediaire = decomp(prod(sapply(decomp_aux,FUN=function(decomp){decomp["mantissa"]})))
+
+          mantissa_aux = decomp_intermediaire["mantissa"]
+          exponent_aux = sum(sapply(decomp_aux,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+          decomp_aux <- c(exponent_aux,mantissa_aux)
+        }
+        return(decomp_aux)
+      })
+
+      if(any(sapply(decomp_marg,function(x){x["mantissa"]})==0)){
+        stop("[Error] in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
+      }
+
+      # decomp_marg = lapply(little_marg,decomp)
+
+      decomp_intermediaire = decomp(prod(sapply(decomp_marg,FUN=function(decomp){decomp["mantissa"]})))
+
+      mantissa_res = decomp_intermediaire["mantissa"]
+      exponent_res = sum(sapply(decomp_marg,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+      decomp_intermediaire2 = decomp(unname(stored$R.marg[[ei]]["mantissa"]*mantissa_res))
+
+      mantissa_res = decomp_intermediaire2["mantissa"]
+      exponent_res = exponent_res + stored$R.marg[[ei]]["exponent"] + decomp_intermediaire2["exponent"]
+
+      return(c(exponent_res,mantissa_res))
     }),paste0("eta_",1:nd))
 
     S.margDensity <- stored$S.marg
@@ -363,11 +398,11 @@ fim.searpas.ind <- function(
 
     stored$dyn <- dyn
 
-    stored$R.marg <- setNames(sapply(1:nd,FUN=function(ei){
+    stored$R.marg <- setNames(lapply(1:nd,FUN=function(ei){
       dyn.ei = dyn[[paste0("eta_",ei)]]
 
-
-      res = prod(sapply(not.computed.again,FUN=function(k){
+      # .Machine$double.xmin
+      decomp_marg = lapply(not.computed.again,FUN=function(k){
         yGk = ObsModel.transfo$linkR[k]
         sig = Rerr[[yGk]]
         tki = Robs_i[[yGk]]$time
@@ -378,15 +413,45 @@ fim.searpas.ind <- function(
         trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
-      }))
+        aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
+        if(any(aux==0)){
+          pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = precBits)
+
+          aux = 1/(sig*sqrt(2*pi))*exp(pw)
+
+          decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
+        }else{
+
+          decomp_aux <- lapply(aux,decomp)
+
+          decomp_intermediaire = decomp(prod(sapply(decomp_aux,FUN=function(decomp){decomp["mantissa"]})))
+
+          mantissa_aux = decomp_intermediaire["mantissa"]
+          exponent_aux = sum(sapply(decomp_aux,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+          decomp_aux <- c(exponent_aux,mantissa_aux)
+        }
+        return(decomp_aux)
+      })
+
+      if(any(sapply(decomp_marg,function(x){x["mantissa"]})==0)){
+        stop("[Error] in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
+      }
+
+      # decomp_marg = lapply(little_marg,decomp)
+
+      decomp_intermediaire = decomp(prod(sapply(decomp_marg,FUN=function(decomp){decomp["mantissa"]})))
+
+      mantissa_res = decomp_intermediaire["mantissa"]
+      exponent_res = sum(sapply(decomp_marg,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+      return(c(exponent_res,mantissa_res))
     }),paste0("eta_",1:nd))
 
-    R.margDensity <- setNames(sapply(1:nd,FUN=function(ei){
+    R.margDensity <- setNames(lapply(1:nd,FUN=function(ei){
       dyn.ei = dyn[[paste0("eta_",ei)]]
 
-
-      res = prod(sapply(to.recalibrate,FUN=function(k){
+      decomp_marg = lapply(to.recalibrate,FUN=function(k){
         yGk = ObsModel.transfo$linkR[k]
         sig = Rerr[[yGk]]
         tki = Robs_i[[yGk]]$time
@@ -397,8 +462,44 @@ fim.searpas.ind <- function(
         trs = ObsModel.transfo$R[which(ObsModel.transfo$linkR==yGk)]
         Rki = trs[[1]](dyn.ei[dyn.ei[,"time"] %in% tki,names(trs)])
 
-        prod(1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2))
-      }))*stored$R.marg[[ei]]
+        aux <- 1/(sig*sqrt(2*pi))*exp(-1/2*((Zki-a0-a1*Rki)/sig)**2)
+        if(any(aux==0)){
+          pw <- Rmpfr::mpfr(-1/2*((Zki-a0-a1*Rki)/sig)**2,precBits = precBits)
+
+          aux = 1/(sig*sqrt(2*pi))*exp(pw)
+
+          decomp_aux = setNames(sapply(decomp(prod(aux)),as.numeric),c("exponent","mantissa"))
+        }else{
+
+          decomp_aux <- lapply(aux,decomp)
+
+          decomp_intermediaire = decomp(prod(sapply(decomp_aux,FUN=function(decomp){decomp["mantissa"]})))
+
+          mantissa_aux = decomp_intermediaire["mantissa"]
+          exponent_aux = sum(sapply(decomp_aux,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+          decomp_aux <- c(exponent_aux,mantissa_aux)
+        }
+        return(decomp_aux)
+      })
+
+      if(any(sapply(decomp_marg,function(x){x["mantissa"]})==0)){
+        stop("[Error] in log-likelihood computation, latent part of the marginal likelihood is equal to zero.")
+      }
+
+      # decomp_marg = lapply(little_marg,decomp)
+
+      decomp_intermediaire = decomp(prod(sapply(decomp_marg,FUN=function(decomp){decomp["mantissa"]})))
+
+      mantissa_res = decomp_intermediaire["mantissa"]
+      exponent_res = sum(sapply(decomp_marg,FUN=function(decomp){decomp["exponent"]})) + decomp_intermediaire["exponent"]
+
+      decomp_intermediaire2 = decomp(unname(stored$R.marg[[ei]]["mantissa"]*mantissa_res))
+
+      mantissa_res = decomp_intermediaire2["mantissa"]
+      exponent_res = exponent_res + stored$R.marg[[ei]]["exponent"] + decomp_intermediaire2["exponent"]
+
+      return(c(exponent_res,mantissa_res))
     }),paste0("eta_",1:nd))
 
     if(S.sz!=0){
@@ -429,8 +530,25 @@ fim.searpas.ind <- function(
 
 
   # Compute individual log-Likelihood
-  Li = sum(mh.parm$Weights*R.margDensity*S.margDensity)
-  LLi = log(Li)
+  Li.aux = lapply(1:nd,function(ei){
+    decomp_intermediaire = decomp(mh.parm$Weights[[ei]]*R.margDensity[[ei]][["mantissa"]]*S.margDensity[[ei]])
+
+    mantissa_res = decomp_intermediaire["mantissa"]
+    exponent_res = R.margDensity[[ei]][["exponent"]] + decomp_intermediaire["exponent"]
+
+    return(c(exponent_res,mantissa_res))
+  })
+  max_exponent <- max(sapply(Li.aux, function(x) x[["exponent"]]))
+  decomp.aux <- decomp(sum(sapply(Li.aux,function(li){
+    return(li[["mantissa"]]*10**(li[["exponent"]] - max_exponent))
+  })))
+
+  Li = c(exponent=(max_exponent+decomp.aux[["exponent"]]),mantissa=decomp.aux[["mantissa"]])
+  # sum(mh.parm$Weights*R.margDensity*S.margDensity)
+  invLi.aux = decomp(1/Li[["mantissa"]])
+  invLi = c(exponent=-Li[["exponent"]]+invLi.aux[["exponent"]],mantissa=invLi.aux[["mantissa"]])
+  # ln(p*10**o)=ln(p)+ln(10**o)=ln(p)+o*ln(10)
+  LLi = log(Li[["mantissa"]])+Li[["exponent"]]*log(10)
 
   return(list(LL=LLi,stored=stored))
 }
