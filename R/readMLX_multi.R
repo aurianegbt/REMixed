@@ -57,11 +57,10 @@
 #'
 
 # ---------- readMLX ----------
-readMLX <- function(project=NULL,
+readMLX_multi <- function(project=NULL,
                     ObsModel.transfo,
                     alpha,L
                     ){
-  #browser()
 
 ###VERIFICATIONS
   #on verifie bien la structure de chaque vecteur
@@ -89,7 +88,6 @@ readMLX <- function(project=NULL,
     if(!all(Reduce(union,list(ObsModel.transfo$linkS,ObsModel.transfo$linkR,names(alpha$alpha0),names(alpha[[a]]))) %in% names(lixoftConnectors::getObservationInformation()))){
     stop("Inconsistent observation model between the one provided in the monolix project and the one in function inputs.")
     }}
-
 
 ###PARAMETRES POP
 #getLaunchedTasks :
@@ -227,7 +225,6 @@ readMLX <- function(project=NULL,
       names(alpha[[alphal]])
     )
   }
-
 
   #a ce stade, le vecteur alpha compose de alpha0, alpha1 et alpha2 est toujours comme suit :
   #$alpha0
@@ -402,7 +399,6 @@ readMLX <- function(project=NULL,
   }
 }
 
-
 # ---------- OK FUNCTIONS ----------
 
 #EXEMPLE
@@ -418,7 +414,6 @@ readMLX <- function(project=NULL,
 #          alpha2=(alpha_21, alpha_22, alpha_23) )
 
 # ---------- 1. check.readMLX ----------
-
 #fonction qui verifie que les ObsModel.transfo et alpha sont bien definis par l'utilisateur
 #L : nb de compartiments latents
 check.readMLX <- function(ObsModel.transfo,alpha,L){
@@ -457,8 +452,8 @@ check.readMLX <- function(ObsModel.transfo,alpha,L){
 
   return(invisible(TRUE))
 }
-# ---------- 2. ok.beta ----------
 
+# ---------- 2. ok.beta ----------
 #formula : getIndividualParameterModel()$formula,
 #dans le getIndividualParameterModel()$formula, les formules sont separees d'un \n (cf fichier exemples)
 
@@ -602,40 +597,3 @@ prcheck <- function (project, f = NULL, settings = NULL, model = NULL,
   }
   return(list(project = project, demo = demo, res = res))
 }
-
-#
-# # ---------- TEST AVEC UN SEUL COMPARTIMENT  ----------
-# ObsModel.transfo = list(S=list(Ab=log10),
-#                         linkS="yyAB",
-#                         R1=rep(list(S=function(x){x}),5),
-#                         linkR = paste0("yyG",1:5))
-#
-# alpha=list(alpha0=NULL,
-#            alpha1=setNames(paste0("alpha_1",1:5),paste0("yyG",1:5)))
-#
-# L=1
-#
-# project<- '/Users/sistm/Desktop/intro monolix/adibide onak/test_monolix.mlxtran'
-#
-# data<-readMLX(project,ObsModel.transfo,alpha,L)
-#
-# # ---------- TEST AVEC 2 COMPARTIMENTS  ----------
-#
-# ObsModel.transfo_bis = list(S=list(Ab=log10),
-#                         linkS="yyAB",
-#                         R1=rep(list(S=function(x){x}),5),
-#                         R2=rep(list(S=function(x){x}),5),
-#                         linkR = paste0("yyG",1:5))
-#
-# alpha_bis=list(alpha0=setNames(paste0("alpha_0",1:5),paste0("yyG",1:5)),
-#            alpha1=setNames(paste0("alpha_1",1:5),paste0("yyG",1:5)),
-#            alpha2=setNames(paste0("alpha_2",1:5),paste0("yyG",1:5)))
-#
-# L=2
-#
-# project_bis<- '/Users/sistm/lisa/REMix mult/2comp/1_replicat.mlxtran'
-#
-# readMLX(project_bis,ObsModel.transfo_bis,alpha_bis,L)
-#
-#
-#
