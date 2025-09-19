@@ -106,6 +106,7 @@ plotSAEM <- function(fit,paramToPlot = 'all',trueValue=NULL){ # GENES are GENES 
     ggplot2::geom_line(data=phases,ggplot2::aes(x=end,y=",p,"),color='indianred',lwd=1)+
     ggplot2::geom_point(data=phases,ggplot2::aes(x=end,y=",p,"),color='indianred',size=2)+
     ggplot2::scale_fill_manual(values=color,breaks=phases$phase[-1]) +
+    ggplot2::theme_bw()+
     ggplot2::theme(legend.position='none')+
     ggplot2::xlim(c(0,nrow(estimates)))")
     if(!is.null(trueValue)){
@@ -180,6 +181,7 @@ plotConvergence <- function(fit,...){
   ggplot2::ggplot(dfToPlot,ggplot2::aes(x=iteration,y=LL.pen))+
     ggplot2::geom_line()+
     ggplot2::geom_point() +
+    ggplot2::theme_bw()+
     # ggplot2::ggtitle("Penalised log-likelihood value throughout the iteration. ") +
     ggplot2::ylab("Penalised log-likelihood")
 }
@@ -258,6 +260,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
 
     p <-
       ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=as.factor(null),group=parameter)) +
+      ggplot2::theme_bw()+
       ggplot2::theme(legend.position = legend.position) +
       ggplot2::geom_line() +
       ggplot2::geom_point()  +
@@ -271,6 +274,7 @@ plotCalibration <- function(fit,legend.position = "none",trueValue=NULL,criterio
   }else{
     p <-
       ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=value,color=parameter,group=parameter)) +
+      ggplot2::theme_bw()+
       ggplot2::theme(legend.position = legend.position) +
       ggplot2::geom_line() +
       ggplot2::geom_point()  +
@@ -337,8 +341,9 @@ plotIC <- function(fit,criterion=BICc,dismin=TRUE){
   p <-
   ggplot2::ggplot(df,ggplot2::aes(x=lambda,y=criterion)) +
     ggplot2::geom_line(color="slateblue") + ggplot2::geom_point(color="slateblue4",size=1,shape=3) +
-    ggplot2::ggtitle(paste0('Criterion throughout the grid of \u03bb')) +
-    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = ggplot2::element_text(size=20,color="red4"))
+    # ggplot2::ggtitle(paste0('Criterion throughout the grid of \u03bb')) +
+    ggplot2::xlab('\u03bb') + ggplot2::theme(plot.title = ggplot2::element_text(size=20,color="red4")) +
+    ggplot2::theme_bw()
   if(dismin){
     p <- p +
       ggplot2::geom_segment(x = df[which.min(df$criterion),"lambda"],xend = df[which.min(df$criterion),"lambda"], y = -Inf, yend=+Inf,col="indianred",lwd=0.7,linetype=5) +
@@ -393,6 +398,7 @@ plotInit <- function(init,alpha=NULL,trueValue=NULL){
     ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL))+ggplot2::geom_point(size=3)+
       ggplot2::ylab("Log-Likelihood")+
       ggplot2::xlab("Genes pair") +
+      ggplot2::theme_bw()+
       ggplot2::theme(axis.title=ggplot2::element_text(size=12),
             axis.text.y = ggplot2::element_text(size=10),
             axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
@@ -413,6 +419,7 @@ plotInit <- function(init,alpha=NULL,trueValue=NULL){
     ggplot2::ggplot(results,ggplot2::aes(x=genes,y=LL,color=P))+ggplot2::geom_point(size=3)+
       ggplot2::ylab("Log-Likelihood")+
       ggplot2::xlab("Genes pair") +
+      ggplot2::theme_bw()+
       ggplot2::theme(axis.title=ggplot2::element_text(size=12),
                      axis.text.y = ggplot2::element_text(size=10),
                      axis.text.x = ggplot2::element_text(size=8,angle=90,vjust = 0.5),
