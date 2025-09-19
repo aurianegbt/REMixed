@@ -231,7 +231,8 @@ fim.searpas.ind <- function(
     n = NULL,
     prune=NULL,
     to.recalibrate,
-    stored=NULL){
+    stored=NULL,
+    precBits=10){
   mu <- Omega <- Sobs <- Robs <- covariates <- NULL
 
   if(is.null(data)){
