@@ -108,7 +108,7 @@ A list of outputs of the final project and of the iterative process over each va
 }
 }
 \description{
-Regularization and Estimation in MIXed effects model, over a regularization path.
+Regularization and Estimation in Mixed effects model, over a regularization path.
 }
 \details{
 See \code{\link{REMixed-package}} for details on the model.

@@ -1,7 +1,7 @@
 #' REMixed algorithm over a grid of \eqn{\lambda}
 #'
 #' @description
-#' Regularization and Estimation in MIXed effects model, over a regularization path.
+#' Regularization and Estimation in Mixed effects model, over a regularization path.
 #'
 #' @details
 #' See \code{\link{REMixed-package}} for details on the model.
