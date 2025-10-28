@@ -1,3 +1,7 @@
+# REMixed version 1.1.1
+
+* reduce pdf compression on vignettes for image quality.
+
 # REMixed version 1.1.0
 
 * Add the possibility to use regressor as initial value. 

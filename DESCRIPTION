@@ -1,7 +1,7 @@
 Package: REMixed
 Type: Package
 Title: Regularized Estimation in Mixed Effects Model
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(person(given = "Auriane",
                         family = "Gabaut",
                         role = c("aut", "cre"),
